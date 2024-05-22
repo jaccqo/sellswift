@@ -235,13 +235,13 @@ const inventoryDeletion=()=>{
 
 var active_inventory=null
 var active_inventoryid=null
+
 const add_inventory_prod=()=>{
 
     $('.addInventoryproduct').click(function() {
         var itemId = $(this).data('inventoryproduct');
 
         
-
         var row_text = $(this).closest('tr').find('td:eq(1) p').text();
         
         InventoryGetBarcodes(itemId,row_text)
@@ -251,7 +251,6 @@ const add_inventory_prod=()=>{
         active_inventory=row_text
 
         $("#fullWidthModalLabelProducts").text(`${row_text} products Barcodes `)
-
 
         $("#barcodes-modal").modal("toggle");
 
@@ -294,8 +293,8 @@ $('#barcodeInput').keypress(function(event) {
 
                 const date_added_=resp_barcode_info.date_added
 
-                const barcodes_edit_ = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventory"  data-editbarcode="${resp_barcode_info._id}"></i></a>` +
-                `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventory"  data-deletebarcode="${resp_barcode_info._id}"></i></a>`;
+                const barcodes_edit_ = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventoryBarcode"  data-editbarcode="${resp_barcode_info._id}"></i></a>` +
+                `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventoryBarcode"  data-deletebarcode="${resp_barcode_info._id}"></i></a>`;
     
             
 
@@ -341,7 +340,6 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
     barcode_table.clear()
 
 
-
     var db_name=user_info.organization;
 
     // Construct the data object including dbname and itemId
@@ -358,16 +356,14 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
             // Handle success
             console.log("Data sent successfully:", response);
 
-        
-    
             
             if (response.barcodes.length === 0) {
                 // Add a dummy row indicating no data
                 barcode_table.row.add(["No data", "", "", ""]);
             } else {
                 $.each(response.barcodes, function(barcode, barcode_info) {
-                    var barcodes_edit = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventory"  data-editbarcode="${barcode_info._id}"></i></a>` +
-                        `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventory"  data-deletebarcode="${barcode_info._id}"></i></a>`;
+                    var barcodes_edit = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventoryBarcode"  data-editbarcode="${barcode_info._id}"></i></a>` +
+                        `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventoryBarcode"  data-deletebarcode="${barcode_info._id}"></i></a>`;
             
                     var barcode_date_added = barcode_info.date_added || null;
             
