@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script>
+    const dark_mode=async ()=>{
+  
+      if (typeof(Storage) !== "undefined") {
+      // Provided JSON data
+      const hyperConfig = {
+      theme: "dark",
+      nav: "vertical",
+      layout: { mode: "fluid", position: "fixed" },
+      topbar: { color: "light" },
+      menu: { color: "dark" },
+      sidenav: { size: "default", user: false }
+      };
+  
+      // Set the session storage item with the key __HYPER_CONFIG__
+      sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
+      } else {
+      // If sessionStorage is not supported, handle the error or fallback
+      console.error("Session storage is not supported.");
+      }
+
+      return 0;
+      }
+  
+      const light_mode=async ()=>{
+  
+          if (typeof(Storage) !== "undefined") {
+          // Provided JSON data
+          const hyperConfig = {
+          theme: "light",
+          nav: "vertical",
+          layout: { mode: "fluid", position: "fixed" },
+          topbar: { color: "light" },
+          menu: { color: "light" },
+          sidenav: { size: "default", user: false }
+          };
+  
+          // Set the session storage item with the key __HYPER_CONFIG__
+          sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
+          } else {
+          // If sessionStorage is not supported, handle the error or fallback
+          console.error("Session storage is not supported.");
+          }
+
+          return 0;
+      }
+
+
+      // Retrieve the data parameter from the URL
+        const params = new URLSearchParams(window.location.search);
+        const dataString = params.get('data');
+    
+        // Parse the JSON string into a JavaScript object
+        const data = JSON.parse(dataString);
+
+        if(data.theme==="dark"){
+            dark_mode()
+        }
+
+        else if(data.theme==="light"){
+            light_mode()
+        }
+
+        else{
+            light_mode()
+        }
+
+
+ 
+  </script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+
+     
+    <!-- Theme Config Js -->
+    <script src="assets/js/hyper-config.js"></script>
+
+    <!-- App css -->
+    <link href="assets/css/app-saas.min.css" rel="stylesheet" type="text/css" id="app-style" />
+
+    <!-- Icons css -->
+    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="assets/css/fontawesome-free-6.5.2-web/css/all.css">
+
+    <script src="assets/js/jquery.min.js"></script>
+
+
+
+
+<style>
+   @keyframes radar {
+        0% {
+            transform: scale(0.1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0;
+        }
+    }
+
+    /* Apply animation to circles */
+    circle {
+        animation: radar 1.5s infinite;
+        transform-origin: center;
+    }
+</style>
+</head>
+
+<body class="authentication-bg d-flex justify-content-center">
+    <div class="position-absolute start-0 end-0 start-0 bottom-0 w-100 h-100">
+        <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 800 800'>
+            <g fill-opacity='0.50'>
+                <circle  style="fill: rgba(var(--ct-dark-rgb), 0.1);" cx='400' cy='400' r='600'/>
+                <circle style="fill: rgba(var(--ct-dark-rgb), 0.2);" cx='400' cy='400' r='500'/>
+                <circle  style="fill: rgba(var(--ct-dark-rgb), 0.3);" cx='400' cy='400' r='300'/>
+                <circle  style="fill: rgba(var(--ct-dark-rgb), 0.4);" cx='400' cy='400' r='200'/>
+                <circle style="fill: rgba(var(--ct-dark-rgb), 0.5);" cx='400' cy='400' r='100'/>
+            </g>
+        </svg>
+    </div>
+
+    
+    
+    <script>
+        function updateProgressBar() {
+            var progressBar = document.getElementById('progress-bar');
+            var currentWidth = parseInt(progressBar.style.width);
+            var randomIncrement = Math.floor(Math.random() * 10) + 1; // Random increment between 1 and 10
+    
+            if (currentWidth < 100) {
+                var newWidth = currentWidth + randomIncrement;
+                progressBar.style.width = newWidth + '%';
+                progressBar.setAttribute('aria-valuenow', newWidth);
+            }
+        }
+    
+        // Update progress bar every second
+        setInterval(updateProgressBar, 1000);
+
+
+
+    </script>
+
+    <div class="d-flex justify-content-center mb-5">
+
+       
+
+        <div class="card ribbon-box">
+            <div class="card-body">
+                <div class="ribbon ribbon-warning float-start">Rhumtech systems 
+
+                    <div class="progress progress-sm">
+                        <div id="progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    <h6 class="login-status"></span></h6>
+                </div>
+                
+                <h5 class="text-secondary float-end mt-1"> ™ </h5>
+          
+            
+            </div> <!-- end card-body -->
+        </div> <!-- end card-->
+
+       
+        
+    </div>
+
+
+
+
+    <script>
+        $(document).ready(function() {
+        let version ;
+      
+       
+        const get_version=async ()=>{
+    
+            var loggedin=await ipcRenderer.Getloggeduser('sessionID')
+    
+            if(loggedin.error_code===500){
+             
+                $(".login-status").html(`${loggedin.msg},failed to reach servers <span class="badge bg-danger"> error!`)
+                
+                //ipcRenderer.send('expand-window', { width: 900, height: 800});
+                //window.location.href="./pages-login.html"
+                
+            }
+            if(loggedin.error_code===503){
+             
+             $(".login-status").html(`${loggedin.msg},<span class="badge bg-danger"> error!`)
+             
+             //ipcRenderer.send('expand-window', { width: 900, height: 800});
+             //window.location.href="./pages-login.html"
+             
+         }
+        };
+    
+        get_version()
+    });
+    
+    </script>
+ 
+
+ <footer class="footer footer-alt">
+     RTS - v1.0.0
+</footer>
+    
+</body>
+
+</html>

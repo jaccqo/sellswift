@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script>
+    const dark_mode=()=>{
+  
+      if (typeof(Storage) !== "undefined") {
+      // Provided JSON data
+      const hyperConfig = {
+      theme: "dark",
+      nav: "vertical",
+      layout: { mode: "fluid", position: "fixed" },
+      topbar: { color: "light" },
+      menu: { color: "dark" },
+      sidenav: { size: "default", user: false }
+      };
+  
+      // Set the session storage item with the key __HYPER_CONFIG__
+      sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
+      } else {
+      // If sessionStorage is not supported, handle the error or fallback
+      console.error("Session storage is not supported.");
+      }
+      }
+  
+      const light_mode=()=>{
+  
+          if (typeof(Storage) !== "undefined") {
+          // Provided JSON data
+          const hyperConfig = {
+          theme: "light",
+          nav: "vertical",
+          layout: { mode: "fluid", position: "fixed" },
+          topbar: { color: "light" },
+          menu: { color: "light" },
+          sidenav: { size: "default", user: false }
+          };
+  
+          // Set the session storage item with the key __HYPER_CONFIG__
+          sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
+          } else {
+          // If sessionStorage is not supported, handle the error or fallback
+          console.error("Session storage is not supported.");
+          }
+      }
+
+      
+
+ // Retrieve the data parameter from the URL
+ const params = new URLSearchParams(window.location.search);
+        const dataString = params.get('data');
+    
+        // Parse the JSON string into a JavaScript object
+        const data = JSON.parse(dataString);
+
+        if(data.theme==="dark"){
+            dark_mode()
+        }
+
+        else if(data.theme==="light"){
+            light_mode()
+        }
+
+        else{
+            light_mode()
+        }
+
+  
+
+  
+  </script>
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Register</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <!-- Theme Config Js -->
+        <script src="assets/js/hyper-config.js"></script>
+
+        <!-- App css -->
+        <link href="assets/css/app-saas.min.css" rel="stylesheet" type="text/css" id="app-style" />
+
+        <!-- Icons css -->
+        <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+       
+        <link rel="stylesheet" href="assets/css/fontawesome-free-6.5.2-web/css/all.css">
+
+        <script src="assets/js/jquery.min.js"></script>
+    </head>
+
+    <body class="authentication-bg">
+
+        <div class="position-absolute start-0 end-0 start-0 bottom-0 w-100 h-100">
+            <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 800 800'>
+                <g fill-opacity='0.22'>
+                    <circle style="fill: rgba(var(--ct-warning-rgb), 0.1);" cx='400' cy='400' r='600'/>
+                    <circle style="fill: rgba(var(--ct-warning-rgb), 0.2);" cx='400' cy='400' r='500'/>
+                    <circle style="fill: rgba(var(--ct-warning-rgb), 0.3);" cx='400' cy='400' r='300'/>
+                    <circle style="fill: rgba(var(--ct-warning-rgb), 0.4);" cx='400' cy='400' r='200'/>
+                    <circle style="fill: rgba(var(--ct-warning-rgb), 0.5);" cx='400' cy='400' r='100'/>
+                </g>
+            </svg>
+        </div>
+
+
+        <nav id="navbar" class="navbar navbar-expand-lg justify-content-end">
+         
+
+            <span></span>
+  
+            <div class="resize-btns ml-auto">
+                <button class="btn btn-sm btn-secondary" id="minimize-button">-</button>
+                <button class="btn btn-sm btn-secondary" id="maximize-button">+</button>
+                <button class="btn btn-sm btn-secondary" id="close-button">&times;</button>
+            </div>
+  
+        </nav>
+
+        <div class="account-pages pt-2 pt-sm-5 pb-4 pb-sm-5 position-relative">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-xxl-4 col-lg-5">
+                        <div class="card ">
+                            <!-- Logo-->
+                            <div class="card-header py-4 text-center bg-warning">
+                                <a href="index.html">
+                                    <span><img src="assets/images/logo.png" alt="logo" height="50"></span>
+                                </a>
+                            </div>
+
+                            <div class="card-body p-4">
+                                
+                                <div class="text-center w-75 m-auto">
+                                    <h4 class="text-dark-50 text-center mt-0 fw-bold">Free Sign Up</h4>
+                                    <p class="text-muted mb-4">Don't have an account? Create your account, it takes less than a minute</p>
+                                </div>
+
+                                
+                                <form id="signupForm">
+                                        <!-- Right -->
+                                    <div class="card ribbon-box d-none" id="signupMessage">
+                                       
+                                    </div> <!-- end card-->
+
+                                    <div class="mb-3">
+                                        <label for="organization" class="form-label">Organization Name</label>
+                                        <input class="form-control" type="text" id="organization"  name="organization" placeholder="Enter your organization name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="fullname" class="form-label">Full Name</label>
+                                        <input class="form-control" type="text" id="fullname" name="fullname" placeholder="Enter your name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="emailaddress" class="form-label">Email address</label>
+                                        <input class="form-control" type="email"  name="email" id="emailaddress" required placeholder="Enter your email" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Password</label>
+                                        <div class="input-group input-group-merge">
+                                            <input type="password" id="password"name="password"  class="form-control" placeholder="Enter your password" required>
+                                            <div class="input-group-text" data-password="false" id="togglePassword">
+                                                <span class="fa fa-eye"></span>
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="mb-0 align-items-center d-flex">
+                                     <!-- Info Switch-->
+                                    <!-- Success Switch-->
+                                    <label for="createAdminUser " class="p-2">Admin User</label>
+                                        <input type="checkbox" id="switch3"  data-switch="success"/>
+                                        <label for="switch3" data-on-label="Yes" data-off-label="No"></label>
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="checkbox-signup">
+                                            <label class="form-check-label" for="checkbox-signup">I accept <a href="./terms.html" class="text-muted">Terms and Conditions</a></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3 text-center">
+                                        <button class="btn btn-warning signup" type="submit"> Sign Up </button>
+
+                                        <button class="btn btn-warning d-none signup-loading" type="button" disabled>
+                                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                            Signing up...
+                                        </button>
+
+                                    </div>
+
+                                
+                                </form>
+                            </div> <!-- end card-body -->
+                        </div>
+                        <!-- end card -->
+
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <p class="text-muted">Already have account? <a href="pages-login.html" class="text-muted ms-1"><b>Log In</b></a></p>
+                            </div> <!-- end col-->
+                        </div>
+                        <!-- end row -->
+
+                    </div> <!-- end col -->
+                </div>
+                <!-- end row -->
+            </div>
+
+            <!-- Terms Modal -->
+
+            <div id="termsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body p-4">
+                            <div class="text-center">
+                                <i class="mdi mdi-information-outline h1 text-info"></i>
+                                <h4 class="mt-2">Terms and Conditions</h4>
+                                <p class="mt-3">Please review and accept the terms and conditions before proceeding.</p>
+                                <button type="button" class="btn btn-info my-2" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+
+            <!-- end container -->
+        </div>
+        <!-- end page -->
+        
+
+        <!-- <footer class="footer footer-alt">
+            2018 - <script>document.write(new Date().getFullYear())</script> © RUHMTEC - rhumtec.com
+        </footer> -->
+        <footer class="footer footer-alt">
+            © RUHMTECH - v1.0.0
+        </footer>
+
+        <!-- Vendor js -->
+        <script src="assets/js/vendor.min.js"></script>
+        
+        <!-- App js -->
+        <script src="assets/js/app.min.js"></script>
+
+        <script src="assets/js/auth.js"></script>
+
+        <script src="assets/js/signup.js"></script>
+
+        <script src="assets/js/win-controls.js"></script>
+
+        <script>
+            $(document).ready(function() {
+          
+              // Make sure the button exists in the HTML before this script
+              const expandButton = $('.expand-win');
+          
+              expandButton.click(function() {
+                
+                ipcRenderer.send('expand-window', { width: 900, height: 700 });
+              });
+            });
+          </script>
+
+
+    </body>
+</html>
