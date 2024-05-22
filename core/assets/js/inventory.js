@@ -111,6 +111,9 @@ $(document).ready(function(){
         files.forEach(file => {
             file_path=file.file.path;
         });
+        if(!file_path){
+            file_path="./images/brand-identity.png"
+        }
 
 
 

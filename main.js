@@ -131,7 +131,6 @@ function createWindow(width, height, maxHeight, maxWidth,theme=light) {
     minHeight: 300,
     minWidth: 300,
     frame: false,
-
     center: true,
     resizable: false,
 
@@ -247,11 +246,19 @@ async function base64_encode(file) {
 // Define IPC main process function to handle data insertion
 ipcMain.handle('insertItem', async (event, item) => {
   try {
-    console.log(item);
 
-    // Convert image to base64
 
-    const base64_img=await base64_encode(item.image)
+    if(item.image==="./images/brand-identity.png"){
+      var productImagePath = path.join(__dirname, 'core','assets', 'images', 'brand-identity.png');
+    }
+    else{
+
+      var productImagePath = item.image;
+
+    }
+
+
+    const base64_img=await base64_encode(productImagePath)
 
     // Replace image property in item with Blob
     const itemWithBlob = { ...item, image: base64_img };
@@ -509,7 +516,8 @@ function configureAutoUpdater() {
 
 ipcMain.on('request-initial-data', async (event) => {
   const initialData = await getAllItems();
-  console.log("requesting data")
+
+
   event.sender.send('initial-data', initialData);
 });
 
