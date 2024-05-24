@@ -131,6 +131,7 @@ function createWindow(width, height, maxHeight, maxWidth,theme=light) {
     minHeight: 300,
     minWidth: 300,
     frame: false,
+    
     center: true,
     resizable: false,
 

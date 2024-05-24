@@ -288,10 +288,17 @@ $('#barcodeInput').keypress(function(event) {
 
                 const date_added_=resp_barcode_info.date_added
 
-                const barcodes_edit_ = `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode"><i class="mdi mdi-delete deleteInventoryBarcode" data-deletebarcode="${bar_code_}"></i></a>` +
-                      `<h5><span id="barcode_status_${bar_code_}" class="badge badge-warning-lighten d-none"></span><span id="loading_${bar_code_}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span></h5>`;
+                const barcodes_edit_ = `
+                <div class="d-flex align-items-center">
+                    <a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode">
+                        <i class="mdi mdi-delete deleteInventoryBarcode text-danger" data-deletebarcode="${bar_code_}"></i>
+                    </a>
+                    <h5 class="mb-0 ms-2">
+                        <span id="barcode_status_${bar_code_}" class="badge badge-warning-lighten d-none"></span>
+                        <span id="loading_${bar_code_}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span>
+                    </h5>
+                </div>`;
 
-            
 
                 $("#barcode-load-text").text(response.message)
 
@@ -357,8 +364,16 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
                 barcode_table.row.add(["No data", "", "", ""]);
             } else {
                 $.each(response.barcodes, function(barcode, barcode_info) {
-                    var barcodes_edit = `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode"><i class="mdi mdi-delete deleteInventoryBarcode" data-deletebarcode="${barcode}"></i></a>` +
-                    `<h5><span id="barcode_status_${barcode}" class="badge badge-warning-lighten d-none"></span><span id="loading_${barcode}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span></h5>`;
+                    var barcodes_edit = `
+                        <div class="d-flex align-items-center">
+                            <a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode">
+                                <i class="mdi mdi-delete deleteInventoryBarcode text-danger" data-deletebarcode="${barcode}"></i>
+                            </a>
+                            <h5 class="mb-2 ms-2">
+                                <span id="barcode_status_${barcode}" class="badge badge-warning-lighten d-none"></span>
+                                <span id="loading_${barcode}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span>
+                            </h5>
+                        </div>`;
 
                     var barcode_date_added = barcode_info.date_added || null;
             
@@ -369,7 +384,6 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
             barcode_table.draw();
 
     
-
         },
         error: function(xhr, status, error) {
             // Handle error
@@ -378,7 +392,6 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
     });
 
 }
-
 
 const inputElement_two = document.getElementById('edititemImage');
    
@@ -553,6 +566,8 @@ const handleDeleteInventoryBarcode = () => {
              // Show spinner
             spinnerElement.removeClass('d-none');
             barcode_spinner_text.removeClass('d-none');
+
+            barcode_spinner_text.text("Deleting barcode")
 
 
 
