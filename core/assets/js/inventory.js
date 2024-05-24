@@ -30,24 +30,19 @@ $(document).ready(function(){
             
             table.row.add([
                 `<input type="checkbox" class="form-check-input" id="customCheck${item._id}">`,
-                `<img src="data:image/png;base64,${item.image}"  title="Product Image" class="rounded me-3" height="48" alt="Base64 Image"/>`+
+                `<img src="data:image/png;base64,${item.image}"  title="Product Image" class="rounded me-3" height="48" alt="Base64 Image"/>` +
                 `<p class="m-0 d-inline-block align-middle font-16">` +
                 `${item.name}<br/>` +
                 `<!-- Star ratings --></p>`,
                 item.category,
                 item.price,
                 item.stock,
-                `<span class="badge bg-success">${item.status}</span>`,
-                // `<a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-eye"></i></a>` +
-                `<a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="left" title="Inventory products" class="action-icon addInventoryproduct"  data-inventoryproduct="${item._id}">
-                <i class="mdi mdi-plus"></i>
-                </a>
-                `+
-
-                `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventory"  data-editinventory="${item._id}"></i></a>` +
-                `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventory"  data-deleteinventory="${item._id}"></i></a>`
-               
+                `<span class="badge ${item.status ? 'bg-success' : 'bg-danger'}">${item.status}</span>`,
+                `<a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="left" title="Inventory products" class="action-icon addInventoryproduct"  data-inventoryproduct="${item._id}"><i class="mdi mdi-plus"></i></a>` +
+                `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" ><i class="mdi mdi-square-edit-outline editInventory"  data-editinventory="${item._id}"></i></a>` +
+                `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"><i class="mdi mdi-delete deleteInventory"  data-deleteinventory="${item._id}"></i></a>`
             ]);
+            
 
            
         });
@@ -236,6 +231,7 @@ const inventoryDeletion=()=>{
 var active_inventory=null
 var active_inventoryid=null
 
+
 const add_inventory_prod=()=>{
 
     $('.addInventoryproduct').click(function() {
@@ -286,16 +282,15 @@ $('#barcodeInput').keypress(function(event) {
             data: JSON.stringify(data),
             success: function(response) {
                
-
                 resp_barcode_info=response.barcodes.barcode
 
                 const bar_code_=resp_barcode_info.barcode
 
                 const date_added_=resp_barcode_info.date_added
 
-                const barcodes_edit_ = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventoryBarcode"  data-editbarcode="${resp_barcode_info._id}"></i></a>` +
-                `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventoryBarcode"  data-deletebarcode="${resp_barcode_info._id}"></i></a>`;
-    
+                const barcodes_edit_ = `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode"><i class="mdi mdi-delete deleteInventoryBarcode" data-deletebarcode="${bar_code_}"></i></a>` +
+                      `<h5><span id="barcode_status_${bar_code_}" class="badge badge-warning-lighten d-none"></span><span id="loading_${bar_code_}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span></h5>`;
+
             
 
                 $("#barcode-load-text").text(response.message)
@@ -362,9 +357,9 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
                 barcode_table.row.add(["No data", "", "", ""]);
             } else {
                 $.each(response.barcodes, function(barcode, barcode_info) {
-                    var barcodes_edit = `<a  href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="right" title="Edit inventory" > <i class="mdi mdi-square-edit-outline editInventoryBarcode"  data-editbarcode="${barcode_info._id}"></i></a>` +
-                        `<a  href="javascript:void(0);" class="action-icon"  data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory"> <i class="mdi mdi-delete deleteInventoryBarcode"  data-deletebarcode="${barcode_info._id}"></i></a>`;
-            
+                    var barcodes_edit = `<a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode"><i class="mdi mdi-delete deleteInventoryBarcode" data-deletebarcode="${barcode}"></i></a>` +
+                    `<h5><span id="barcode_status_${barcode}" class="badge badge-warning-lighten d-none"></span><span id="loading_${barcode}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span></h5>`;
+
                     var barcode_date_added = barcode_info.date_added || null;
             
                     barcode_table.row.add([inventoryname, barcode, barcode_date_added, barcodes_edit]);
@@ -426,8 +421,9 @@ $("#editProductForm").on("click", async function(event){
     var name = $('#edititemNameInput').val();
     var category = $('#edititemCategoryInput').val();
     var price = $('#edititemPrice').val();
-    var status = $('#edititemStatusInput').prop('checked'); // Assuming it's a checkbox
-
+    var status = $('#edititemStatusInput').prop('checked'); // Assuming it's a 
+    
+  
     // You can retrieve other values similarly
 
     // Get the FilePond file objects
@@ -474,14 +470,14 @@ $("#editProductForm").on("click", async function(event){
     }
 
     // Add the status if it exists
-    if (status) {
-        formData['status']=status;
-    }
+  
 
     // Add the file data if it exists
     if (base64_img_) {
         formData['fileData']=base64_img_;
     }
+
+    formData['status']=status;
 
    
 
@@ -541,44 +537,77 @@ $("#editProductForm").on("click", async function(event){
 });
 
 
-const action_barcode=()=>{
-        $(".delete-barcode").on("click",()=>{
-            alert("deleting barcode")
-        })
 
-        $('.edit-barcode').click(function(event) {
-            // Get all edit buttons
-            var editButtons = document.querySelectorAll('.edit-row');
-            // Add event listeners to each edit button
-            editButtons.forEach(function (button) {
-                button.addEventListener('click', function (event) {
-                    var row = event.target.closest('tr'); // Find the closest table row
-                    var cells = row.querySelectorAll('td:not(:last-child)'); // Exclude the last cell which contains action icons
+const handleDeleteInventoryBarcode = () => {
+        // Set the active inventory ID to null
+        // Set up the click event listener using jQuery
+        $(document).on('click', '.deleteInventoryBarcode', function() {
+            // Get the data-deletebarcode attribute value
+            const deleteBarcode = $(this).data('deletebarcode');
 
-                    // Toggle contenteditable attribute for each cell
-                    cells.forEach(function (cell) {
-                        cell.contentEditable = !cell.isContentEditable;
-                        cell.classList.toggle('editable');
-                    });
+             // Show spinner
+             const spinnerElement = $(`#loading_${deleteBarcode}`);
 
-                    // Toggle edit icon to save icon and change color to green
-                    var editIcon = row.querySelector('i'); // Find the icon within the row
-                    if (editIcon) {
-                        editIcon.classList.toggle('mdi-pencil');
-                        editIcon.classList.toggle('mdi-content-save');
+             const barcode_spinner_text= $(`#barcode_status_${deleteBarcode}`);
 
-                        if (editIcon.classList.contains('mdi-content-save')) {
-                            editIcon.style.color = ' #f0b01d'; // Change icon color to green when in save mode
-                        } else {
-                            editIcon.style.color = ''; // Reset icon color to default when in edit mode
-                        }
-                    }
-                });
+             // Show spinner
+            spinnerElement.removeClass('d-none');
+            barcode_spinner_text.removeClass('d-none');
+
+
+
+            const inventory_deletion_bcode_data={
+                dbname:user_info.organization,
+                inventoryid:active_inventoryid,
+                barcode:deleteBarcode
+            }
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                url: `${base_url}/api/delete-inventory-barcode`, 
+                data: JSON.stringify(inventory_deletion_bcode_data),
+                dataType: "json",
+                success: function(response) {
+                    console.log('Server Response:', response);
+                    // Set response text to the spinner element before hiding it
+                    barcode_spinner_text.text(response.message);
+
+                   
+
+                            // Hide spinner after a delay
+                    setTimeout(function() {
+                        spinnerElement.addClass('d-none');
+                        barcode_spinner_text.addClass('d-none');
+                        InventoryGetBarcodes(active_inventoryid,active_inventory)
+                        ipcRenderer.send('request-initial-data');
+                        
+                    }, 2000); // Adjust delay time as needed
+
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+
+                            // Set error message to the spinner element before hiding it
+                    barcode_spinner_text.text('Error: ' + error);
+
+                            // Hide spinner after a delay
+                    setTimeout(function() {
+                        spinnerElement.addClass('d-none');
+                        barcode_spinner_text.addClass('d-none');
+                    }, 2000); // Adjust delay time as needed
+
+
+                }
             });
+           
+            
 
         });
+    };
 
-}
+
+    handleDeleteInventoryBarcode();
 
 
 });

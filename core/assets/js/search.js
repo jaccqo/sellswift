@@ -22,7 +22,20 @@ $(document).ready(function() {
 
 
       search_result.forEach(function(item) {
-        var listItem = `
+
+        if(!item.status){
+          
+            $('.search-result-list').empty();
+            $('.search-result-count').text("inventory not active")
+
+      
+
+            $(this).clear()
+        }
+
+        else{
+
+            var listItem = `
         <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}">
             <div class="d-flex">
               <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
@@ -34,6 +47,10 @@ $(document).ready(function() {
           </a>
         `;
         $('.search-result-list').prepend(listItem);
+
+
+        }
+        
       });
 
       sync_item()
@@ -54,19 +71,36 @@ $(document).ready(function() {
         $('.search-result-count').text(search_result.length);
 
         search_result.forEach(function(item) {
+    
+            if(!item.status){
+              
 
-            var listItem = `
-            <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}">
-                <div class="d-flex">
-                <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
-                <div class="w-100">
-                    <h5 class="m-0 font-14 search-result-name">${item.name}</h5>
-                    <span class="font-12 mb-0 search-result-price">${item.price}</span>
-                </div>
-                </div>
-            </a>
-            `;
-            $('.search-result-list').prepend(listItem);
+                $('.search-result-list').empty();
+                $('.search-result-count').text("invenotry not active")
+
+                
+                $(this).clear()
+            }
+            else{
+
+                    var listItem = `
+                <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}">
+                    <div class="d-flex">
+                    <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
+                    <div class="w-100">
+                        <h5 class="m-0 font-14 search-result-name">${item.name}</h5>
+                        <span class="font-12 mb-0 search-result-price">${item.price}</span>
+                    </div>
+                    </div>
+                </a>
+                `;
+                $('.search-result-list').prepend(listItem);
+
+            }
+
+            
+
+            
         });
 
         sync_item()

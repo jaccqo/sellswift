@@ -419,6 +419,7 @@ def get_item():
 def edit_inventory():
     try:
         data = request.get_json()
+        print(data)
 
         dbname = data.get('dbname')
         itemId = data.get('itemId')
@@ -599,6 +600,43 @@ def add_barcode():
             'message': str(e)
         }
         return jsonify(response), 500
+
+
+@app.route('/api/delete-inventory-barcode', methods=['POST'])
+def delete_inventory_barcode():
+    try:
+        # Extract data from the request
+        data = request.get_json()
+        dbname = data['dbname']
+        inventoryid = data['inventoryid']
+        barcode = data['barcode']
+
+        # Access the appropriate database and collection
+        db = client[dbname]
+        inventory_collection = db['inventory']  # Replace 'inventory' with your collection name
+
+        # Find the document by its _id (which is the inventoryid)
+        result = inventory_collection.update_one(
+            {'_id': ObjectId(inventoryid)},
+             {'$pull': {'barcodes': barcode}}
+        )
+
+        if result.modified_count > 0:
+
+            inventory_collection.update_one(
+                {'_id': ObjectId(inventoryid)},
+                {'$inc': {'stock': -1}}
+            )
+
+            db.barcodes_date.delete_one({'barcode': barcode})
+      
+
+            return jsonify({'message': 'Barcode removed successfully'}), 200
+        else:
+            return jsonify({'message': 'Barcode not found or not in the Inventory list'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == "__main__":
     port=5000
