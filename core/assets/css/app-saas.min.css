@@ -4332,7 +4332,7 @@ fieldset:disabled .btn {
 .nav-pills {
   --ct-nav-pills-border-radius: 0.25rem;
   --ct-nav-pills-link-active-color: #fff;
-  --ct-nav-pills-link-active-bg: #727cf5;
+  --ct-nav-pills-link-active-bg: #ffc35a;
 }
 .nav-pills .nav-link {
   border-radius: var(--ct-nav-pills-border-radius);
@@ -17367,7 +17367,7 @@ strong {
 .ribbon-box .ribbon:before {
   content: " ";
   border-style: solid;
-  border-width: 10px;
+  border-width: 0px;
   display: block;
   position: absolute;
   bottom: -10px;

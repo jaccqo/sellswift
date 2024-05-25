@@ -168,64 +168,50 @@ $(document).ready(function(){
     });
 
 
-const inventoryDeletion=()=>{
-
-    $('.deleteInventory').on('click', function() {
-        // Get the ID of the item to be deleted
-        const itemId = $(this).data('deleteinventory');
-        
-        // Set the delete button click event to open the modal
-        $('#deleteItemModal').modal('show');
-        
-        // Handle delete confirmation
-        $('#confirmDeleteBtn').on('click',async function() {
-            $(".deletion-load").removeClass("d-none");
-            $(".deletion-load").removeClass("d-none");
-
-            $(this).addClass("d-none");
-          // Call a function to delete the item (implement this function as needed)
-         
-
-         const Response = await ipcRenderer.DeleteInventory(itemId)
-
-         if (Response.message==="Inventory item deleted successfully"){
-
-            ipcRenderer.send('request-initial-data');
-
-            showToast(
-                "! Inventory deleted",
-                `${Response.message}`,
-                "top-center",
-                "rgba(0,0,0,0.2)",
-                "success"
-            );
-          
-            // Close the modal
-            $('#deleteItemModal').modal('hide');
-
-         }
-         else{
-
-            showToast(
-                "Oh snap!",
-                `something went wrong`,
-                "top-center",
-                "rgba(0,0,0,0.2)",
-                "error"
-            );
-
-         }
-
-
-         $(".deletion-load").addClass("d-none");
-
-         $(this).removeClass("d-none");
-         $(this).removeClass("d-none");
-
-        
+    const inventoryDeletion = () => {
+        $('.deleteInventory').on('click', function() {
+            // Get the ID of the item to be deleted
+            const itemId = $(this).data('deleteinventory');
+            
+            // Set the delete button click event to open the modal
+            $('#deleteItemModal').modal('show');
         });
-      });
-}
+    
+        // Handle delete confirmation
+        $('#confirmDeleteBtn').on('click', async function() {
+            $(".deletion-load").removeClass("d-none");
+            $(this).addClass("d-none");
+    
+            // Call a function to delete the item (implement this function as needed)
+            const itemId = $('.deleteInventory').data('deleteinventory'); // Get itemId from the appropriate place
+            const response = await ipcRenderer.DeleteInventory(itemId);
+    
+            if (response.message === "Inventory item deleted successfully") {
+                ipcRenderer.send('request-initial-data');
+                showToast(
+                    "! Inventory deleted",
+                    `${response.message}`,
+                    "top-center",
+                    "rgba(0,0,0,0.2)",
+                    "success"
+                );
+                // Close the modal
+                $('#deleteItemModal').modal('hide');
+            } else {
+                showToast(
+                    "Oh snap!",
+                    "Something went wrong",
+                    "top-center",
+                    "rgba(0,0,0,0.2)",
+                    "error"
+                );
+            }
+    
+            $(".deletion-load").addClass("d-none");
+            $(this).removeClass("d-none");
+        });
+    }
+    
 
 
 var active_inventory=null
@@ -291,7 +277,7 @@ $('#barcodeInput').keypress(function(event) {
                 const barcodes_edit_ = `
                 <div class="d-flex align-items-center">
                     <a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode">
-                        <i class="mdi mdi-delete deleteInventoryBarcode text-danger" data-deletebarcode="${bar_code_}"></i>
+                        <i class="mdi mdi-delete deleteInventoryBarcode text-success" data-deletebarcode="${bar_code_}"></i>
                     </a>
                     <h5 class="mb-0 ms-2">
                         <span id="barcode_status_${bar_code_}" class="badge badge-warning-lighten d-none"></span>
@@ -367,7 +353,7 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
                     var barcodes_edit = `
                         <div class="d-flex align-items-center">
                             <a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode">
-                                <i class="mdi mdi-delete deleteInventoryBarcode text-danger" data-deletebarcode="${barcode}"></i>
+                                <i class="mdi mdi-delete deleteInventoryBarcode text-success" data-deletebarcode="${barcode}"></i>
                             </a>
                             <h5 class="mb-2 ms-2">
                                 <span id="barcode_status_${barcode}" class="badge badge-warning-lighten d-none"></span>

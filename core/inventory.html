@@ -174,6 +174,12 @@
                             </div>
                         </li>
 
+                        <li class="d-none d-md-inline-block">
+                            <a class="nav-link" href="" data-toggle="fullscreen">
+                                <i class="ri-fullscreen-line font-22"></i>
+                            </a>
+                        </li>
+
 
                         
                         <li class="dropdown">
@@ -187,17 +193,12 @@
                             <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
                               
                                 <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">
+                                <a href="profile.html" class="dropdown-item">
                                     <i class="mdi mdi-account-circle me-1"></i>
                                     <span>My Account</span>
                                 </a>
 
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">
-                                    <i class="mdi mdi-account-edit me-1"></i>
-                                    <span>Settings</span>
-                                </a>
-
+                               
                                 <!-- item-->
                                 <a href="javascript:void(0);" class="dropdown-item">
                                     <i class="mdi mdi-lifebuoy me-1"></i>
@@ -436,20 +437,17 @@
 
                             
                             <div class="modal-dialog">
-                                <div class="modal-content">
+                                <div class="modal-content ribbon-box">
                                     <div class="modal-body">
-
-                                        <div class="text-center mt-2 mb-4  bg-warning">
-                                            <a href="index.html" class="text-success">
-                                                <span><img src="assets/images/logo.png" alt="" height="50"></span>
-                                            </a>
+                                        <div class="ribbon ribbon-success float-start">
+                                            <span><img src="assets/images/logo.png" alt="" height="30"></span> Add inventory
                                         </div>
 
-                                        
+
                                         <form class="ps-3 pe-3" id="addProductForm" action="#">
-                                            <h1>Add inventory</h1>
+                                            
                                             <div class="mb-3">
-                                                <label for="itemName" class="form-label">Name</label>
+                                               
                                                 <input class="form-control" type="text" id="itemNameInput" required placeholder="Name" value="">
                                             </div>
                                         
@@ -484,9 +482,9 @@
                                             </div>
                                             <!-- Other input fields -->
                                             <div class="mb-3 text-center">
-                                                <button class="btn btn-warning addinventory" type="submit">Add</button>
+                                                <button class="btn btn-success addinventory" type="submit">Add</button>
 
-                                                <button class="btn btn-warning d-none addinventory-load" type="button" disabled>
+                                                <button class="btn btn-success d-none addinventory-load" type="button" disabled>
                                                     <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                                     Adding inventory ...
                                                 </button>
@@ -502,20 +500,21 @@
 
                         <div id="EditProductsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
                             <div class="modal-dialog">
-                                <div class="modal-content">
+                                <div class="modal-content ribbon-box">
                                     <div class="modal-body">
                                        
-                                        <div class="text-center mt-2 mb-4  bg-warning">
-                                            <a href="index.html" class="text-success">
-                                                <span><img src="assets/images/logo.png" alt="" height="50"></span>
-                                            </a>
+                            
+
+                                        <div class="ribbon ribbon-success float-start"  >
+                                            <span><img src="assets/images/logo.png" alt="" height="30"></span> <span id="inventoryname" >Edit inventory</span>
                                         </div>
                                        
                         
                                         <form class="ps-3 pe-3" action="#">
-                                            <h1 id="inventoryname">Edit inventory </h1>
+                                          
+                                   
                                             <div class="mb-3">
-                                                <label for="itemName" class="form-label">Name</label>
+                                                
                                                 <input class="form-control" type="text" id="edititemNameInput"  placeholder="Name" value="">
                                             </div>
                         
@@ -547,10 +546,10 @@
                         
                                             <div class="mb-3 text-center">
                                                 <!-- Change button text to "Save" for editing -->
-                                                <button class="btn btn-warning editInventory" id="editProductForm">Save</button>
+                                                <button class="btn btn-success editInventory" id="editProductForm">Save</button>
                         
                                                 <!-- Add loading spinner for better user feedback -->
-                                                <button class="btn btn-warning d-none editinventory-load" type="button" disabled>
+                                                <button class="btn btn-success d-none editinventory-load" type="button" disabled>
                                                     <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                                     Saving inventory ...
                                                 </button>
@@ -569,20 +568,27 @@
              
                                         <div id="barcodes-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fullWidthModalLabelProducts" data-inventoryId="" aria-hidden="true">
                                             <div class="modal-dialog modal-full-width">
-                                                <div class="modal-content">
-                                                    <div class="modal-header d-flex align-items-center">
-                                                        <h4 class="modal-title" id="fullWidthModalLabelProducts">Add new products to Inventory </h4>
-                                                        <div class="mb-3 w-50 p-3">
-                                                            <label for="barcodeInput" class="form-label">Add Barcode</label>
-                                                            <input type="text" class="form-control" id="barcodeInput" placeholder="Enter barcode">
-                                                        </div>
+                                                <div class="modal-content ribbon-box">
+                                                    <div class="modal-header d-flex align-items-center ">
 
-                                                        <div class="mb-3 d-flex align-items-center d-none" id="barcode-loading">
-                                                           
-                                                            <span id="barcode-load-text" class="badge badge-success-lighten ">Adding barcode...</span>
-                                                            <div class="spinner-border spinner-border-sm text-success ms-2" role="status" aria-hidden="true"></div>
-
-                                                        </div>
+                                                        <div class="ribbon ribbon-success float-start" id="fullWidthModalLabelProducts" ><i class="mdi mdi-access-point me-1"></i> Primary</div>
+                                                        
+                                                        <div class="card w-75">
+                                                            <div class="card-body py-3 px-4 shadow border-success border d-flex flex-column align-items-center">
+                                                              <div class="mb-3 p-3 text-center">
+                                                                <label for="barcodeInput" class="form-label">Add Barcode</label>
+                                                                <input type="text" class="form-control w-100 text-center" id="barcodeInput" placeholder="Enter barcode">
+                                                              </div>
+                                                              <div class="mb-3 d-none" id="barcode-loading">
+                                                                <span id="barcode-load-text" class="badge bg-success text-light me-2">Adding barcode...</span>
+                                                                <div class="spinner-border spinner-border-sm text-success" role="status" aria-hidden="true"></div>
+                                                              </div>
+                                                            </div>
+                                                          </div>
+                                                          
+                                                          
+                                                          
+                                                        
 
                                                     </div>
                                         

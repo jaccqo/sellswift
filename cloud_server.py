@@ -419,7 +419,7 @@ def get_item():
 def edit_inventory():
     try:
         data = request.get_json()
-        print(data)
+      
 
         dbname = data.get('dbname')
         itemId = data.get('itemId')
