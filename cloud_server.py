@@ -86,6 +86,7 @@ def add_user():
             "sessionID":sessionID,
             "accepted_terms":accepted_terms,
             "ip": ip,  # Log the IP address
+            "joined_date":datetime.datetime.now(),
             "last_login":datetime.datetime.now(),
             "login_location": get_location_by_ip(ip),
 
@@ -634,6 +635,86 @@ def delete_inventory_barcode():
             return jsonify({'message': 'Barcode removed successfully'}), 200
         else:
             return jsonify({'message': 'Barcode not found or not in the Inventory list'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Endpoint to update email
+@app.route('/api-updateEmail', methods=['POST'])
+def update_email():
+    data = request.get_json()
+    print(data)
+    new_email = data.get('newEmail')
+    email_password = data.get('emailPassword')
+    user_id = data.get('user_id')
+    db_name = data.get('db_name')
+
+    db = client[db_name]  
+    users_collection = db['users']  
+
+    # Check if the user exists and the password is correct
+    user = users_collection.find_one({'_id': ObjectId(user_id)})
+    if user:
+        hashed_password = user.get('password')
+
+        if check_password_hash(hashed_password,email_password):
+            # Password is correct, update email
+            users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'email': new_email}})
+            return jsonify({'success': True, 'message': 'Email updated successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Incorrect password'})
+    else:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+# Endpoint to update password
+@app.route('/api-updatePassword', methods=['POST'])
+def update_password():
+    data = request.json
+    current_password = data.get('currentPassword')
+    new_password = data.get('newPassword')
+    user_id = data.get('user_id')
+    db_name = data.get('db_name')
+
+    db = client[db_name]  
+    users_collection = db['users']
+
+    # Check if the user exists and the current password is correct
+    user = users_collection.find_one({'_id': ObjectId(user_id)})
+    if user:
+        hashed_password = user.get('password')
+        if check_password_hash(hashed_password, current_password):
+            # Password is correct, update password
+            new_hashed_password = generate_password_hash(new_password)
+            users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'password': new_hashed_password}})
+            return jsonify({'success': True, 'message': 'Password updated successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Incorrect current password'})
+    else:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+@app.route('/api/updatePersonalInfo', methods=['POST'])
+def update_personal_info():
+    # Get the data from the request
+    data = request.json
+    
+    # Extract data from the request
+    full_name = data.get('fullName')
+    bio = data.get('bio')
+    user_id = data.get('user_id')
+    db_name = data.get('db_name')
+
+    db = client[db_name]  
+    collection = db['users']
+    
+    # Update the user's information in the database
+    try:
+        # Update the user's information
+        if bio:
+            collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'bio': bio}})
+        if full_name:
+            collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'fullname': full_name}})
+
+        return jsonify({'message': 'Personal information updated successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
