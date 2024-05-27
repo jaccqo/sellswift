@@ -86,8 +86,11 @@
 
     <!-- Theme Config Js -->
     <script src="assets/js/hyper-config.js"></script>
+    
+    <link rel="stylesheet" href="assets/vendor/jquery-toast-plugin/jquery.toast.min.css">
 
     <!-- App css -->
+
     <link
       href="assets/css/app-saas.min.css"
       rel="stylesheet"
@@ -101,6 +104,9 @@
     <link rel="stylesheet" href="assets/css/fontawesome-free-6.5.2-web/css/all.css">
 
     <script src="assets/js/jquery.min.js"></script>
+ 
+
+
 
     <script>
 
@@ -111,11 +117,13 @@
         $(".logged-user").text(user_info["fullname"])
         $(".leftbar-user-name").text(user_info["fullname"])
         
-        if(!user_info["is_admin"]==="Yes"){
-          $(".logged-user-status").text("Employee")
+        if(user_info.is_admin==="Yes"){
+               
+        $(".logged-user-status").text("Admin")
         }
         else{
-          $(".logged-user-status").text("Admin")
+            $(".logged-user-status").text("Employee")
+      
         }
 
       }
@@ -2037,6 +2045,12 @@
 
     <!-- App js -->
     <script src="assets/js/app.min.js"></script>
+
+    <script src="assets/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
+
+    <!-- Toastr Demo js -->
+    <script src="assets/js/pages/demo.toastr.js"></script>
+    
 
     <script src="assets/js/auth.js"></script>
 

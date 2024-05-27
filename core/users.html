@@ -25,6 +25,7 @@
       href="assets/css/fontawesome-free-6.5.2-web/css/all.css"
     />
 
+    <link rel="stylesheet" href="assets/vendor/jquery-toast-plugin/jquery.toast.min.css">
     <!-- App css -->
     <link
       href="assets/css/app-saas.min.css"
@@ -32,6 +33,7 @@
       type="text/css"
       id="app-style"
     />
+
 
     <!-- Icons css -->
     <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
@@ -53,11 +55,15 @@
           $(".about-me").text(user_info.bio);
         }
 
-        if (!user_info["is_admin"] === "Yes") {
-          $(".logged-user-status").text("Employee");
-        } else {
-          $(".logged-user-status").text("Admin");
+        if(user_info.is_admin==="Yes"){
+               
+        $(".logged-user-status").text("Admin")
         }
+        else{
+            $(".logged-user-status").text("Employee")
+      
+        }
+
       };
 
       get_user();
@@ -358,24 +364,14 @@
                   <div class="card-body">
                     <div class="row mb-2">
                       <div class="col-sm-5">
-                        <a
-                          href="javascript:void(0);"
-                          class="btn btn-danger mb-2"
-                          ><i class="mdi mdi-plus-circle me-2"></i> Add
-                          Customers</a
-                        >
-                      </div>
+                        <a href="javascript:void(0);" class="btn btn-success mb-2" id="add-user" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="mdi mdi-plus-circle me-2"></i> Add User
+                        </a>
+                    </div>
+                    
                       <div class="col-sm-7">
                         <div class="text-sm-end">
-                          <button
-                            type="button"
-                            class="btn btn-success mb-2 me-1"
-                          >
-                            <i class="mdi mdi-cog"></i>
-                          </button>
-                          <button type="button" class="btn btn-light mb-2 me-1">
-                            Import
-                          </button>
+                          
                           <button type="button" class="btn btn-light mb-2">
                             Export
                           </button>
@@ -405,62 +401,17 @@
                                 >
                               </div>
                             </th>
-                            <th>Customer</th>
-                            <th>Privileges</th>
+                            <th>User</th>
+                            <th>Admin</th>
                             <th>Email</th>
                             <th>Location</th>
-                            <th>Create Date</th>
+                            <th>Created Date</th>
                             <th>Status</th>
                             <th style="width: 75px">Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr>
-                            <td>
-                              <div class="form-check">
-                                <input
-                                  type="checkbox"
-                                  class="form-check-input"
-                                  id="customCheck13"
-                                />
-                                <label
-                                  class="form-check-label"
-                                  for="customCheck13"
-                                  >&nbsp;</label
-                                >
-                              </div>
-                            </td>
-                            <td class="table-user">
-                              <img
-                                src="assets/images/users/avatar-2.jpg"
-                                alt="table-user"
-                                class="me-2 rounded-circle"
-                              />
-                              <a
-                                href="javascript:void(0);"
-                                class="text-body fw-semibold"
-                                >Rory Seekamp</a
-                              >
-                            </td>
-                            <td>Admin</td>
-                            <td>roryamp@dayrep.com</td>
-                            <td>United States</td>
-                            <td>03/24/2018</td>
-                            <td>
-                              <span class="badge badge-danger-lighten"
-                                >Blocked</span
-                              >
-                            </td>
-
-                            <td>
-                              <a href="javascript:void(0);" class="action-icon">
-                                <i class="mdi mdi-square-edit-outline"></i
-                              ></a>
-                              <a href="javascript:void(0);" class="action-icon">
-                                <i class="mdi mdi-delete"></i
-                              ></a>
-                            </td>
-                          </tr>
+                          
                         </tbody>
                       </table>
                     </div>
@@ -475,6 +426,159 @@
           </div>
           <!-- container -->
         </div>
+
+
+        <div id="addUserModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content ribbon-box">
+                  <div class="modal-body">
+                      <div class="ribbon ribbon-success float-start">
+                          <img src="assets/images/logo.png" alt="" height="30">
+                          Add New User
+                      </div>
+      
+                      <form class="ps-3 pe-3" id="addUserForm" action="#">
+                          <div class="mb-3">
+                              <label for="fullNameInput" class="form-label">Full Name</label>
+                              <input class="form-control" type="text" id="fullNameInput" required placeholder="Full Name" value="">
+                          </div>
+                          
+                          <div class="mb-3">
+                              <label for="emailInput" class="form-label">Email</label>
+                              <input class="form-control" type="email" id="emailInput" required placeholder="Email" value="">
+                          </div>
+                          
+                          <div class="mb-3 ">
+                            <label for="passwordInput" class="form-label">Password</label>
+                             <div class="input-group input-group-merge">
+                             
+                              <input class="form-control" type="password" id="passwordInput"  type="password" required placeholder="Password" value="">
+                              <div class="input-group-text" data-password="false">
+                                    <span class="password-eye"></span>
+                              </div>
+                              </div>
+                          </div>
+                          
+                          <div class="mb-3 text-center">
+                              <button class="btn btn-success" type="submit">Add User</button>
+
+                              <button class="btn btn-success d-none add-user-load" type="button" disabled>
+                                <span>Adding user...</span>
+                                <div class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></div>
+                            </button>
+
+                          </div>
+
+
+                          <div class="mb-3" id="useradd-status" style="display: none;">
+
+                            <span id="user-add-text" class="badge badge-success-lighten me-2 text-wrap"></span>
+                          </div>
+
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+
+      <div id="editUserModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content ribbon-box">
+                <div class="modal-body">
+                    <div class="ribbon ribbon-success float-start">
+                        <img src="assets/images/logo.png" alt="" height="30">
+                        <span id="editing-user"></span>
+                    </div>
+    
+                    <form class="ps-3 pe-3" id="editUserForm" action="#">
+                        <div class="mb-3">
+                            <label for="fullNameInput" class="form-label">Full Name</label>
+                            <input class="form-control" type="text" id="editfullNameInput"  placeholder="Full Name" value="">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="emailInput" class="form-label">Email</label>
+                            <input class="form-control" type="email" id="editemailInput"  placeholder="Email" value="">
+                        </div>
+                        
+                        <!-- <div class="mb-3 ">
+                          <label for="passwordInput" class="form-label">Password</label>
+                           <div class="input-group input-group-merge">
+                           
+                            <input class="form-control" type="password" id="editpasswordInput"  type="password"  placeholder="Password" value="">
+                            <div class="input-group-text" data-password="false">
+                                  <span class="password-eye"></span>
+                            </div>
+                            </div>
+                        </div> -->
+
+                        <div class="mb-0 d-flex justify-content-between">
+                          <!-- Admin User Switch -->
+                          <div class="d-flex align-items-center">
+                             
+                              <input type="checkbox" id="is_admin" data-switch="warning" />
+                              <label for="is_admin" data-on-label="Yes" data-off-label="No"></label>
+                              <label for="createAdminUser" class="p-2">Admin User</label>
+                          </div>
+                      
+                          <!-- Status Switch -->
+                          <div class=" d-flex align-items-center">
+                              <label for="createAdminUser" class="p-2">Status</label>
+                              <input type="checkbox" id="is_online" data-switch="success" />
+                              <label for="is_online" data-on-label="Online" data-off-label="Offline"></label>
+                          </div>
+                      </div>
+                      
+                        
+                        <div class="mb-3 text-center">
+                            <button class="btn btn-success" type="submit">Edit User</button>
+
+                            <button class="btn btn-success d-none edit-user-load" type="button" disabled>
+                              <span>Editing user...</span>
+                              <div class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></div>
+                            </button>
+
+                        </div>
+
+                        <div class="mb-3" id="useredit-status" style="display: none;">
+                          <span id="user-edit-text" class="badge badge-success-lighten me-2  text-wrap"></span>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="delete-user-alert-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-body p-4">
+            <div class="text-center">
+              <i class="ri-alert-line h1 text-warning"></i>
+              <h4 class="mt-2">Are you sure</h4>
+              <p class="mt-3" id="deletinguser-msg">You're about to delete a user's account. This decision is irreversible.</p>
+              <button type="button" class="btn btn-warning my-2" id="confirm-deletion">Continue</button>
+    
+              <button class="btn btn-warning d-none delete-user-load" type="button" disabled>
+                <span>Deleting user...</span>
+                <div class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></div>
+              </button>
+    
+              <div class="mb-3" id="userdelete-status" style="display: none;">
+                <span id="user-delete-text" class="badge badge-success-lighten me-2  text-wrap"></span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      
+      
         <!-- content -->
 
         <!-- Footer Start -->
@@ -1760,5 +1864,14 @@
     <!-- App js -->
     <script src="assets/js/app.min.js"></script>
     <script src="assets/js/win-controls.js"></script>
+    <script src="assets/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
+
+    <!-- Toastr Demo js -->
+    <script src="assets/js/pages/demo.toastr.js"></script>
+    
+
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/users.js"></script>
+    
   </body>
 </html>

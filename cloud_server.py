@@ -9,6 +9,7 @@ import requests
 from bson import json_util
 import json
 from bson.objectid import ObjectId
+from bson.json_util import dumps
 
 colorama.init()
 
@@ -89,7 +90,8 @@ def add_user():
             "joined_date":datetime.datetime.now(),
             "last_login":datetime.datetime.now(),
             "login_location": get_location_by_ip(ip),
-
+            "bio":"",
+            "is_online":True
         })
 
         print(colored(f"User '{fullname}' added successfully. IP: {ip} at {datetime.datetime.now()}", "green"))
@@ -125,7 +127,7 @@ def login():
 
             collection.update_one({"email": email}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip}})
 
-            return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember}), 200
+            return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember,"is_online":True}), 200
         else:
             # Password is incorrect, return error message with status code 401
             print(colored(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}", "red"))
@@ -718,6 +720,104 @@ def update_personal_info():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/getUsers', methods=['GET'])
+def get_users():
+    db_name = request.args.get('dbname')  # Get the dbname from query parameters
+    if not db_name:
+        return jsonify({'error': 'Database name is required'}), 400
+    
+    try:
+        db = client[db_name]
+        users = db.users.find()
+        users_list = list(users)  # Convert the cursor to a list
+        users_list.reverse()
+        
+        # Remove the password field for each user
+        for user in users_list:
+            user.pop('password', None)
+        
+        return dumps(users_list), 200  # Use bson.json_util.dumps to convert BSON to JSON
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/deleteUser', methods=['POST'])
+def delete_user():
+    try:
+        data = request.get_json()
+        user_id = data.get('userId')
+        db_name = data.get('dbname')
+
+        if not user_id or not db_name:
+            return jsonify({"error": "Missing userId or dbname"}), 400
+
+        # Access the specific database
+        db = client[db_name]
+        users_collection = db.users
+
+        # Delete the user
+        result = users_collection.delete_one({'_id': ObjectId(user_id)})
+
+        if result.deleted_count == 1:
+            return jsonify({"message": "User deleted successfully"}), 200
+        else:
+            return jsonify({"error": "User not found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/api/editUser', methods=['POST'])
+def edit_user():
+    try:
+        # Get the form data from the request
+        form_data = request.json
+
+        # Extract data from the form
+        dbName = form_data.get('dbName')
+        userId = form_data.get('userId')
+        fullName = form_data.get('fullName')
+        email = form_data.get('email')
+        isAdmin = form_data.get('isAdmin')
+        isOnline = form_data.get('isOnline')
+
+        # Connect to the MongoDB database
+        db = client[dbName]
+
+        # Construct the update fields based on non-empty values
+        update_fields = {}
+        if fullName:
+            update_fields['fullname'] = fullName
+        if email:
+            update_fields['email'] = email
+        if isAdmin is not None:
+            if isAdmin:
+                isAdmin="Yes"
+            else:
+                isAdmin="No"
+
+            update_fields['is_admin'] = isAdmin
+        if isOnline is not None:
+            update_fields['is_online'] = isOnline
+
+        # Update the user in MongoDB with non-empty fields
+        db.users.update_one({'_id': ObjectId(userId)}, {'$set': update_fields})
+
+        # Return a success response
+        return jsonify({'message': 'User updated successfully'}), 200
+    except Exception as e:
+        # Return an error response if something goes wrong
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    # Get user ID from request data
+    user_id = request.json.get('user_id')
+    db_name=request.json.get('db_name')
+
+    db = client[db_name]
+    db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'is_online': False}})
+
+    return jsonify({'message': 'User logged out successfully'}), 200
 
 if __name__ == "__main__":
     port=5000

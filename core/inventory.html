@@ -471,7 +471,7 @@
                                             </div>
                         
                         
-                                            <div class="mb-3">
+                                            <div class="mb-3 d-flex align-items-center  justify-content-between">
                                                 <label for="itemStatus" class="form-label">Active</label>
                                                 <!-- Warning Switch-->
                                                 <input type="checkbox" id="itemStatusInput" checked data-switch="warning"/>
@@ -536,7 +536,7 @@
                                                 <input class="form-control" type="number" id="edititemPrice" placeholder="Price" value="">
                                             </div>
                         
-                                            <div class="mb-3">
+                                            <div class="mb-3  d-flex align-items-center  justify-content-between">
                                                 <label for="itemStatus" class="form-label">Active</label>
                                                 <!-- Warning Switch-->
                                                 <input type="checkbox" id="edititemStatusInput" checked data-switch="warning"/>
@@ -569,8 +569,6 @@
                             </div>
                         </div>
 
-               
-
 
                                         <!-- Full width modal -->
              
@@ -581,21 +579,20 @@
 
                                                         <div class="ribbon ribbon-success float-start" id="fullWidthModalLabelProducts" ><i class="mdi mdi-access-point me-1"></i> Primary</div>
                                                         
-                                                        <div class="card w-75">
-                                                            <div class="card-body py-3 px-4 shadow border-success border d-flex flex-column align-items-center">
+                                                        <div class="card w-50">
+                                                            <div class="card-body py-3 px-4 d-flex flex-column align-items-center">
                                                               <div class="mb-3 p-3 text-center">
                                                                 <label for="barcodeInput" class="form-label">Add Barcode</label>
                                                                 <input type="text" class="form-control w-100 text-center" id="barcodeInput" placeholder="Enter barcode">
                                                               </div>
                                                               <div class="mb-3 d-none" id="barcode-loading">
-                                                                <span id="barcode-load-text" class="badge bg-success text-light me-2">Adding barcode...</span>
+                                                                <span id="barcode-load-text" class="badge badge-success-lighten me-2">Adding barcode...</span>
                                                                 <div class="spinner-border spinner-border-sm text-success" role="status" aria-hidden="true"></div>
                                                               </div>
                                                             </div>
                                                           </div>
                                                           
-                                                          
-                                                          
+                                                        
                                                         
 
                                                     </div>
@@ -1406,7 +1403,7 @@
          
          <script src="assets/js/inventory.js"></script>
 
-         <script src="assets/js/auth.js"></script>
+      
 
          <script src="assets/js/win-controls.js"></script>
         
@@ -1420,11 +1417,13 @@
 
               $(".logged-user").text(user_info["fullname"])
               $(".leftbar-user-name").text(user_info["fullname"])
-              if(!user_info["is_admin"]==="Yes"){
-                $(".logged-user-status").text("Employee")
+              if(user_info.is_admin==="Yes"){
+               
+                $(".logged-user-status").text("Admin")
                 }
                 else{
-                $(".logged-user-status").text("Admin")
+                    $(".logged-user-status").text("Employee")
+               
                 }
    
             }
@@ -1432,6 +1431,9 @@
             get_user()
                
            </script>
+
+
+        <script src="assets/js/auth.js"></script>
 
     
 

@@ -9,6 +9,9 @@
     <script src="assets/js/hyper-config.js"></script>
 
     <!-- App css -->
+    
+    <link rel="stylesheet" href="assets/vendor/jquery-toast-plugin/jquery.toast.min.css">
+    
     <link
       href="assets/css/app-saas.min.css"
       rel="stylesheet"
@@ -23,6 +26,7 @@
       rel="stylesheet"
       href="assets/css/fontawesome-free-6.5.2-web/css/all.css"
     />
+
 
     <script src="assets/js/jquery.min.js"></script>
 
@@ -41,10 +45,13 @@
           $(".about-me").text(user_info.bio);
         }
 
-        if (!user_info["is_admin"] === "Yes") {
-          $(".logged-user-status").text("Employee");
-        } else {
-          $(".logged-user-status").text("Admin");
+        if(user_info.is_admin==="Yes"){
+               
+          $(".logged-user-status").text("Admin")
+        }
+        else{
+            $(".logged-user-status").text("Employee")
+      
         }
       };
 
@@ -1997,5 +2004,13 @@
     <script src="assets/js/win-controls.js"></script>
 
     <script src="assets/js/profile.js"></script>
+
+    <script src="assets/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
+
+    <!-- Toastr Demo js -->
+    <script src="assets/js/pages/demo.toastr.js"></script>
+    
+
+    <script src="assets/js/auth.js"></script>
   </body>
 </html>
