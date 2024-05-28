@@ -1,70 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<script>
-  const dark_mode = () => {
 
-    if (typeof (Storage) !== "undefined") {
-      // Provided JSON data
-      const hyperConfig = {
-        theme: "dark",
-        nav: "vertical",
-        layout: { mode: "fluid", position: "fixed" },
-        topbar: { color: "light" },
-        menu: { color: "dark" },
-        sidenav: { size: "default", user: false }
-      };
-
-      // Set the session storage item with the key __HYPER_CONFIG__
-      sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
-    } else {
-      // If sessionStorage is not supported, handle the error or fallback
-      console.error("Session storage is not supported.");
-    }
-  }
-
-  const light_mode = () => {
-
-    if (typeof (Storage) !== "undefined") {
-      // Provided JSON data
-      const hyperConfig = {
-        theme: "light",
-        nav: "vertical",
-        layout: { mode: "fluid", position: "fixed" },
-        topbar: { color: "light" },
-        menu: { color: "light" },
-        sidenav: { size: "default", user: false }
-      };
-
-      // Set the session storage item with the key __HYPER_CONFIG__
-      sessionStorage.setItem("__HYPER_CONFIG__", JSON.stringify(hyperConfig));
-    } else {
-      // If sessionStorage is not supported, handle the error or fallback
-      console.error("Session storage is not supported.");
-    }
-  }
-
-  // Retrieve the data parameter from the URL
-  const params = new URLSearchParams(window.location.search);
-  const dataString = params.get('data');
-
-  // Parse the JSON string into a JavaScript object
-  const data = JSON.parse(dataString);
-
-  if (data.theme === "dark") {
-    dark_mode()
-  }
-
-  else if (data.theme === "light") {
-    light_mode()
-  }
-
-  else {
-    light_mode()
-  }
-
-  //dark_mode();
-</script>
 
 <head>
   <meta charset="utf-8" />

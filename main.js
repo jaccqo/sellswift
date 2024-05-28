@@ -217,7 +217,7 @@ ipcMain.on("set-cookie", (event, cookieInfo) => {
 async function goToMain() {
   await sleep(100);
   const theme = await return_theme()
-  openNewWindow(1200, 900, "pos.html", true, theme);
+  openNewWindow(1200, 900, "index.html", true, theme);
 }
 
 // allow user to proceed tp main
