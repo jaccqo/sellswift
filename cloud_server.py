@@ -125,9 +125,9 @@ def login():
             # Password is correct, return success message with status code 200
             print(colored(f"User '{email}' logged in successfully. IP: {ip} at {datetime.datetime.now()}", "green"))
 
-            collection.update_one({"email": email}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip}})
+            collection.update_one({"email": email}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip,"is_online":True}})
 
-            return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember,"is_online":True}), 200
+            return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember}), 200
         else:
             # Password is incorrect, return error message with status code 401
             print(colored(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}", "red"))
@@ -158,7 +158,7 @@ def verify_user():
         user = collection.find_one({'sessionID': cookie})
 
         if user:
-            collection.update_one({"email": user["email"]}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip}})
+            collection.update_one({"email": user["email"]}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip,"is_online":True}})
 
             return jsonify({'status': 'success', 'message': 'User verified'}),200
         else:

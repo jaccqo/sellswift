@@ -1,7 +1,7 @@
 
     $(document).ready(function() {
 
-        let base_url="http://192.168.100.14:5000"
+        let base_url=user_info.base_url
 
         function showToast(heading, text, position, loaderBg, icon, hideAfter = 3000, stack = 1, showHideTransition = "fade") {
             const options = {

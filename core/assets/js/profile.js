@@ -1,6 +1,6 @@
 
   $(document).ready(function() {
-    let base_url="http://192.168.100.14:5000"
+    let base_url=user_info.base_url
     // Save Email Button Click Event
     $(".save-email").on("click",function() {
         var newEmail = $("#new-email").val();

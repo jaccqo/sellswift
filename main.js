@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session ,autoUpdater} = require("electron");
+const { app, BrowserWindow, ipcMain, session, autoUpdater } = require("electron");
 const axios = require("axios");
 const insert_axios = require("axios");
 const fs = require('fs').promises;
@@ -7,7 +7,8 @@ const path = require("path");
 const { error } = require("console");
 
 let mainWindow;
-let base_url="http://192.168.100.14:5000";
+
+let base_url = "http://192.168.100.14:5000";
 
 
 insert_axios.interceptors.response.use(
@@ -18,23 +19,23 @@ insert_axios.interceptors.response.use(
   }
 );
 
-async function get_session_cookie(){
+async function get_session_cookie() {
   const cookies = await session.defaultSession.cookies.get({});
 
-    let cookieValue = null;
-    let organization = null;
+  let cookieValue = null;
+  let organization = null;
 
-    if (cookies.length > 0) {
+  if (cookies.length > 0) {
     cookieValue = cookies[0].value;
     if (cookies.length > 1) {
-        organization = cookies[1].value;
-        
-     
-    }
+      organization = cookies[1].value;
+
 
     }
 
-    return [organization,cookieValue];
+  }
+
+  return [organization, cookieValue];
 }
 
 
@@ -45,29 +46,29 @@ async function get_session_cookie(){
 // Insert operation with barcode and _id
 async function insertItem(item) {
 
-    try {
-    
-      // Get session cookies
-      const sessioncookies = await get_session_cookie();
+  try {
 
-      if (sessioncookies) {
-        // Insert on server using the local lastID as _id and additional fields
-        const response = await insert_axios.post(`${base_url}/api/items`, {
-          ...item,
-     
-          organization: sessioncookies[0],
-          created_by: sessioncookies[1]
-    
-        });
+    // Get session cookies
+    const sessioncookies = await get_session_cookie();
 
-        return response;
-      } else {
-        throw new Error("Local ID not generated or session cookies not found");
-      }
-    } catch (error) {
-      console.error('Error inserting item:', error);
-      throw error;
+    if (sessioncookies) {
+      // Insert on server using the local lastID as _id and additional fields
+      const response = await insert_axios.post(`${base_url}/api/items`, {
+        ...item,
+
+        organization: sessioncookies[0],
+        created_by: sessioncookies[1]
+
+      });
+
+      return response;
+    } else {
+      throw new Error("Local ID not generated or session cookies not found");
     }
+  } catch (error) {
+    console.error('Error inserting item:', error);
+    throw error;
+  }
 }
 
 
@@ -80,18 +81,18 @@ async function getAllItems() {
     const dbname = await get_session_cookie();
     const url = `${base_url}/api/get-items?dbname=${dbname[0]}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch items from server');
     }
-    
+
     const items = await response.json();
     return items;
   } catch (error) {
     console.error('Error fetching items from server:', error);
-    
-    
-    
+
+
+
   }
 }
 
@@ -100,7 +101,7 @@ async function getAllItems() {
 async function searchItems(query) {
   try {
     const dbname = await get_session_cookie();
-    
+
     // Attempt to search items on server by name
     // const responseByName = await fetch(`${base_url}/api/items/search?name=${query}&dbname=${dbname[0]}`);
     // const itemsByName = await responseByName.json();
@@ -121,9 +122,9 @@ async function searchItems(query) {
 }
 
 // Function to create the splash window
-function createWindow(width, height, maxHeight, maxWidth,theme=light) {
+function createWindow(width, height, maxHeight, maxWidth, theme = light) {
 
-  data = {"theme": theme}
+  data = { "theme": theme }
 
   mainWindow = new BrowserWindow({
     width: width,
@@ -131,7 +132,7 @@ function createWindow(width, height, maxHeight, maxWidth,theme=light) {
     minHeight: 300,
     minWidth: 300,
     frame: false,
-    
+
     center: true,
     resizable: false,
 
@@ -142,25 +143,25 @@ function createWindow(width, height, maxHeight, maxWidth,theme=light) {
       preload: path.join(__dirname, "preload.js"), // Provide the absolute path here
     },
   });
-  
-  mainWindow.loadFile("./core/splashscreen.html",{query: {"data": JSON.stringify(data)}});
 
-  
+  mainWindow.loadFile("./core/splashscreen.html", { query: { "data": JSON.stringify(data) } });
+
+
 }
 
 
 // open a new window and close old one
-function openNewWindow(width, height, pageName,resizable,theme) {
+function openNewWindow(width, height, pageName, resizable, theme) {
   if (mainWindow) {
     mainWindow.close();
   }
 
-  createWindowWithSize(width, height, pageName,resizable,theme);
+  createWindowWithSize(width, height, pageName, resizable, theme);
 }
 
-function createWindowWithSize(width, height, pageName,resizable,theme) {
+function createWindowWithSize(width, height, pageName, resizable, theme) {
   app.name = "SellSwift";
-  data = {"theme": theme}
+  data = { "theme": theme }
 
   mainWindow = new BrowserWindow({
     width: width,
@@ -168,8 +169,8 @@ function createWindowWithSize(width, height, pageName,resizable,theme) {
     minHeight: 500,
     minWidth: 500,
     center: true,
-    resizable:resizable,
-    frame:false,
+    resizable: resizable,
+    frame: false,
 
     webPreferences: {
       nodeIntegration: true,
@@ -177,7 +178,7 @@ function createWindowWithSize(width, height, pageName,resizable,theme) {
     },
   });
 
-  mainWindow.loadFile(`./core/${pageName}`,{query: {"data": JSON.stringify(data)}});
+  mainWindow.loadFile(`./core/${pageName}`, { query: { "data": JSON.stringify(data) } });
 }
 
 // Listen for IPC message to set cookie
@@ -213,27 +214,27 @@ ipcMain.on("set-cookie", (event, cookieInfo) => {
 });
 
 
-async function goToMain(){
+async function goToMain() {
   await sleep(100);
-  const theme=await return_theme()
-  openNewWindow(1200, 900, "pos.html",true,theme);
+  const theme = await return_theme()
+  openNewWindow(1200, 900, "pos.html", true, theme);
 }
 
 // allow user to proceed tp main
-ipcMain.on("proceedMain",async (event,args)=>{
-   
+ipcMain.on("proceedMain", async (event, args) => {
+
   await goToMain()
- 
+
 })
 
 
-ipcMain.on("logout",async (event,args)=>{
+ipcMain.on("logout", async (event, args) => {
 
   delete_cookies()
 
-  const theme=await return_theme()
+  const theme = await return_theme()
 
-  openNewWindow(500,800,"pages-login.html",false,theme)
+  openNewWindow(500, 800, "pages-login.html", false, theme)
 })
 
 
@@ -249,27 +250,27 @@ ipcMain.handle('insertItem', async (event, item) => {
   try {
 
 
-    if(item.image==="./images/brand-identity.png"){
-      var productImagePath = path.join(__dirname, 'core','assets', 'images', 'brand-identity.png');
+    if (item.image === "./images/brand-identity.png") {
+      var productImagePath = path.join(__dirname, 'core', 'assets', 'images', 'brand-identity.png');
     }
-    else{
+    else {
 
       var productImagePath = item.image;
 
     }
 
 
-    const base64_img=await base64_encode(productImagePath)
+    const base64_img = await base64_encode(productImagePath)
 
     // Replace image property in item with Blob
     const itemWithBlob = { ...item, image: base64_img };
 
-    
+
     // Call the function responsible for inserting data
     const result = await insertItem(itemWithBlob);
 
     console.log(result)
-      
+
     return result;
 
 
@@ -306,9 +307,9 @@ ipcMain.handle('Inventorydelete', async (event, inventoryid) => {
 
 });
 
-ipcMain.handle('SearchInventory', async (event,search_query)=>{
+ipcMain.handle('SearchInventory', async (event, search_query) => {
 
-  const search_results=await searchItems(search_query)
+  const search_results = await searchItems(search_query)
 
   //console.log(search_results)
 
@@ -319,30 +320,42 @@ ipcMain.handle('SearchInventory', async (event,search_query)=>{
 
 ipcMain.handle("getuser", async (event, args) => {
   try {
-      const dbname = await get_session_cookie();
-      const response = await axios.post(`${base_url}/api/get-logged-user`, {
-          dbname: dbname[0],
-          sessioncookie: dbname[1]
-      });
+    const dbname = await get_session_cookie();
 
-      console.log(response)
-      
-      return response;
+	if(dbname[0] && dbname[1]){
+
+
+		const response = await axios.post(`${base_url}/api/get-logged-user`, {
+			dbname: dbname[0],
+			sessioncookie: dbname[1]
+		  });
+		  response["base_url"] = base_url;
+	  
+		  console.log(response)
+	  
+		  return response;
+
+	}else{
+		var response ={base_url:base_url}
+		console.log(response)
+		return response
+	}
+   
 
   } catch (error) {
-      console.error('Error getting logged-in user:', error.message);
-      return { error: error.message };
+    console.error('Error getting logged-in user:', error.message);
+    return { error: error.message };
   }
 });
 
-ipcMain.handle("returnBase64file", async (event,filepath)=>{
+ipcMain.handle("returnBase64file", async (event, filepath) => {
 
-  const base64_img=await base64_encode(filepath)
+  const base64_img = await base64_encode(filepath)
 
   return base64_img;
 
 })
-  
+
 
 ipcMain.on('minimize', () => {
   mainWindow.minimize();
@@ -350,10 +363,10 @@ ipcMain.on('minimize', () => {
 
 ipcMain.on('maximize', () => {
   if (mainWindow.isMaximized()) {
-      mainWindow.restore();
+    mainWindow.restore();
 
   } else {
-      mainWindow.maximize();
+    mainWindow.maximize();
   }
 });
 
@@ -361,8 +374,8 @@ ipcMain.on('close', () => {
   mainWindow.close();
 });
 
-ipcMain.handle("SetTheme", async (event,theme) => {
-const date = new Date();
+ipcMain.handle("SetTheme", async (event, theme) => {
+  const date = new Date();
   date.setTime(date.getTime() + 365 * 24 * 60 * 60 * 1000);
 
   const theme_conf = {
@@ -381,12 +394,12 @@ const date = new Date();
 
 
 ipcMain.handle("getTheme", async (event) => {
-  
-  
+
+
   try {
     // Retrieve the cookie
     const cookies = await session.defaultSession.cookies.get({ url: "http://local", name: "theme_conf" });
-    
+
     if (cookies.length > 0) {
       // If the cookie exists, return its value
       return cookies[0].value;
@@ -406,58 +419,58 @@ ipcMain.handle("getTheme", async (event) => {
 ipcMain.handle("get/cookie", async (event, cookieName) => {
   try {
 
-      const con_response = await axios.get(`${base_url}/test_connection`,{})
-      console.log(con_response)
+    const con_response = await axios.get(`${base_url}/test_connection`, {})
+    console.log(con_response)
 
-        const cookies = await session.defaultSession.cookies.get({
-        name: cookieName,
-        });
+    const cookies = await session.defaultSession.cookies.get({
+      name: cookieName,
+    });
 
-        let cookieValue = null;
-        let organization = null;
+    let cookieValue = null;
+    let organization = null;
 
-        if (cookies.length > 0) {
-        cookieValue = cookies[0].value;
-        if (cookies.length > 1) {
-            organization = cookies[1].value;
-        }
-        }
-        
-        else{
-            await sleep(1000);
-            const theme=await return_theme()
-            openNewWindow(500,800,"pages-login.html",false,theme)
+    if (cookies.length > 0) {
+      cookieValue = cookies[0].value;
+      if (cookies.length > 1) {
+        organization = cookies[1].value;
+      }
+    }
 
-            return "user cookies not found login or signup"
-        }
+    else {
+      await sleep(1000);
+      const theme = await return_theme()
+      openNewWindow(500, 800, "pages-login.html", false, theme)
 
-        // Send a POST request to the server
-        const response = await axios.post(`${base_url}/verifyUser`, {
-        cookie: cookieValue,
-        organization: organization,
-        });
+      return "user cookies not found login or signup"
+    }
+
+    // Send a POST request to the server
+    const response = await axios.post(`${base_url}/verifyUser`, {
+      cookie: cookieValue,
+      organization: organization,
+    });
 
 
-        // Return the server response if we hit this code user is logged in
-       await goToMain();
+    // Return the server response if we hit this code user is logged in
+    await goToMain();
 
-        return response.data.message;
+    return response.data.message;
   } catch (error) {
-   
-        // Assuming 'error' is the provided error object
+
+    // Assuming 'error' is the provided error object
 
 
-        if (error && error.code === "ECONNREFUSED") {
-        console.log("Network error: Connection refused");
-          return {msg:"Network error: Connection refused, Error code 500",error_code:500};
+    if (error && error.code === "ECONNREFUSED") {
+      console.log("Network error: Connection refused");
+      return { msg: "Network error: Connection refused, Error code 500", error_code: 500 };
 
-        } else if(error && error.code === "ENETUNREACH" ){
+    } else if (error && error.code === "ENETUNREACH") {
 
-          return {msg:"Network error: you're not connected to the internet, Error code 503",error_code:503}; // Send null in case of an error
-        }
-        else{
-          return null;
-        }
+      return { msg: "Network error: you're not connected to the internet, Error code 503", error_code: 503 }; // Send null in case of an error
+    }
+    else {
+      return null;
+    }
 
   }
 });
@@ -467,17 +480,16 @@ function sleep(ms) {
 }
 
 
-function delete_cookies(){
+function delete_cookies() {
 
-    session.defaultSession.clearStorageData({options : {origin: 'http://localhost', storages : ['cookies']}}, function(data) 
-    {
-        //resolve();
-    });
+  session.defaultSession.clearStorageData({ options: { origin: 'http://localhost', storages: ['cookies'] } }, function (data) {
+    //resolve();
+  });
 
 
 
 }
- 
+
 //Configure auto-updater
 function configureAutoUpdater() {
   autoUpdater.setFeedURL({
@@ -512,7 +524,7 @@ function configureAutoUpdater() {
 
   // Check for updates
   autoUpdater.checkForUpdates();
-  
+
 }
 
 ipcMain.on('request-initial-data', async (event) => {
@@ -523,11 +535,11 @@ ipcMain.on('request-initial-data', async (event) => {
 });
 
 
-const return_theme=async ()=>{
+const return_theme = async () => {
   try {
     // Retrieve the cookie
     const cookies = await session.defaultSession.cookies.get({ url: "http://local", name: "theme_conf" });
-    
+
     if (cookies.length > 0) {
       // If the cookie exists, return its value
       return cookies[0].value;
@@ -548,7 +560,7 @@ app.on("ready", async () => {
   const initialWidth = 300;
   const initialHeight = 200;
 
-    // Interval to send data at regular intervals
+  // Interval to send data at regular intervals
   setInterval(async () => {
     const inventory_items = await getAllItems();
     mainWindow.webContents.send('new-data', inventory_items);
@@ -557,9 +569,9 @@ app.on("ready", async () => {
 
   //delete_cookies()
 
-   const theme=await return_theme()
+  const theme = await return_theme()
 
 
-  createWindow(initialWidth, initialHeight, initialHeight, initialWidth,theme);
+  createWindow(initialWidth, initialHeight, initialHeight, initialWidth, theme);
 
 });

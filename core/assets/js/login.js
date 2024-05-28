@@ -1,5 +1,19 @@
 // Wait for the document to be fully loaded
-document.addEventListener("DOMContentLoaded", function() {
+$(document).ready(async function() {
+    const get_user = async () => {
+        try {
+            const user_info = await ipcRenderer.GetUser();
+            return user_info
+
+        } catch (error) {
+            console.error("Error getting user information:", error.message);
+        }
+    };
+
+    const users_information=await get_user();
+ 
+
+    let base_url=users_information.base_url
   
     // Get the form and buttons
     const form = document.getElementById('loginForm');
@@ -20,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             // Perform AJAX request to submit the form data
             
-            const response = await fetch('http://192.168.100.14:5000/login', {
+            const response = await fetch(`${base_url}/login`, {
                 method: 'POST',
                 body: new FormData(form)
             });

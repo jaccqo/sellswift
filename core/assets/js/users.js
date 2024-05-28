@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    let base_url = "http://192.168.100.14:5000"
+    let base_url=user_info.base_url
 
     $("#addUserForm").on("submit", async function (event) {
         event.preventDefault();

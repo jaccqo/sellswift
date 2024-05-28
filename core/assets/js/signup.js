@@ -1,4 +1,19 @@
-$(document).ready(function() {
+$(document).ready(async function() {
+    const get_user = async () => {
+        try {
+            const user_info = await ipcRenderer.GetUser();
+            return user_info
+
+        } catch (error) {
+            console.error("Error getting user information:", error.message);
+        }
+    };
+
+    const users_information=await get_user();
+ 
+
+    let base_url=users_information.base_url
+  
     // Selecting elements outside the form submission event listener
     const signupButton = $('.signup');
     const loadingSpinner = $('.signup-loading');
@@ -57,7 +72,7 @@ $(document).ready(function() {
             // Send form data to the server via AJAX
             $.ajax({
                 type: 'POST',
-                url: 'http://192.168.100.14:5000/add-user', // Replace with your server URL
+                url: `${base_url}/add-user`, // Replace with your server URL
                 data: JSON.stringify(formDataObject),
                 contentType: 'application/json', // Set content type to JSON
                 success: function(response) {
