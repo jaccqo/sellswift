@@ -10,6 +10,11 @@ $(document).ready(() => {
     });
 
     maximizeButton.on('click', () => {
+        var maximizeButton = $('#maximize-button');
+        var iconClass = maximizeButton.hasClass('ri-checkbox-multiple-blank-line') ? 'ri-checkbox-blank-line' : 'ri-checkbox-multiple-blank-line';
+        maximizeButton.removeClass().addClass(iconClass);
+        $('#maximize-button-container').attr('title', iconClass === 'ri-checkbox-multiple-blank-line' ? 'Maximize/Restore' : 'Maximize');
+        
         ipcRenderer.send('maximize');
     });
 
@@ -25,6 +30,7 @@ $(document).ready(() => {
 
 
     })
+
 
 
 });

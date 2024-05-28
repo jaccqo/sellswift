@@ -70,17 +70,30 @@
 
 
 
+    <style>
+      .resize-btns i {
+        cursor: pointer;
+      }
+      .resize-btns i:hover {
+        color: #ffc35a; /* Adjust the hover color as needed */
+      }
+      .resize-btns .btn-icon {
+        font-size: 1.2rem; /* Adjust icon size */
+      }
+    </style>
+  
     <nav id="navbar" class="navbar navbar-expand-lg justify-content-end">
-
-
-      <span></span>
-
-      <div class="resize-btns ml-auto">
-        <button class="btn btn-sm btn-secondary" id="minimize-button">-</button>
-        <button class="btn btn-sm btn-secondary" id="maximize-button">+</button>
-        <button class="btn btn-sm btn-secondary" id="close-button">&times;</button>
+      <div class="resize-btns ml-auto d-flex align-items-center">
+        <div class="btn-icon p-2">
+          <i class="ri-subtract-line" id="minimize-button"></i>
+        </div>
+        <div class="btn-icon p-2">
+          <i class="ri-checkbox-multiple-blank-line" id="maximize-button"></i>
+        </div>
+        <div class="btn-icon p-2">
+          <i class="ri-close-line" id="close-button"></i>
+        </div>
       </div>
-
     </nav>
 
 
