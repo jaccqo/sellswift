@@ -473,7 +473,7 @@ def get_barcodes():
 
     db = client[dbname]
 
-        # Assuming your item collection is named 'inventory'
+    # Assuming your item collection is named 'inventory'
     items_collection = db.inventory
     
     # Query MongoDB to find the inventory with the given inventoryId
