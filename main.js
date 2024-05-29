@@ -172,7 +172,9 @@ function createWindowWithSize(width, height, pageName, resizable, theme) {
     resizable: resizable,
     frame: false,
 
+   
     webPreferences: {
+      
       nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"), // Provide the absolute path here
     },
@@ -359,14 +361,22 @@ ipcMain.handle("returnBase64file", async (event, filepath) => {
 
 ipcMain.on('minimize', () => {
   mainWindow.minimize();
+
+    
 });
 
 ipcMain.on('maximize', () => {
-  if (mainWindow.isMaximized()) {
+  if (mainWindow.isMaximized() || mainWindow.isFullScreen()) {
+    mainWindow.setFullScreen(false);
+   
     mainWindow.restore();
 
+    
   } else {
     mainWindow.maximize();
+
+    mainWindow.setFullScreen(true);
+   
   }
 });
 
@@ -573,5 +583,7 @@ app.on("ready", async () => {
 
 
   createWindow(initialWidth, initialHeight, initialHeight, initialWidth, theme);
+
+
 
 });
