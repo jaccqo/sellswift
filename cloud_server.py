@@ -10,6 +10,7 @@ from bson import json_util
 import json
 from bson.objectid import ObjectId
 from bson.json_util import dumps
+from datetime import timedelta
 
 colorama.init()
 
@@ -807,6 +808,135 @@ def edit_user():
     except Exception as e:
         # Return an error response if something goes wrong
         return jsonify({'error': str(e)}), 500
+    
+
+def calculate_revenue_data(current_start, current_end, prev_start, prev_end, sales_collection):
+    # Current month data
+    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+    current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
+
+    # Previous month data
+    prev_sales = list(sales_collection.find({"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
+    prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
+
+    # Extracting data for the current and previous weeks
+    current_week_data = [sale['purchase_amount'] for sale in current_sales]
+    previous_week_data = [sale['purchase_amount'] for sale in prev_sales]
+
+    return {
+        "currentWeek": current_week_data,
+        "previousWeek": previous_week_data,
+        "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],  # Categories for x-axis
+        "current_revenue": current_revenue,
+        "prev_revenue": prev_revenue
+    }
+
+
+def calculate_high_performing_data(current_start, current_end, prev_start, prev_end, sales_collection):
+    # Current month data
+    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+    actual_data = [sale['purchase_amount'] for sale in current_sales]
+
+    return {
+        "actualData": actual_data,
+        "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],  # Categories for x-axis
+    }
+
+
+def get_date_range(offset_months):
+    """Return the start and end datetime of the current or previous month based on offset."""
+    now = datetime.datetime.utcnow()
+    first_day_of_current_month = datetime.datetime(now.year, now.month, 1)
+    
+    if offset_months == 0:
+        start_date = first_day_of_current_month
+        end_date = (first_day_of_current_month + timedelta(days=32)).replace(day=1)
+    else:
+        start_date = (first_day_of_current_month - timedelta(days=1)).replace(day=1)
+        end_date = first_day_of_current_month
+    
+    return start_date, end_date
+
+@app.route('/api/dashboard-data', methods=['GET'])
+def get_dashboard_data():
+    current_start, current_end = get_date_range(0)
+    prev_start, prev_end = get_date_range(1)
+
+    dbname = request.args.get('dbname')
+    if not dbname:
+        return jsonify({"error": "Missing dbname parameter"}), 400
+
+    db = client[dbname]
+    
+    sales_collection = db['sales']
+    customers_collection = db['customers']
+
+    # Current month data
+    current_customers_count = customers_collection.count_documents({"timestamp": {"$gte": current_start, "$lt": current_end}})
+    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+    current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
+
+    # Previous month data
+    prev_customers_count = customers_collection.count_documents({"timestamp": {"$gte": prev_start, "$lt": prev_end}})
+    prev_sales = list(sales_collection.find({"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
+    prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
+
+    # Calculations
+    customer_growth = ((current_customers_count - prev_customers_count) / prev_customers_count * 100) if prev_customers_count else 0
+    revenue_growth = ((current_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue else 0
+    purchase_growth = ((len(current_sales) - len(prev_sales)) / len(prev_sales) * 100) if prev_sales else 0
+
+    # Overall growth percentage
+    growth_percentage = (customer_growth + revenue_growth + purchase_growth) / 3
+
+
+    # Construct response
+    data = {
+        "customers": current_customers_count,
+        "customer_growth": customer_growth,
+        "revenue": current_revenue,
+        "revenue_growth": revenue_growth,
+        "purchases": len(current_sales),
+        "purchase_growth": purchase_growth,
+        "growth_percentage": growth_percentage  # Assuming this refers to overall growth percentage
+    }
+    
+    return jsonify(data)
+
+    
+
+@app.route('/api/checkout', methods=['POST'])
+def checkout():
+    data = request.get_json()
+
+
+    dbname = data.get('dbname')
+    purchase_amount = data.get('purchase_amount')
+    payment_method = data.get('payment_method')
+    change_due = data.get('change_due', 0)
+
+    if not dbname or not purchase_amount or not payment_method:
+        return jsonify({"success": False, "error": "Missing dbname, purchase amount, or payment method"}), 400
+
+    db = client[dbname]
+    sales_collection = db['sales']
+    customers_collection = db['customers']
+
+    # Insert new customer document and get the generated customer ID
+    customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.utcnow()}).inserted_id
+
+    # Insert the sale document
+    sale = {
+        "customer_id": customer_id,
+        "purchase_amount": purchase_amount,
+        "payment_method": payment_method,
+        "change_due": change_due,
+        "timestamp": datetime.datetime.utcnow()
+    }
+
+    sales_collection.insert_one(sale)
+
+    return jsonify({"success": True, "customer_id": str(customer_id)})
     
 @app.route('/api/logout', methods=['POST'])
 def logout():

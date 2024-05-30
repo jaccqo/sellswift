@@ -97,7 +97,6 @@ $(document).ready(function() {
                 $('.search-result-list').prepend(listItem);
 
             }
-
             
 
             
@@ -333,73 +332,56 @@ function clearCart() {
 
             var paymentMethod = $('input[name="paymentMethod"]:checked').val();
 
+            // Retrieve total amount from data attribute
+            var totalAmount = parseFloat(
+                $(".totalAmount").data("total-amount")
+            ); // Retrieve from data attribute
+
+            // Calculate change for cash payment
+            var cashAmountInput = $("#cashAmount").val();
+            var cashAmount = parseFloat(
+                cashAmountInput.replace(/[^\d.]/g, "")
+            );
+
             // Handle checkout based on payment method
             if (paymentMethod === "cash") {
                 // Display cash amount input field
                 $("#cashAmountDiv").removeClass("d-none");
 
-                // Retrieve total amount from data attribute
-                var totalAmount = parseFloat(
-                    $(".totalAmount").data("total-amount")
-                ); // Retrieve from data attribute
-
-                // Calculate change for cash payment
-                var cashAmountInput = $("#cashAmount").val();
-                var cashAmount = parseFloat(
-                    cashAmountInput.replace(/[^\d.]/g, "")
-                );
+                
 
                 var changeDue = cashAmount - totalAmount;
+
+                finish_checkout(totalAmount,paymentMethod,changeDue)
+                
 
             // Display change due
             //alert("Change Due: $" + changeDue.toFixed(2));
             } else if (paymentMethod === "card") {
-                alert("checking out with card")
-                // Hide cash amount input field
+               
                 $("#cashAmountDiv").addClass("d-none");
 
-                // Process card payment
-                //alert("Checkout completed with card payment!");
+                finish_checkout(totalAmount,paymentMethod)
 
-                $("#success-checkout-alert-modal").modal("toggle");
-
-                $("#checkoutModal").modal("toggle");
-
-                clearCart()
-                $('#customer-shopping-cart').empty();
+                
 
             } else if (paymentMethod === "mpesa") {
                 // Hide cash amount input field
                 $("#cashAmountDiv").addClass("d-none");
 
-                alert("checking out with mpesa")
+                finish_checkout(totalAmount, paymentMethod);
 
+               
                 // Process card payment
                 //alert("Checkout completed with card payment!");
 
-                $("#success-checkout-alert-modal").modal("toggle");
-
-                $("#checkoutModal").modal("toggle");
-
-                clearCart()
-                $('#customer-shopping-cart').empty();
 
             } else if (paymentMethod === "paypal") {
                 // Hide cash amount input field
                 $("#cashAmountDiv").addClass("d-none");
+                finish_checkout(totalAmount, paymentMethod);
 
-                alert("checking out with paypal")
-
-                // Process card payment
-                //alert("Checkout completed with card payment!");
-
-                $("#success-checkout-alert-modal").modal("toggle");
-
-                $("#checkoutModal").modal("toggle");
-
-                clearCart()
-                $('#customer-shopping-cart').empty();
-
+                
 
 
             } else {
@@ -410,7 +392,59 @@ function clearCart() {
     }
         
 
-      completeCheckout()
+
+
+
+    const finish_checkout=(totalAmount,paymentMethod,change_due=0)=>{
+        var checkoutData = {
+            purchase_amount: totalAmount,
+            payment_method: paymentMethod,
+            change_due: change_due,
+            dbname: user_info.organization
+        };
+
+        fetch(`${base_url}/api/checkout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(checkoutData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Clear the cart and reset the form
+                clearCart();
+                $('#customer-shopping-cart').empty();
+                $("#checkoutModal").modal("toggle");
+
+                $("#checkout-status").removeClass("bg-danger").addClass("bg-success")
+
+                $("#success-checkout-alert-modal").modal("toggle");
+
+                $("#checkout-title").text(`Checkout Successful! customer ID ${data.customer_id}`)
+
+            } else {
+               
+                $("#checkout-status").removeClass("bg-success").addClass("bg-danger")
+                $("#success-checkout-alert-modal").modal("toggle");
+
+                $("#checkout-title").text(`Checkout failed  ${ data.error}`)
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+         
+            $("#checkout-status").removeClass("bg-success").addClass("bg-danger")
+            $("#success-checkout-alert-modal").modal("toggle");
+
+            $("#checkout-title").text(`"An error occurred during checkout."`)
+        });
+    }
+
+
+    
+    completeCheckout()
 
 
 

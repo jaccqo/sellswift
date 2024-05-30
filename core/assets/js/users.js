@@ -378,6 +378,6 @@ $(document).ready(function () {
     // new table data each 3 seconds
     setInterval(function () {
         populateUsersTable()
-    }, 3000)
+    }, 4000)
 
 });

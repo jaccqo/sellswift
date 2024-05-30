@@ -20,14 +20,11 @@ $(document).ready(async function() {
     const signupMessage = $('#signupMessage');
     const termsModal = $('#termsModal');
 
-  
 
     // Form submission event listener
     $('#signupForm').submit(async function(event) {
   
         event.preventDefault(); // Prevent default form submission
-
-       
     
         // Gather form data
         const formData = new FormData(this);
