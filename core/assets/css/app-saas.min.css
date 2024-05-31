@@ -217,10 +217,10 @@ html[data-bs-theme="dark"][data-topbar-color="light"] {
   --ct-tertiary-bg: #f6f7fb;
   --ct-tertiary-bg-rgb: 246, 247, 251;
   --ct-heading-color: inherit;
-  --ct-link-color: #727cf5;
+  --ct-link-color: #2c2c2f;
   --ct-link-color-rgb: 114, 124, 245;
   --ct-link-decoration: none;
-  --ct-link-hover-color: #6169d0;
+  --ct-link-hover-color: #49494b;
   --ct-link-hover-color-rgb: 97, 105, 208;
   --ct-code-color: #39afd1;
   --ct-highlight-bg: #fff3de;
@@ -289,8 +289,8 @@ html[data-bs-theme="dark"][data-topbar-color="light"] {
   --ct-light-border-subtle: #6c757d;
   --ct-dark-border-subtle: #343a40;
   --ct-heading-color: #aab8c5;
-  --ct-link-color: #aab0f9;
-  --ct-link-hover-color: #b7bcfa;
+  --ct-link-color: #a3a4a7;
+  --ct-link-hover-color: #85858a;
   --ct-link-color-rgb: 170, 176, 249;
   --ct-link-hover-color-rgb: 183, 188, 250;
   --ct-code-color: #88cfe3;
@@ -335,7 +335,7 @@ body {
   -webkit-app-region: drag;
 }
 
-.resize-btns {
+.resize-btns,.light-switch,.dropdown,.navbar-toggle,.button-toggle-menu,.settings-toggle,.topbar-menu {
   -webkit-app-region: no-drag;
 }
 
@@ -4308,7 +4308,7 @@ fieldset:disabled .btn {
   padding: var(--ct-nav-link-padding-y) var(--ct-nav-link-padding-x);
   font-size: var(--ct-nav-link-font-size);
   font-weight: var(--ct-nav-link-font-weight);
-  color: var(--ct-nav-link-color);
+  color: var(--ct-nav-link);
   background: 0 0;
   border: 0;
   -webkit-transition: color 0.15s ease-in-out,
