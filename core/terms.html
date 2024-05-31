@@ -23,6 +23,36 @@
 
     <body class="authentication-bg position-relative">
 
+        <div class="container">
+            <style>
+                .resize-btns i {
+                  cursor: pointer;
+                }
+                .resize-btns i:hover {
+                  color: #ffc35a; /* Adjust the hover color as needed */
+                }
+                .resize-btns .btn-icon {
+                  font-size: 1.1rem; /* Adjust icon size */
+                }
+              </style>
+            
+              <nav id="navbar" class="navbar navbar-expand-lg justify-content-end fixed-top">
+                <div class="resize-btns ml-auto d-flex align-items-center">
+                  <div class="btn-icon p-2">
+                    <i class="ri-subtract-line" id="minimize-button"></i>
+                  </div>
+                  <div class="btn-icon p-2">
+                    <i class="ri-checkbox-multiple-blank-line" id="maximize-button"></i>
+                  </div>
+                  <div class="btn-icon p-2">
+                    <i class="ri-close-line" id="close-button"></i>
+                  </div>
+                </div>
+              </nav>
+        
+        
+            </div>
+
         <div class="card shadow">
             <div class="card-body">
                 <h5 class="card-title">Terms of Use</h5>
@@ -52,6 +82,7 @@
         
 
 
+        <script src="assets/js/win-controls.js"></script>
     </body>
 
 </html>

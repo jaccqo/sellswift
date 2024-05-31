@@ -925,7 +925,6 @@ def get_dashboard_data():
 
 
 
-
     # Construct response
     data = {
         "customers": current_customers_count,

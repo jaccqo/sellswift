@@ -93,6 +93,8 @@
     <!-- Vector Map css -->
     <link rel="stylesheet" href="assets/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css">
 
+    <link rel="stylesheet" href="assets/vendor/jquery-toast-plugin/jquery.toast.min.css">
+
     <!-- Theme Config Js -->
     <script src="assets/js/hyper-config.js"></script>
 
@@ -402,15 +404,9 @@
                             </div>
 
                             <!-- item-->
-                            <a href="javascript:void(0);" class="dropdown-item">
+                            <a href="./profile.html" class="dropdown-item">
                                 <i class="mdi mdi-account-circle me-1"></i>
                                 <span>My Account</span>
-                            </a>
-
-                            <!-- item-->
-                            <a href="javascript:void(0);" class="dropdown-item">
-                                <i class="mdi mdi-account-edit me-1"></i>
-                                <span>Settings</span>
                             </a>
 
                             <!-- item-->
@@ -502,10 +498,10 @@
             <div class="h-100" id="leftside-menu-container" data-simplebar>
                 <!-- Leftbar User -->
                 <div class="leftbar-user">
-                    <a href="pages-profile.html">
-                        <img src="assets/images/users/avatar-1.jpg" alt="user-image" height="42"
-                            class="rounded-circle shadow-sm">
-                        <span class="leftbar-user-name mt-2">Dominic Keller</span>
+                    <a href="profile.html">
+                        <!-- <img src="assets/images/users/avatar-1.jpg" alt="user-image" height="42"
+                            class="rounded-circle shadow-sm"> -->
+                        <span class="leftbar-user-name mt-2"></span>
                     </a>
                 </div>
 
@@ -1990,7 +1986,11 @@
     <!-- Dashboard App js -->
     <!-- <script src="assets/js/pages/demo.dashboard.js"></script> -->
 
+    <script src="assets/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
+
     <!-- App js -->
+    <script src="assets/js/pages/demo.toastr.js"></script>
+
     <script src="assets/js/app.min.js"></script>
 
     <script src="assets/js/auth.js"></script>
