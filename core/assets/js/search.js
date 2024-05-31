@@ -28,8 +28,6 @@ $(document).ready(function() {
             $('.search-result-list').empty();
             $('.search-result-count').text("inventory not active")
 
-      
-
             $(this).clear()
         }
 
@@ -40,8 +38,9 @@ $(document).ready(function() {
             <div class="d-flex">
               <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
               <div class="w-100">
-                <h5 class="m-0 font-14 search-result-name">${item.name}</h5>
-                <span class="font-12 mb-0 search-result-price">${item.price}</span>
+                <h5 class="m-0 font-14 search-result-name">${item.name} </h5>
+                <span class="font-12 mb-0 search-result-price">ksh ${parseFloat(item.price).toLocaleString()}</span>
+                <h6 class="font-6 text-muted"> stock ${item.stock} </h6>
               </div>
             </div>
           </a>
@@ -57,56 +56,7 @@ $(document).ready(function() {
 
     });
 
-    $('#colapsed-search').on('input', async function() {
-        var searchTerm = $(this).val().trim();
-        // Call your search function here passing the searchTerm
-        // For example, you can log it to the console
-        console.log('Searching for: ' + searchTerm);
     
-        const search_result=await ipcRenderer.SearchInventory(searchTerm)
-
-        $('.search-result-list').empty();
-        $('.search-result-count').text("")
-
-        $('.search-result-count').text(search_result.length);
-
-        search_result.forEach(function(item) {
-    
-            if(!item.status){
-              
-
-                $('.search-result-list').empty();
-                $('.search-result-count').text("invenotry not active")
-
-                
-                $(this).clear()
-            }
-            else{
-
-                    var listItem = `
-                <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}">
-                    <div class="d-flex">
-                    <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
-                    <div class="w-100">
-                        <h5 class="m-0 font-14 search-result-name">${item.name}</h5>
-                        <span class="font-12 mb-0 search-result-price">${item.price}</span>
-                    </div>
-                    </div>
-                </a>
-                `;
-                $('.search-result-list').prepend(listItem);
-
-            }
-            
-
-            
-        });
-
-        sync_item()
-
-        // console.log(search_result)
-
-      });
 
 
       const sync_item=()=>{
@@ -173,6 +123,8 @@ function clearCart() {
 
 // Function to render the customer's cart
 
+
+
     function renderCart() {
         $('#customer-shopping-cart').empty(); // Clear the existing cart content
         
@@ -201,12 +153,12 @@ function clearCart() {
                                 <img src="${imageData}" alt="${response.name}" title="${response.name}" class="rounded me-3" height="48">
                                 
                             </td>
-                            <td>$${itemPrice}</td>
-                            <td><span class="badge bg-success">${quantity} Pcs</span></td>
-                            <td class="item-total">$${itemTotal.toFixed(2)}</td> <!-- Display item total -->
+                            <td>ksh ${parseFloat(itemPrice).toLocaleString()}</td>
+                            <td><span class="badge bg-success">${quantity}</span></td>
+                            <td class="item-total">ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</td> <!-- Display item total -->
                             <td>
-                                <a href="javascript:void(0);" class="action-icon text-danger delete-item">
-                                    <i class="mdi mdi-delete"></i>
+                                <a href="javascript:void(0);" class="action-icon delete-item">
+                                    <i class="mdi mdi-delete text-dark "></i>
                                 </a>
                             </td>
                         </tr>
@@ -220,6 +172,8 @@ function clearCart() {
                         quantity: quantity,
                         totalAmount:itemTotal
                     };
+
+                   
 
                     render_total();
 
@@ -251,15 +205,13 @@ function clearCart() {
 
     const render_total = () => {
         const cart = calculateFinalAmount();
-        $('#total-amount').text('$' + cart.cartAmount);
+        $('#total-amount').text('ksh ' + parseFloat(cart.cartAmount).toLocaleString());
         $('.totalAmount').attr('data-total-amount', cart.cartAmount);
         $('#total-items').text(cart.cartQuantity);
-        $(".modaltotalamount").text(cart.cartAmount);
+        $(".modaltotalamount").text("ksh "+parseFloat(cart.cartAmount).toLocaleString());
         $(".modaltotalitems").text(cart.cartQuantity);
 
     }
-
-
 
     // Function to remove row from the cart
     function remove_row() {
@@ -288,7 +240,7 @@ function clearCart() {
 
       $("#totalpaidmodal")
         .attr("data-total-paidmodal", cashAmount.toFixed(2))
-        .text(cashAmount.toFixed(2));
+        .text(parseFloat(cashAmount.toFixed(2)).toLocaleString());
 
       // Get the total amount from the data attribute
       var totalAmount = parseFloat(
@@ -300,7 +252,7 @@ function clearCart() {
 
       $("#changedue")
         .attr("data-total-changedue", changeDue.toFixed(2))
-        .text(changeDue.toFixed(2));
+        .text(parseFloat(changeDue.toFixed(2)).toLocaleString());
     });
 
     // Function to format number with commas
@@ -320,6 +272,15 @@ function clearCart() {
       } else {
         // Hide cash amount input field for non-cash payments
         $("#cashAmountDiv").addClass("d-none");
+        $("#cashAmount").val("")
+        $("#totalpaidmodal")
+        .attr("data-total-paidmodal",0)
+        .text("");
+
+        $("#changedue")
+        .attr("data-total-changedue", 0)
+        .text("");
+
       }
     });
 
@@ -347,7 +308,6 @@ function clearCart() {
             if (paymentMethod === "cash") {
                 // Display cash amount input field
                 $("#cashAmountDiv").removeClass("d-none");
-
                 
 
                 var changeDue = cashAmount - totalAmount;
@@ -362,7 +322,6 @@ function clearCart() {
                 $("#cashAmountDiv").addClass("d-none");
 
                 finish_checkout(totalAmount,paymentMethod)
-
                 
 
             } else if (paymentMethod === "mpesa") {
@@ -382,8 +341,6 @@ function clearCart() {
                 finish_checkout(totalAmount, paymentMethod);
 
                 
-
-
             } else {
             alert("Please select a payment method.");
             }
@@ -393,14 +350,13 @@ function clearCart() {
         
 
 
-
-
     const finish_checkout=(totalAmount,paymentMethod,change_due=0)=>{
         var checkoutData = {
             purchase_amount: totalAmount,
             payment_method: paymentMethod,
             change_due: change_due,
-            dbname: user_info.organization
+            dbname: user_info.organization,
+            customer_cart_barcode: customerCartBarcode
         };
 
         fetch(`${base_url}/api/checkout`, {

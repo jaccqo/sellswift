@@ -315,7 +315,6 @@ ipcMain.handle('SearchInventory', async (event, search_query) => {
 
   //console.log(search_results)
 
-
   return search_results
 
 })

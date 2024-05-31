@@ -35,7 +35,7 @@ $(document).ready(function(){
                 `${item.name}<br/>` +
                 `<!-- Star ratings --></p>`,
                 item.category,
-                item.price,
+                `ksh ${parseFloat(item.price).toLocaleString()}`,
                 item.stock,
                 `<span class="badge ${item.status ? 'bg-success' : 'bg-danger'}">${item.status}</span>`,
                 `<a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="left" title="Inventory products" class="action-icon addInventoryproduct"  data-inventoryproduct="${item._id}"><i class="mdi mdi-plus"></i></a>` +

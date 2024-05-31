@@ -274,6 +274,13 @@ def delete_inventory():
         db = client[dbname]
         collection = db["inventory"]
 
+        barcodes=collection.find({'_id':ObjectId(inventory_id)}) # remove all barcodes associated to the inventory
+
+        for barcode in barcodes:
+           
+            db.barcodes_date.delete_one({'barcode': barcode})
+            
+
         query_resp=collection.delete_one({'_id': ObjectId(inventory_id)})
 
         print(query_resp)
@@ -321,7 +328,6 @@ def search_items_by_barcode():
     dbname = request.args.get('dbname', '').strip()
 
     if query:
-
         query=int(query)
 
         if not dbname:
@@ -346,7 +352,6 @@ def search_items_by_barcode():
 
             formatted_items=[item_by_barcode]
 
-
         else:
             formatted_items=[]
 
@@ -367,7 +372,6 @@ def get_logged_user():
         # Use dbname and sessioncookie to retrieve the logged-in user from MongoDB
         user = get_logged_user_from_db(dbname, sessioncookie)
 
-        
         # Return the user data
         return jsonify(user), 200
     except Exception as e:
@@ -453,7 +457,6 @@ def edit_inventory():
             {'$set': update_data}
         )
 
-        print(result)
 
         if result.modified_count == 1:
             return jsonify({'success': True, 'message': 'Inventory modified'}), 200
@@ -810,57 +813,82 @@ def edit_user():
         return jsonify({'error': str(e)}), 500
     
 
-def calculate_revenue_data(current_start, current_end, prev_start, prev_end, sales_collection):
-    # Current month data
+def get_week_range(weeks_ago):
+    """Return the start and end datetime of the current or previous week based on weeks_ago."""
+    now = datetime.datetime.now()
+    start_of_week = now - timedelta(days=now.weekday() + 7 * weeks_ago)
+    end_of_week = start_of_week + timedelta(days=7)
+    return start_of_week, end_of_week
+
+def calculate_revenue_data(sales_collection):
+    current_start, current_end = get_week_range(0)
+    prev_start, prev_end = get_week_range(1)
+
+    # Current week data
     current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
     current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
 
-    # Previous month data
+    # Previous week data
     prev_sales = list(sales_collection.find({"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
     prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
 
-    # Extracting data for the current and previous weeks
-    current_week_data = [sale['purchase_amount'] for sale in current_sales]
-    previous_week_data = [sale['purchase_amount'] for sale in prev_sales]
+    # Extracting data for the current and previous weeks by day
+    current_week_data = [0] * 7
+    previous_week_data = [0] * 7
+
+    for sale in current_sales:
+        day_of_week = (sale['timestamp'].date() - current_start.date()).days
+      
+        current_week_data[day_of_week] += sale['purchase_amount']
+
+    for sale in prev_sales:
+        day_of_week = (sale['timestamp'].date() - prev_start.date()).days
+        previous_week_data[day_of_week] += sale['purchase_amount']
+
+    # Calculate today's earnings
+    today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = today_start + timedelta(days=1)
+    today_sales = list(sales_collection.find({"timestamp": {"$gte": today_start, "$lt": today_end}}))
+    today_earnings = sum(sale['purchase_amount'] for sale in today_sales)
 
     return {
         "currentWeek": current_week_data,
         "previousWeek": previous_week_data,
-        "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],  # Categories for x-axis
+        "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         "current_revenue": current_revenue,
-        "prev_revenue": prev_revenue
+        "prev_revenue": prev_revenue,
+        "today_earnings": today_earnings
     }
 
+def get_month_range(year, month):
+    """Return the start and end datetime of a specific month."""
+    start_date = datetime.datetime(year, month, 1)
+    if month == 12:
+        end_date = datetime.datetime(year + 1, 1, 1)
+    else:
+        end_date = datetime.datetime(year, month + 1, 1)
+    return start_date, end_date
 
-def calculate_high_performing_data(current_start, current_end, prev_start, prev_end, sales_collection):
-    # Current month data
-    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
-    actual_data = [sale['purchase_amount'] for sale in current_sales]
+def calculate_high_performing_data(sales_collection):
+    now = datetime.datetime.now()
+    year = now.year
+    actual_data = []
+    
+    for month in range(1, 13):
+        start_date, end_date = get_month_range(year, month)
+        monthly_sales = list(sales_collection.find({"timestamp": {"$gte": start_date, "$lt": end_date}}))
+        monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
+        actual_data.append(monthly_revenue)
 
     return {
         "actualData": actual_data,
-        "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],  # Categories for x-axis
+        "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     }
-
-
-def get_date_range(offset_months):
-    """Return the start and end datetime of the current or previous month based on offset."""
-    now = datetime.datetime.utcnow()
-    first_day_of_current_month = datetime.datetime(now.year, now.month, 1)
-    
-    if offset_months == 0:
-        start_date = first_day_of_current_month
-        end_date = (first_day_of_current_month + timedelta(days=32)).replace(day=1)
-    else:
-        start_date = (first_day_of_current_month - timedelta(days=1)).replace(day=1)
-        end_date = first_day_of_current_month
-    
-    return start_date, end_date
 
 @app.route('/api/dashboard-data', methods=['GET'])
 def get_dashboard_data():
-    current_start, current_end = get_date_range(0)
-    prev_start, prev_end = get_date_range(1)
+    current_start, current_end = get_month_range(datetime.datetime.now().year, datetime.datetime.now().month)
+    prev_start, prev_end = get_month_range(datetime.datetime.now().year, datetime.datetime.now().month - 1)
 
     dbname = request.args.get('dbname')
     if not dbname:
@@ -870,6 +898,12 @@ def get_dashboard_data():
     
     sales_collection = db['sales']
     customers_collection = db['customers']
+
+    # Calculate high-performing data
+    high_performing_data = calculate_high_performing_data(sales_collection)
+
+    # Calculate revenue data for the current and previous weeks
+    revenue_data = calculate_revenue_data(sales_collection)
 
     # Current month data
     current_customers_count = customers_collection.count_documents({"timestamp": {"$gte": current_start, "$lt": current_end}})
@@ -890,40 +924,43 @@ def get_dashboard_data():
     growth_percentage = (customer_growth + revenue_growth + purchase_growth) / 3
 
 
+
+
     # Construct response
     data = {
         "customers": current_customers_count,
-        "customer_growth": customer_growth,
+        "customer_growth": round(customer_growth,2),
         "revenue": current_revenue,
-        "revenue_growth": revenue_growth,
+        "revenue_growth": round(revenue_growth,2),
         "purchases": len(current_sales),
-        "purchase_growth": purchase_growth,
-        "growth_percentage": growth_percentage  # Assuming this refers to overall growth percentage
+        "purchase_growth": round(purchase_growth,2),
+        "growth_percentage": round(growth_percentage,2),
+        "highPerformingData": high_performing_data,
+        "revenueData": revenue_data
     }
     
     return jsonify(data)
-
-    
 
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     data = request.get_json()
 
-
     dbname = data.get('dbname')
     purchase_amount = data.get('purchase_amount')
     payment_method = data.get('payment_method')
     change_due = data.get('change_due', 0)
+    customer_cart_barcode = data.get('customer_cart_barcode')  # Extract the customerCartBarcode data
 
-    if not dbname or not purchase_amount or not payment_method:
-        return jsonify({"success": False, "error": "Missing dbname, purchase amount, or payment method"}), 400
+    if not dbname or not purchase_amount or not payment_method or not customer_cart_barcode:
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
 
     db = client[dbname]
     sales_collection = db['sales']
     customers_collection = db['customers']
+    inventory_collection = db['inventory']  # Assuming you have an inventory collection
 
     # Insert new customer document and get the generated customer ID
-    customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.utcnow()}).inserted_id
+    customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.now()}).inserted_id
 
     # Insert the sale document
     sale = {
@@ -931,12 +968,32 @@ def checkout():
         "purchase_amount": purchase_amount,
         "payment_method": payment_method,
         "change_due": change_due,
-        "timestamp": datetime.datetime.utcnow()
+        "timestamp": datetime.datetime.now(),
+        "items": customer_cart_barcode  # Save the items and barcodes sold
     }
 
     sales_collection.insert_one(sale)
 
+    # Update the inventory
+    for item_id, barcodes in customer_cart_barcode.items():
+        for barcode in barcodes:
+            result=inventory_collection.update_one(
+                {"_id": ObjectId(item_id)},
+                {"$pull": {"barcodes": barcode}}
+            )
+
+            if result.modified_count > 0:
+
+                inventory_collection.update_one(
+                    {'_id': ObjectId(item_id)},
+                    {'$inc': {'stock': -1}}
+                )
+
+                db.barcodes_date.delete_one({'barcode': barcode})
+
     return jsonify({"success": True, "customer_id": str(customer_id)})
+
+
     
 @app.route('/api/logout', methods=['POST'])
 def logout():
