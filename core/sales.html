@@ -31,11 +31,35 @@
     <script src="assets/js/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.31.1/filepond.css" />
 
-
     <link rel="stylesheet" href="https://editor.datatables.net/extensions/Editor/css/editor.dataTables.css" />
 
 
-    <script src="extensions/editable/bootstrap-table-editable.js"></script>
+
+
+
+    
+
+    <script>
+
+        const get_user = async () => {
+
+            user_info = await ipcRenderer.GetUser()
+
+            $(".logged-user").text(user_info["fullname"])
+            $(".leftbar-user-name").text(user_info["fullname"])
+            if (!user_info["is_admin"] === "Yes") {
+                $(".logged-user-status").text("Employee")
+            }
+            else {
+                $(".logged-user-status").text("Admin")
+            }
+
+        }
+
+        get_user()
+
+    </script>
+
 </head>
 
 
@@ -161,14 +185,12 @@
                         </a>
                     </li>
 
-
                     <li class="d-none d-sm-inline-block">
                         <div class="nav-link" id="light-dark-mode" data-bs-toggle="tooltip" data-bs-placement="left"
                             title="Theme Mode">
                             <i class="ri-moon-line font-22"></i>
                         </div>
                     </li>
-
 
 
                     <li class="dropdown">
@@ -500,7 +522,7 @@
                                                     <th>Sent Date</th>
                                                     <th>Store ID</th>
                                                     <th>Notes</th>
-                                                    <th style="width: 85px;">Action</th>
+                                                  
                                                 </tr>
                                             </thead>
 
@@ -1416,37 +1438,11 @@
     <!-- Toastr Demo js -->
     <script src="assets/js/pages/demo.toastr.js"></script>
 
-    <script src="assets/js/inventory.js"></script>
+    <script src="assets/js/sales.js"></script>
 
     <script src="assets/js/auth.js"></script>
 
     <script src="assets/js/win-controls.js"></script>
-
-
-
-    <script>
-
-        const get_user = async () => {
-
-            user_info = await ipcRenderer.GetUser()
-
-            $(".logged-user").text(user_info["fullname"])
-            $(".leftbar-user-name").text(user_info["fullname"])
-            if (!user_info["is_admin"] === "Yes") {
-                $(".logged-user-status").text("Employee")
-            }
-            else {
-                $(".logged-user-status").text("Admin")
-            }
-
-        }
-
-        get_user()
-
-    </script>
-
-
-
 
 
 </body>

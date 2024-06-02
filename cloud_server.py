@@ -205,6 +205,8 @@ def insert_item():
           
             data["barcodes"] = []  # Ensure "barcodes" field exists even if no new barcode provided
 
+        data["sales_count"]=0
+
         # Check if an item with the same id and name exists
         existing_item = collection.find_one({"category": data["category"], "name": data["name"],"price": data["price"]})
 
@@ -963,6 +965,7 @@ def checkout():
 
     # Insert the sale document
     sale = {
+        "item_ids":list(customer_cart_barcode.keys()),
         "customer_id": customer_id,
         "purchase_amount": purchase_amount,
         "payment_method": payment_method,
@@ -985,13 +988,56 @@ def checkout():
 
                 inventory_collection.update_one(
                     {'_id': ObjectId(item_id)},
-                    {'$inc': {'stock': -1}}
+                    {'$inc': {'stock': -1,
+                            'sales_count': 1}}
                 )
 
                 db.barcodes_date.delete_one({'barcode': barcode})
 
     return jsonify({"success": True, "customer_id": str(customer_id)})
 
+
+@app.route('/api/sales-data', methods=['GET'])
+def get_sales_data():
+    dbname = request.args.get('dbname')
+    if not dbname:
+        return jsonify({'error': 'Missing dbname'}), 400
+
+    db = client[dbname]
+    sales_collection = db['sales']
+    inventory_collection = db['inventory']
+
+    sales_data = list(sales_collection.find())
+    for sale in sales_data:
+        sale['_id'] = str(sale['_id'])
+        sale['customer_id'] = str(sale['customer_id'])
+        # Add item names and categories
+        item_details = []
+
+        try:
+            checkout_quantity=0
+
+            for item_id in sale['item_ids']:
+                item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'name': 1, 'category': 1})
+                if item:
+                
+
+                    item['_id'] = str(item['_id'])
+                    # Calculate the quantity of each item
+                    item_quantity = len(sale['items'][item_id])
+                    
+                    checkout_quantity+=item_quantity
+
+                    item_details.append(item)
+
+        except Exception as e:
+            print(f"Failed to get {e} for {sale.get('_id')}")
+        
+        sale["quantity"]=checkout_quantity
+        sale['item_details'] = item_details
+        sale['store_id']=dbname
+
+    return jsonify(sales_data)
 
     
 @app.route('/api/logout', methods=['POST'])
