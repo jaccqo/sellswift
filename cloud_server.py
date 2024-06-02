@@ -819,6 +819,7 @@ def get_week_range(weeks_ago):
     """Return the start and end datetime of the current or previous week based on weeks_ago."""
     now = datetime.datetime.now()
     start_of_week = now - timedelta(days=now.weekday() + 7 * weeks_ago)
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_week = start_of_week + timedelta(days=7)
     return start_of_week, end_of_week
 
@@ -828,6 +829,7 @@ def calculate_revenue_data(sales_collection):
 
     # Current week data
     current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+
     current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
 
     # Previous week data
@@ -840,12 +842,13 @@ def calculate_revenue_data(sales_collection):
 
     for sale in current_sales:
         day_of_week = (sale['timestamp'].date() - current_start.date()).days
-      
-        current_week_data[day_of_week] += sale['purchase_amount']
+        if 0 <= day_of_week < 7:  # Ensure the day_of_week is within bounds
+            current_week_data[day_of_week] += sale['purchase_amount']
 
     for sale in prev_sales:
         day_of_week = (sale['timestamp'].date() - prev_start.date()).days
-        previous_week_data[day_of_week] += sale['purchase_amount']
+        if 0 <= day_of_week < 7:  # Ensure the day_of_week is within bounds
+            previous_week_data[day_of_week] += sale['purchase_amount']
 
     # Calculate today's earnings
     today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -861,6 +864,7 @@ def calculate_revenue_data(sales_collection):
         "prev_revenue": prev_revenue,
         "today_earnings": today_earnings
     }
+
 
 def get_month_range(year, month):
     """Return the start and end datetime of a specific month."""
