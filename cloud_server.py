@@ -11,6 +11,8 @@ import json
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 from datetime import timedelta
+import random
+import string
 
 colorama.init()
 
@@ -154,7 +156,6 @@ def verify_user():
         db = client[organization]
 
         collection=db["users"]
-
         # Search for the user in the users collection
         user = collection.find_one({'sessionID': cookie})
 
@@ -329,39 +330,41 @@ def search_items_by_barcode():
     query = request.args.get('barcode', '').strip()
     dbname = request.args.get('dbname', '').strip()
 
+    if not dbname:
+        return jsonify({'error': 'Database name not provided in query parameter'}), 400
+
+    db = client[dbname]
+    collection_name = "inventory"  # Replace with your collection name
+    items_collection = db[collection_name]
+
+    formatted_items = []
+
     if query:
-        query=int(query)
+        try:
+            query = int(query)
+            # Use $in operator to search for documents where the barcode list contains the queried barcode
+            item_by_barcode = items_collection.find_one({"barcodes": {"$in": [query]}})
+            print("Searching by barcode")
 
-        if not dbname:
-            return jsonify({'error': 'Database name not provided in query parameter'}), 400
+            if item_by_barcode:
+                item_by_barcode["_id"] = str(item_by_barcode["_id"])
+                item_by_barcode["matching_barcode"] = query
+                item_by_barcode.pop("barcodes", None)
+                formatted_items = [item_by_barcode]
+        except ValueError:
+            # If the query is not an integer, it will not be found in barcodes, so we skip this part
+            pass
 
-        db = client[dbname]
-        collection_name = "inventory"  # Replace with your collection name
-        items_collection = db[collection_name]
-
-        # Use $in operator to search for documents where the barcode list contains the queried barcode
-        item_by_barcode = items_collection.find_one({"barcodes": {"$in": [query]}})
-
-        print("searching by barcode")
-
-        if item_by_barcode:
-
-            item_by_barcode["_id"]=str(item_by_barcode["_id"])
-
-            item_by_barcode["matching_barcode"]=query
-
-            item_by_barcode.pop("barcodes")
-
-            formatted_items=[item_by_barcode]
-
-        else:
-            formatted_items=[]
-
-    else:
-        formatted_items=[]
-
+        if not formatted_items:
+            # If no items are found by barcode, search by item name
+            items_by_name = items_collection.find({"name": {"$regex": query, "$options": "i"}})
+            for item in items_by_name:
+                item['_id'] = str(item['_id'])  # Convert _id to string
+                formatted_items.append(item)
 
     return jsonify(formatted_items)
+
+
 
 @app.route('/api/get-logged-user', methods=['POST'])
 def get_logged_user():
@@ -847,6 +850,7 @@ def calculate_revenue_data(sales_collection):
 
     for sale in prev_sales:
         day_of_week = (sale['timestamp'].date() - prev_start.date()).days
+    
         if 0 <= day_of_week < 7:  # Ensure the day_of_week is within bounds
             previous_week_data[day_of_week] += sale['purchase_amount']
 
@@ -946,6 +950,18 @@ def get_dashboard_data():
     
     return jsonify(data)
 
+def generate_reference_number():
+    # Get the current timestamp
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
+    # Generate a random alphanumeric string of 6 characters
+    random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    # Combine timestamp and random string to form the reference number
+    reference_number = f"{timestamp}-{random_str}"
+
+    return reference_number
+
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     data = request.get_json()
@@ -955,6 +971,7 @@ def checkout():
     payment_method = data.get('payment_method')
     change_due = data.get('change_due', 0)
     customer_cart_barcode = data.get('customer_cart_barcode')  # Extract the customerCartBarcode data
+    sales_person=data.get('sales_person')
 
     if not dbname or not purchase_amount or not payment_method or not customer_cart_barcode:
         return jsonify({"success": False, "error": "Missing required parameters"}), 400
@@ -967,6 +984,20 @@ def checkout():
     # Insert new customer document and get the generated customer ID
     customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.now()}).inserted_id
 
+     # Ensure each item in customer_cart_barcode has barcodes
+    for item_id, barcodes in customer_cart_barcode.items():
+
+        if not barcodes or "undefined" in barcodes:
+            print("No barcodes detected")
+            item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'barcodes': 1})
+            if item and 'barcodes' in item and item['barcodes']:
+                quantity_needed = len(barcodes) if barcodes else 1
+                available_barcodes = item['barcodes']
+                # Sample the required number of barcodes
+                customer_cart_barcode[item_id] = random.sample(available_barcodes, min(quantity_needed, len(available_barcodes)))
+
+
+
     # Insert the sale document
     sale = {
         "item_ids":list(customer_cart_barcode.keys()),
@@ -975,11 +1006,14 @@ def checkout():
         "payment_method": payment_method,
         "change_due": change_due,
         "timestamp": datetime.datetime.now(),
-        "items": customer_cart_barcode  # Save the items and barcodes sold
+        "items": customer_cart_barcode , # Save the items and barcodes sold
+        "sales_person":sales_person,
+        "reference_number":generate_reference_number()
     }
 
     sales_collection.insert_one(sale)
-
+    
+    
     # Update the inventory
     for item_id, barcodes in customer_cart_barcode.items():
         for barcode in barcodes:
@@ -1010,6 +1044,7 @@ def get_sales_data():
     db = client[dbname]
     sales_collection = db['sales']
     inventory_collection = db['inventory']
+    
 
     sales_data = list(sales_collection.find())
     for sale in sales_data:
@@ -1025,7 +1060,6 @@ def get_sales_data():
                 item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'name': 1, 'category': 1})
                 if item:
                 
-
                     item['_id'] = str(item['_id'])
                     # Calculate the quantity of each item
                     item_quantity = len(sale['items'][item_id])
@@ -1040,6 +1074,7 @@ def get_sales_data():
         sale["quantity"]=checkout_quantity
         sale['item_details'] = item_details
         sale['store_id']=dbname
+        sale['payment_status']="paid"
 
     return jsonify(sales_data)
 

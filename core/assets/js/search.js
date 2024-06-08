@@ -28,19 +28,23 @@ $(document).ready(function() {
             $('.search-result-list').empty();
             $('.search-result-count').text("inventory not active")
 
-            $(this).clear()
+            $(this).val('')
+        }
+
+        else if(item.stock<1){
+            $('.search-result-count').text(`${item.name} is out of stock`)
         }
 
         else{
 
             var listItem = `
-        <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}">
+        <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}" data-stock-count="${item.stock}">
             <div class="d-flex">
               <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
               <div class="w-100">
                 <h5 class="m-0 font-14 search-result-name">${item.name} </h5>
                 <span class="font-12 mb-0 search-result-price">ksh ${parseFloat(item.price).toLocaleString()}</span>
-                <h6 class="font-6 text-muted"> stock ${item.stock} </h6>
+                <h6 class="font-6 text-muted" > stock ${item.stock} </h6>
               </div>
             </div>
           </a>
@@ -59,30 +63,59 @@ $(document).ready(function() {
     
 
 
-      const sync_item=()=>{
-                    // Event listener for adding items to the cart
-                    // Event listener for adding items to the cart
-                $(".search-result-item").on("click", async function() {
-                    var itemId = $(this).data('item-id');
-                    var barcode=$(this).data('item-barcode');
-
+    const sync_item = () => {
+        // Event listener for adding items to the cart
+        $(".search-result-item").on("click", async function() {
+            var itemId = $(this).data('item-id');
+            var barcode = $(this).data('item-barcode');
+    
+            // Fetch the available quantity of the item from the inventory
+            let availableQuantity = $(this).data('stock-count')
+          
+    
+            // Check if the item exists in customerCartBarcode
+            if (!customerCartBarcode[itemId]) {
+                // If the item doesn't exist, create a new list with the barcode
+                customerCartBarcode[itemId] = [barcode];
+                // Add the item to the cart with automatic quantity increment
+                addItemToCart(itemId);
+            } else {
+                // If the item exists, check the current quantity in the cart
+                let currentQuantity = customerCartBarcode[itemId].length;
+    
+                // Allow adding the item only if the current quantity is less than the available quantity
+                if (currentQuantity < availableQuantity) {
+                    // Add the barcode to the existing list
+                    customerCartBarcode[itemId].push(barcode);
                     // Add the item to the cart with automatic quantity increment
                     addItemToCart(itemId);
-
-                                // Check if the item exists in customerCartBarcode
-                    if (!customerCartBarcode[itemId]) {
-                        // If the item doesn't exist, create a new list with the barcode
-                        customerCartBarcode[itemId] = [barcode];
-                    } else {
-                        // If the item exists, add the barcode to the existing list
-                        customerCartBarcode[itemId].push(barcode);
-                    }
-
-                    // Render the updated cart
-                    renderCart();
-                    remove_row();
-                });
+                }
+                // else {
+                //     alert("You have reached the maximum quantity available for this item.");
+                // }
+            }
+    
+            // Render the updated cart
+            renderCart();
+            remove_row();
+        });
+    };
+    
+    // Function to fetch the available quantity of an item from the inventory
+    const fetchAvailableQuantity = async (itemId) => {
+        try {
+            const response = await fetch(`/api/items/quantity?item_id=${itemId}`);
+            const data = await response.json();
+            return data.available_quantity;
+        } catch (error) {
+            console.error('Error fetching available quantity:', error);
+            return 0; // Default to 0 if there's an error
         }
+    };
+    
+    // Initial call to sync_item to set up the event listeners
+    sync_item();
+    
 
 // Define a dictionary to store the items in the cart
 var customerCart = {};
@@ -356,7 +389,8 @@ function clearCart() {
             payment_method: paymentMethod,
             change_due: change_due,
             dbname: user_info.organization,
-            customer_cart_barcode: customerCartBarcode
+            customer_cart_barcode: customerCartBarcode,
+            sales_person:user_info.fullname
         };
 
         fetch(`${base_url}/api/checkout`, {
@@ -371,6 +405,11 @@ function clearCart() {
             if (data.success) {
                 // Clear the cart and reset the form
                 clearCart();
+                $('#top-search').val('');
+                $('.search-result-list').empty();
+                $('.search-result-count').text("0")
+                
+
                 $('#customer-shopping-cart').empty();
                 $("#checkoutModal").modal("toggle");
 
@@ -387,6 +426,8 @@ function clearCart() {
 
                 $("#checkout-title").text(`Checkout failed  ${ data.error}`)
             }
+
+
         })
         .catch(error => {
             console.error('Error:', error);

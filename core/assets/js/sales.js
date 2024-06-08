@@ -28,7 +28,7 @@ $(document).ready(function() {
                         sale.quantity || '',
                         sale.reference_number || '',
                         sale.payment_status || '',
-                        sale.sale_type || '',
+                        sale.payment_method || '',
                         `ksh ${parseFloat(sale.purchase_amount).toLocaleString()}`,
                         sale.tax || '',
                         sale.total_discount || '',
@@ -46,4 +46,6 @@ $(document).ready(function() {
 
     // Initial data fetch
     fetchSalesData();
+
+    setInterval(fetchSalesData,60000)
 });
