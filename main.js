@@ -4,7 +4,9 @@ const insert_axios = require("axios");
 const fs = require('fs').promises;
 
 const path = require("path");
+
 const { error } = require("console");
+
 
 let mainWindow;
 
@@ -176,6 +178,7 @@ function createWindowWithSize(width, height, pageName, resizable, theme) {
     webPreferences: {
       
       nodeIntegration: true,
+      contextIsolation:true,
       preload: path.join(__dirname, "preload.js"), // Provide the absolute path here
     },
   });
@@ -281,6 +284,8 @@ ipcMain.handle('insertItem', async (event, item) => {
   }
 });
 
+
+
 ipcMain.handle('Inventorydelete', async (event, inventoryid) => {
   try {
 
@@ -356,6 +361,11 @@ ipcMain.handle("returnBase64file", async (event, filepath) => {
   return base64_img;
 
 })
+
+ipcMain.handle('start-scanning', async () => {
+  console.log("scanner called")
+ return "scanned code"
+});
 
 
 ipcMain.on('minimize', () => {
@@ -582,7 +592,6 @@ app.on("ready", async () => {
 
 
   createWindow(initialWidth, initialHeight, initialHeight, initialWidth, theme);
-
 
 
 });

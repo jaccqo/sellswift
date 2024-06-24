@@ -1,6 +1,8 @@
 
 const { contextBridge, ipcRenderer,remote } = require('electron');
 
+
+
 contextBridge.exposeInMainWorld('ipcRenderer', {
   send: (channel, args) => {
     ipcRenderer.send(channel, args);
@@ -24,7 +26,11 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   getTheme:()=> ipcRenderer.invoke("getTheme"),
 
-  returnBase64file:(file_path)=> ipcRenderer.invoke("returnBase64file",file_path)
+  returnBase64file:(file_path)=> ipcRenderer.invoke("returnBase64file",file_path),
+
+  ScanBarcode:() => ipcRenderer.invoke("start-scanning")
+  
+
 
 
 });

@@ -24,13 +24,13 @@ def heavy_computation_numba(n):
 
 
 # Define a heavy computation function
-def heavy_computation(n):
-    result = 0
-    for i in range(n):
-        result += i * i
-        print(result)
+# def heavy_computation(n):
+#     result = 0
+#     for i in range(n):
+#         result += i * i
+#         print(result)
        
-    return result
+#     return result
 
 #Measure the time taken for computation
 # start_time = time.time()
