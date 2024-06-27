@@ -33,6 +33,7 @@ $(document).ready(function () {
       { orderable: !0 },
       { orderable: !0 },
       { orderable: !0 },
+      { orderable: !0 },
       { orderable: !1 },
     ],
     select: { style: "multi" },

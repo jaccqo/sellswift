@@ -81,6 +81,13 @@ def add_user():
         # Hash the password before storing it
         hashed_password = generate_password_hash(password)
 
+        if data.get("isAddedByexistinguser",False):
+            is_online=False
+        else:
+            is_online=True
+
+
+
         collection.insert_one({
             "fullname": fullname,
             "organization": organization,
@@ -94,7 +101,7 @@ def add_user():
             "last_login":datetime.datetime.now(),
             "login_location": get_location_by_ip(ip),
             "bio":"",
-            "is_online":True
+            "is_online":is_online
         })
 
         print(colored(f"User '{fullname}' added successfully. IP: {ip} at {datetime.datetime.now()}", "green"))
@@ -375,10 +382,13 @@ def search_items_by_barcode():
 
         if not formatted_items:
             # If no items are found by barcode, search by item name
-            items_by_name = items_collection.find({"name": {"$regex": query, "$options": "i"}})
-            for item in items_by_name:
-                item['_id'] = str(item['_id'])  # Convert _id to string
-                formatted_items.append(item)
+            try:
+                items_by_name = items_collection.find({"name": {"$regex": query, "$options": "i"}})
+                for item in items_by_name:
+                    item['_id'] = str(item['_id'])  # Convert _id to string
+                    formatted_items.append(item)
+            except Exception as e:
+                print(e)
 
     return jsonify(formatted_items)
 

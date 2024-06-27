@@ -23,7 +23,7 @@ $(document).ready(function () {
             const organization = user_info.organization;
             const sessionID = generateSessionID();
             const acceptTerms = "Yes"
-            const isAdminUser = "No"
+            const isAdminUser = false
 
             var data = {
                 fullname: fullName,
@@ -33,7 +33,8 @@ $(document).ready(function () {
                 acceptTerms: acceptTerms,
                 organization: organization,
                 sessionID: sessionID,
-                isAdminUser: isAdminUser
+                isAdminUser: isAdminUser,
+                isAddedByexistinguser:true
             };
 
 
@@ -127,11 +128,19 @@ $(document).ready(function () {
     };
 
     const populateUsersTable = () => {
-        const formatDate = (dateString) => {
-            if (!dateString) return '';
+        function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-US');  // Customize format as needed
-        };
+        
+            // Extracting parts of the date
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-indexed
+            const day = date.getDate().toString().padStart(2, '0');
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+            // Format: YYYY-MM-DD HH:MM
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
 
         getUsers(user_info.organization).then(users => {
             if (users) {
@@ -143,6 +152,7 @@ $(document).ready(function () {
                 for (const user of users) {
 
                     const joinedDate = user.joined_date && user.joined_date.$date ? formatDate(user.joined_date.$date) : '';
+                    const lastlogin = user.last_login && user.last_login.$date ? formatDate(user.last_login.$date) : '';
                     table.row.add([
                         '<div class="form-check"><input type="checkbox" class="form-check-input" id="customCheck13"/><label class="form-check-label" for="customCheck13">&nbsp;</label></div>',
                         `<span class="text-body fw-semibold">${user.fullname || ""}</span>`,
@@ -150,8 +160,9 @@ $(document).ready(function () {
                         user.email || "",
                         user.login_location.city || "",
                         joinedDate || "",
+                        lastlogin  || "",
                         (user.is_online ? '<span class="badge badge-success-lighten">online</span>' : '<span class="badge badge-danger-lighten">offline</span>'),
-                        `<a href="javascript:void(0);" class="action-icon"><i class="mdi mdi-square-edit-outline edit-user" data-edituserid="${user._id.$oid}" data-editusername="${user.fullname}"></i></a><a href="javascript:void(0);" class="action-icon"><i class="mdi mdi-delete deleteuser" data-deleteuserid="${user._id.$oid}" data-deleteusername="${user.fullname}"></i></a>`
+                        `<a href="javascript:void(0);" class="action-icon"><i class="mdi mdi-square-edit-outline edit-user" data-edituserid="${user._id.$oid}" data-editusername="${user.fullname}" data-isadmin="${user.is_admin}" data-isonline="${user.is_online}" ></i></a><a href="javascript:void(0);" class="action-icon"><i class="mdi mdi-delete deleteuser" data-deleteuserid="${user._id.$oid}" data-deleteusername="${user.fullname}"></i></a>`
                     ]);
 
                 }
@@ -187,18 +198,37 @@ $(document).ready(function () {
     }
 
     const editUserHandler = () => {
-
         // Event delegation for edit user
         $('#users-datatable').on('click', '.edit-user', function () {
             // Retrieve user ID and name from data attributes
             const userId = $(this).data('edituserid');
             const userName = $(this).data('editusername');
 
-            $('#editUserModal').attr('data-userid', userId);
-
-            $("#editing-user").text(`Editing ${userName}`)
+            const userOnline=$(this).data('isonline')
+            const userAdmin=$(this).data('isadmin')
 
             $('#editUserModal').modal('show'); // Show the modal
+
+            
+            $('#editing-user').attr('data-userid', userId);
+
+            $("#editing-user").text(`Editing ${userName} `)
+
+                    // Set the state of the online switch
+            if (userOnline) {
+                $('#is_online').prop('checked', true);
+            } else {
+                $('#is_online').prop('checked', false);
+            }
+
+            // Set the state of the admin switch
+            if (userAdmin) {
+                $('#is_admin').prop('checked', true);
+            } else {
+                $('#is_admin').prop('checked', false);
+            }
+
+          
 
 
         });
@@ -216,9 +246,13 @@ $(document).ready(function () {
 
                 // Show success message
                 $('#userdelete-status').show().fadeIn().delay(1800).fadeOut();
-                $('#user-delete-text').text('You cannot delete your own account. Please log in to another account to perform this action.');
+                $('#user-delete-text').addClass("text-danger").text('You cannot delete your own account. Please log in to another account to perform this action.');
 
                 return
+            }
+            else{
+                $('#user-delete-text').removeClass("text-danger").addClass("text-success").text(`Deleting ${userName}`)
+
             }
 
             // Show the loading spinner and hide the confirmation button
@@ -274,7 +308,6 @@ $(document).ready(function () {
                     // Hide the modal after a short delay
                     setTimeout(() => {
 
-
                         $('#delete-user-alert-modal').modal('hide');
                         $('#userdelete-status').fadeOut();
                     }, 2000);
@@ -293,11 +326,14 @@ $(document).ready(function () {
             var userEditdiv = $('#useredit-status');
             var userEdittxt = $('#user-edit-text');
 
+            var uid=$('#editing-user').attr("data-userid");
+
+       
 
             // Serialize form data
             const formData = {
                 dbName: user_info.organization,
-                userId: $('#editUserModal').data('userid'),
+                userId: uid,
                 fullName: $('#editfullNameInput').val(),
                 email: $('#editemailInput').val(),
                 isAdmin: $('#is_admin').prop('checked'),
@@ -326,8 +362,6 @@ $(document).ready(function () {
                 })
                 .then(data => {
                     // Handle successful edit
-
-
 
                     userEdittxt.text(data.message);
                     userEditdiv.fadeIn();
@@ -376,8 +410,8 @@ $(document).ready(function () {
     confirmDeleteUserHandler()
 
     // new table data each 3 seconds
-    setInterval(function () {
-        populateUsersTable()
-    }, 4000)
+    // setInterval(function () {
+    //     populateUsersTable()
+    // }, 4000)
 
 });

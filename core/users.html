@@ -47,12 +47,19 @@
         $(".logged-user-status").text("Admin");
       } else {
         $(".logged-user-status").text("Employee");
+        window.location.href = "./pos.html";
       }
     };
 
     get_user();
   </script>
 </head>
+
+
+
+
+
+
 
 <body >
   <!-- Begin page -->
@@ -407,6 +414,7 @@
                           <th>Email</th>
                           <th>Location</th>
                           <th>Created Date</th>
+                          <th>last login</th>
                           <th>Status</th>
                           <th style="width: 75px">Action</th>
                         </tr>

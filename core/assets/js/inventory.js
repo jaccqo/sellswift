@@ -174,11 +174,12 @@ $(document).ready(function(){
 
 
     const inventoryDeletion = () => {
-        $('.deleteInventory').on('click', function() {
+        $('#products-datatable').on('click','.deleteInventory', function() {
             // Get the ID of the item to be deleted
-            const itemId = $(this).data('deleteinventory');
+            const itemId = $(this).attr('data-deleteinventory');
             
             // Set the delete button click event to open the modal
+            $("#deleteItemModal").attr("data-itemid",itemId)
             $('#deleteItemModal').modal('show');
         });
     
@@ -186,10 +187,9 @@ $(document).ready(function(){
         $('#confirmDeleteBtn').on('click', async function() {
             $(".deletion-load").removeClass("d-none");
             $(this).addClass("d-none");
-    
-            // Call a function to delete the item (implement this function as needed)
-            const itemId = $('.deleteInventory').data('deleteinventory'); // Get itemId from the appropriate place
-            const response = await ipcRenderer.DeleteInventory(itemId);
+            const item_id=$("#deleteItemModal").attr("data-itemid")
+           
+            const response = await ipcRenderer.DeleteInventory(item_id);
     
             if (response.message === "Inventory item deleted successfully") {
                 ipcRenderer.send('request-initial-data');
@@ -225,7 +225,7 @@ var active_inventoryid=null
 
 const add_inventory_prod=()=>{
 
-    $('.addInventoryproduct').click(function() {
+    $('#products-datatable').on('click','.addInventoryproduct',function() {
         var itemId = $(this).data('inventoryproduct');
 
         
@@ -242,8 +242,6 @@ const add_inventory_prod=()=>{
         $("#barcodes-modal").modal("toggle");
 
        
-
-
     });
 
 }
@@ -396,15 +394,16 @@ const pond_two = FilePond.create(inputElement_two, {
 
 const edit_inventory = async () => {
 
-    $('.editInventory').click(async function() {
-        var itemId = $(this).data('editinventory');
+    $('#products-datatable').on('click','.editInventory',async function() {
+
+        var itemId = $(this).attr('data-editinventory');
 
         var row_text = $(this).closest('tr').find('td:eq(1) p').text();
 
 
         $("#inventoryname").text(`Edit ${row_text} inventory`)
 
-        $("#EditProductsModal").data('itemid', itemId);
+        $("#EditProductsModal").attr('data-itemid', itemId);
         // Get the itemId
         $("#EditProductsModal").modal("toggle");
     });
@@ -421,11 +420,13 @@ $("#editProductForm").on("click", async function(event){
     $(this).addClass("d-none")
 
     // Get the values from the modal inputs
-    var itemId = $("#EditProductsModal").data('itemid');
+    var itemId = $("#EditProductsModal").attr('data-itemid');
     var name = $('#edititemNameInput').val();
     var category = $('#edititemCategoryInput').val();
     var price = $('#edititemPrice').val();
     var status = $('#edititemStatusInput').prop('checked'); // Assuming it's a 
+
+   
     
   
     // You can retrieve other values similarly
@@ -510,6 +511,8 @@ $("#editProductForm").on("click", async function(event){
             $("#editProductForm").removeClass("d-none")
 
             $(".editinventory-load").addClass("d-none")
+
+            $("#EditProductsModal").modal("toggle");
 
         },
         error: function(xhr, status, error) {
