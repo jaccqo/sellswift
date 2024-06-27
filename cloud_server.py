@@ -203,8 +203,17 @@ def insert_item():
         if new_barcode:
             data["barcodes"] = [new_barcode]  # Create a new list with the new barcode
         else:
-          
             data["barcodes"] = []  # Ensure "barcodes" field exists even if no new barcode provided
+
+        barcode_quantity = data.get("barcodeQuantity", 0)  # Get the barcode quantity, default to 0 if not present
+        item_barcode = data.get("itemBarcode", "")  # Get the item barcode
+
+        if barcode_quantity and item_barcode:
+            for _ in range(0, int(barcode_quantity)):
+                data["barcodes"].append(int(item_barcode))
+        else:
+            print("Either barcode quantity or item barcode is missing")
+
 
         data["sales_count"]=0
 
@@ -222,13 +231,21 @@ def insert_item():
             collection.update_one({"_id": existing_item["_id"]}, {"$set": {"stock": new_stock, "barcodes": existing_barcodes}})
         else:
             # Item does not exist, insert it into the database
-            data["stock"]=0
+            data["stock"]=len(data["barcodes"])
 
             item_result = collection.insert_one(data)
+
+            barcode_dates_collection = db['barcode_dates']
+
+            for barcode in data["barcodes"]:
+            
+                barcode_dates_collection.insert_one({'barcode': barcode, 'date_added': datetime.datetime.now()})
+
 
         return jsonify({'message': 'Item inserted successfully'}), 200
         
     except Exception as e:
+        
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/get-items', methods=['GET'])
@@ -260,6 +277,7 @@ def get_all_items():
         return jsonify(inventory_items), 200
     
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/delete-inventory', methods=['POST'])
@@ -481,13 +499,14 @@ def get_barcodes():
     inventory_id = data.get('inventoryId')
 
     db = client[dbname]
-
+    
     # Assuming your item collection is named 'inventory'
     items_collection = db.inventory
     
     # Query MongoDB to find the inventory with the given inventoryId
     inventory = items_collection.find_one({'_id': ObjectId(inventory_id)})
-    
+
+
     # Check if inventory exists
     if inventory:
         # Retrieve the list of barcodes from the inventory
@@ -496,7 +515,7 @@ def get_barcodes():
 
         barcodes = inventory.get('barcodes', [])
 
-        for barcode in barcodes:
+        for e,barcode in enumerate(barcodes):
 
             barcode_info=db.barcode_dates.find_one({'barcode':barcode})
 
@@ -506,7 +525,7 @@ def get_barcodes():
             else:
                 barcode_info={}
 
-            barcode_data.update({barcode:barcode_info})
+            barcode_data.update({f"{barcode}-{e}":barcode_info})
 
         # Return the list of barcodes as a JSON response
         return jsonify({'barcodes': barcode_data})
@@ -533,13 +552,13 @@ def add_barcode():
 
         item_by_barcode = inventory_collection.find_one({"barcodes": {"$in": [barcode]}})
 
-        if item_by_barcode:
-            response = {
-                'status': 'success',
-                'message': 'This barcode already exists!'
-            }
+        # if item_by_barcode:
+        #     response = {
+        #         'status': 'success',
+        #         'message': 'This barcode already exists!'
+        #     }
 
-            return jsonify(response), 200
+        #     return jsonify(response), 200
         
         # Find the inventory item by ID and update it with the new barcode
         result = inventory_collection.update_one(
@@ -614,6 +633,40 @@ def add_barcode():
         return jsonify(response), 500
 
 
+def pull_one_barcode(inventory_collection,inventoryid, barcode):
+    # Find the inventory document
+    inventory = inventory_collection.find_one({'_id': ObjectId(inventoryid)})
+    
+    if not inventory:
+        print(f"No inventory found with id: {inventoryid}")
+        return
+    
+    # Get the barcodes list
+    barcodes = inventory.get('barcodes', [])
+
+    if barcode in barcodes:
+        # Remove the first occurrence of the barcode
+        barcodes.remove(barcode)
+        
+        # Update the document with the new barcodes list
+        result = inventory_collection.update_one(
+            {'_id': ObjectId(inventoryid)},
+            {'$set': {'barcodes': barcodes}}
+        )
+        
+        if result.modified_count > 0:
+            print(f"Successfully removed one instance of barcode {barcode}")
+
+            return 200
+        else:
+            print(f"Failed to update the inventory with id: {inventoryid}")
+            return 400
+    else:
+        print(f"Barcode {barcode} not found in the inventory with id: {inventoryid}")
+
+        return 400
+
+
 @app.route('/api/delete-inventory-barcode', methods=['POST'])
 def delete_inventory_barcode():
     try:
@@ -628,12 +681,13 @@ def delete_inventory_barcode():
         inventory_collection = db['inventory']  # Replace 'inventory' with your collection name
 
         # Find the document by its _id (which is the inventoryid)
-        result = inventory_collection.update_one(
-            {'_id': ObjectId(inventoryid)},
-             {'$pull': {'barcodes': barcode}}
-        )
+        # result = inventory_collection.update_one(
+        #     {'_id': ObjectId(inventoryid)},
+        #      {'$pull': {'barcodes': barcode}}
+        # )
+        result=pull_one_barcode(inventory_collection,ObjectId(inventoryid),barcode)
 
-        if result.modified_count > 0:
+        if result == 200:
 
             inventory_collection.update_one(
                 {'_id': ObjectId(inventoryid)},
@@ -642,8 +696,8 @@ def delete_inventory_barcode():
 
             db.barcodes_date.delete_one({'barcode': barcode})
       
-
             return jsonify({'message': 'Barcode removed successfully'}), 200
+        
         else:
             return jsonify({'message': 'Barcode not found or not in the Inventory list'}), 404
     except Exception as e:

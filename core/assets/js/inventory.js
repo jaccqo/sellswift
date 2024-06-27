@@ -116,6 +116,8 @@ $(document).ready(function(){
         const itemCategory = $('#itemCategoryInput').val();
         const itemPrice = $('#itemPrice').val();
         const itemStatus = $('#itemStatusInput').prop('checked'); // Checkbox value
+        const itemBarcode = $('#barcodeScan').val() || $('#barcodeManual').val();
+        const barcodeQuantity = $('#barcodeQuantity').val();
       
 
         const item = {
@@ -124,9 +126,10 @@ $(document).ready(function(){
             category:itemCategory,
             price: itemPrice,
             status: itemStatus,
+            itemBarcode:itemBarcode,
+            barcodeQuantity:barcodeQuantity
 
         };
-
 
         try {
             const result = await ipcRenderer.Insertinventory(item);
@@ -163,7 +166,9 @@ $(document).ready(function(){
 
         $(".addinventory-load").addClass("d-none");
 
-        
+        $(this)[0].reset()
+
+
 
     });
 
@@ -353,17 +358,17 @@ const InventoryGetBarcodes=(inventoryId,inventoryname)=>{
                     var barcodes_edit = `
                         <div class="d-flex align-items-center">
                             <a href="javascript:void(0);" class="action-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="Delete inventory barcode">
-                                <i class="mdi mdi-delete deleteInventoryBarcode text-success" data-deletebarcode="${barcode}"></i>
+                                <i class="mdi mdi-delete deleteInventoryBarcode text-success" data-deletebarcode="${barcode_info.barcode}"></i>
                             </a>
                             <h5 class="mb-2 ms-2">
-                                <span id="barcode_status_${barcode}" class="badge badge-warning-lighten d-none"></span>
-                                <span id="loading_${barcode}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span>
+                                <span id="barcode_status_${barcode_info.barcode}" class="badge badge-warning-lighten d-none"></span>
+                                <span id="loading_${barcode_info.barcode}" class="spinner-border spinner-border-sm text-warning d-none" role="status"></span>
                             </h5>
                         </div>`;
 
                     var barcode_date_added = barcode_info.date_added || null;
             
-                    barcode_table.row.add([inventoryname, barcode, barcode_date_added, barcodes_edit]);
+                    barcode_table.row.add([inventoryname, barcode_info.barcode, barcode_date_added, barcodes_edit]);
                 });
             }
             
@@ -425,7 +430,8 @@ $("#editProductForm").on("click", async function(event){
   
     // You can retrieve other values similarly
 
-    // Get the FilePond file objects
+ 
+
     const files = pond_two.getFiles();
 
     // Create a FormData object and append each file to it
