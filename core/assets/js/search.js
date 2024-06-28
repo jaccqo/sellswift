@@ -206,7 +206,7 @@ function renderCart() {
                     $('#customer-shopping-cart').append(widget);
 
                     // Scroll the container to the bottom to ensure the last added widget is in view
-                    $('.cart-total-widget')[0].scrollIntoView({
+                    $(`#${itemId}`)[0].scrollIntoView({
                         behavior: "smooth", // or "auto" or "instant"
                         block: "start" // or "end"
                     });
