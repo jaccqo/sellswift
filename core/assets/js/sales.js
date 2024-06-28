@@ -14,7 +14,7 @@ $(document).ready(function() {
 
                 // Add new data
                 data.forEach(sale => {
-                    let itemDetails = sale.item_details.map(item => `Name: ${item.name}, Category: ${item.category}`).join('<br>');
+                    let itemDetails = sale.item_details.map(item => `${item.name}`).join('<br>');
 
                     table.row.add([
                         `<div class="form-check">

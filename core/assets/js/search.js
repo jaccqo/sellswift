@@ -97,7 +97,7 @@ $(document).ready(function() {
     
             // Render the updated cart
             renderCart();
-            remove_row();
+            remove_widget();
         });
     };
     
@@ -158,73 +158,63 @@ function clearCart() {
 
 
 
-    function renderCart() {
-        $('#customer-shopping-cart').empty(); // Clear the existing cart content
-        
-        for (const [itemId, quantity] of Object.entries(customerCart)) {
-            const barcode=customerCartBarcode[itemId]
+function renderCart() {
+    $('#customer-shopping-cart').empty(); // Clear the existing cart content
 
+    for (const [itemId, quantity] of Object.entries(customerCart)) {
+        const barcode = customerCartBarcode[itemId];
 
-            // Retrieve item information from the backend and render the item in the cart
-            $.ajax({
-                type: "POST",
-                url: `${base_url}/api/get-item`,
-                contentType: "application/json",
-                data: JSON.stringify({ dbname: user_info.organization, itemId: itemId}),
-                dataType: "json",
-                success: function(response) {
-                    var imageData = 'data:image/jpeg;base64,' + response.image;
-                    var itemPrice = parseFloat(response.price); // Convert item price to a floating-point number
-                    var itemTotal = itemPrice * quantity; // Calculate total price for the item
+        // Retrieve item information from the backend and render the item in the cart
+        $.ajax({
+            type: "POST",
+            url: `${base_url}/api/get-item`,
+            contentType: "application/json",
+            data: JSON.stringify({ dbname: user_info.organization, itemId: itemId }),
+            dataType: "json",
+            success: function(response) {
+                var imageData = 'data:image/jpeg;base64,' + response.image;
+                var itemPrice = parseFloat(response.price); // Convert item price to a floating-point number
+                var itemTotal = itemPrice * quantity; // Calculate total price for the item
 
-                    // Construct the table row (tr) with item information
-         
-                
-                    var row = `
-                        <tr class="item-row" id="${itemId}" data-barcodes="${barcode.join(', ')}">
-                            <td class="sorting_1">
-                                <img src="${imageData}" alt="${response.name}" title="${response.name}" class="rounded me-3" height="48">
-                                
-                            </td>
-                            <td>ksh ${parseFloat(itemPrice).toLocaleString()}</td>
-                            <td><span class="badge bg-success">${quantity}</span></td>
-                            <td class="item-total">ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</td> <!-- Display item total -->
-                            <td>
-                                <a href="javascript:void(0);" class="action-icon delete-item">
-                                    <i class="mdi mdi-delete text-dark "></i>
+                // Construct the widget with item information
+                var widget = `
+                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
+                        <div class="card h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
+                            
+                           <img src="${imageData}" class="card-img-top mx-auto d-block" alt="${response.name}" title="${response.name}" style=" height:100%; object-fit: cover;">
+
+                            <div class="card-body p-2">
+                                <h5 class="card-title mb-1" style="font-size: 14px;">${response.name}</h5>
+                                <p class="card-text mb-1" style="font-size: 12px;">Price: ksh ${itemPrice.toLocaleString()}</p>
+                                <p class="card-text mb-1" style="font-size: 12px;">Quantity: <span class="badge bg-success">${quantity}</span></p>
+                                <p class="card-text mb-1 item-total" style="font-size: 12px;">Total: ksh ${itemTotal.toFixed(2).toLocaleString()}</p>
+                                <a href="javascript:void(0);" class="btn btn-danger btn-sm delete-item">
+                                    <i class="mdi mdi-delete text-light"></i> Remove
                                 </a>
-                            </td>
-                        </tr>
-                    `;
-                    // Append the constructed row to the table body
-                    $('#customer-shopping-cart').append(row);
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // Append the constructed widget to the container
+                $('#customer-shopping-cart').append(widget);
 
-                    customerCartTotal[itemId] = {
-                        name: response.name,
-                        price: itemPrice,
-                        quantity: quantity,
-                        totalAmount:itemTotal
-                    };
+                customerCartTotal[itemId] = {
+                    name: response.name,
+                    price: itemPrice,
+                    quantity: quantity,
+                    totalAmount: itemTotal
+                };
 
-                   
-
-                    render_total();
-
-
-                },
-
-                error: function(xhr, status, error) {
-                    // Handle errors here
-                    console.error("Error:", error);
-                }
-
-                
-            });
-    
-        }
-    
-    
+                render_total();
+            },
+            error: function(xhr, status, error) {
+                // Handle errors here
+                console.error("Error:", error);
+            }
+        });
     }
+}
+
 
     function calculateFinalAmount() {
         let finalAmount = 0;
@@ -246,15 +236,16 @@ function clearCart() {
 
     }
 
-    // Function to remove row from the cart
-    function remove_row() {
+    function remove_widget() {
         $('#customer-shopping-cart').on('click', '.delete-item', function(event) {
-            event.stopPropagation(); // Prevent row click event from firing
-            var itemId = $(this).closest('.item-row').attr('id');
+            event.stopPropagation(); // Prevent card click event from firing
+            var itemId = $(this).closest('.card').attr('id');
             // Remove the item from the cart dictionary
             removeItemFromCart(itemId);
-            // Remove the row from the table
-            $(this).closest('.item-row').remove();
+            // Remove the card from the container
+            $(this).closest('.card').remove();
+
+          
         });
     }
 
