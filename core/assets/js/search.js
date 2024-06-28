@@ -159,8 +159,7 @@ function clearCart() {
 
 
 function renderCart() {
-    $('#customer-shopping-cart').empty(); // Clear the existing cart content
-
+    // Loop through each item in the customerCart
     for (const [itemId, quantity] of Object.entries(customerCart)) {
         const barcode = customerCartBarcode[itemId];
 
@@ -176,27 +175,42 @@ function renderCart() {
                 var itemPrice = parseFloat(response.price); // Convert item price to a floating-point number
                 var itemTotal = itemPrice * quantity; // Calculate total price for the item
 
-                // Construct the widget with item information
-                var widget = `
-                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
-                        <div class="card h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
-                            
-                           <img src="${imageData}" class="card-img-top mx-auto d-block" alt="${response.name}" title="${response.name}" style=" height:100%; object-fit: cover;">
-
-                            <div class="card-body p-2">
-                                <h5 class="card-title mb-1" style="font-size: 14px;">${response.name}</h5>
-                                <p class="card-text mb-1" style="font-size: 12px;">Price: ksh ${itemPrice.toLocaleString()}</p>
-                                <p class="card-text mb-1" style="font-size: 12px;">Quantity: <span class="badge bg-success">${quantity}</span></p>
-                                <p class="card-text mb-1 item-total" style="font-size: 12px;">Total: ksh ${itemTotal.toFixed(2).toLocaleString()}</p>
-                                <a href="javascript:void(0);" class="btn btn-danger btn-sm delete-item">
-                                    <i class="mdi mdi-delete text-light"></i> Remove
-                                </a>
+                // Check if the widget already exists
+                var existingWidget = $(`#${itemId}`);
+                if (existingWidget.length > 0) {
+                    // Update the existing widget's content
+                    existingWidget.find('.card-title').text(response.name);
+                    existingWidget.find('.card-text:eq(0)').text(`Price: ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}`);
+                    existingWidget.find('.badge').text(quantity);
+                    existingWidget.find('.item-total').text(`Total: ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}`);
+                    existingWidget.find('.card-img-top').attr('src', imageData);
+                } else {
+                    // Construct a new widget with item information
+                    var widget = `
+                        <div class="card-widget col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
+                            <div class="card h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
+                                <img src="${imageData}" class="card-img-top mx-auto d-block" alt="${response.name}" title="${response.name}" style="max-height: 70%; max-width: 70%;">
+                                <div class="card-body p-2">
+                                    <h5 class="card-title mb-1" style="font-size: 14px;">${response.name}</h5>
+                                    <p class="card-text mb-1" style="font-size: 12px;">Price: ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}</p>
+                                    <p class="card-text mb-1" style="font-size: 12px;">Quantity: <span class="badge bg-success">${quantity}</span></p>
+                                    <p class="card-text mb-1 item-total" style="font-size: 12px;">Total: ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</p>
+                                    <a href="javascript:void(0);" class="btn btn-danger btn-sm delete-item">
+                                        <i class="mdi mdi-delete text-light"></i> Remove
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                // Append the constructed widget to the container
-                $('#customer-shopping-cart').append(widget);
+                    `;
+                    // Append the constructed widget to the container
+                    $('#customer-shopping-cart').append(widget);
+
+                    // Scroll the container to the bottom to ensure the last added widget is in view
+                    $('.cart-total-widget')[0].scrollIntoView({
+                        behavior: "smooth", // or "auto" or "instant"
+                        block: "start" // or "end"
+                    });
+                }
 
                 customerCartTotal[itemId] = {
                     name: response.name,
@@ -243,7 +257,7 @@ function renderCart() {
             // Remove the item from the cart dictionary
             removeItemFromCart(itemId);
             // Remove the card from the container
-            $(this).closest('.card').remove();
+            $(this).closest('.card-widget').remove();
 
           
         });

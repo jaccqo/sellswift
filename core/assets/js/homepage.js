@@ -158,6 +158,45 @@ $(document).ready( function() {
 
     }
 
+    const top_selling_table=()=>{
+        $.ajax({
+            url: `${base_url}/api/inventory?dbname=${dbname}`,
+            method: 'GET',
+            success: function(data) {
+                let tableBody = $('#product-table-body');
+                tableBody.empty();  // Clear any existing rows
+
+                data.forEach(function(product) {
+                    let row = `<tr id=${product.id}>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
+                            <span class="text-muted font-13">${product.date}</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
+                            <span class="text-muted font-13">Price</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
+                            <span class="text-muted font-13">Quantity</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
+                            <span class="text-muted font-13">Amount</span>
+                        </td>
+                    </tr>`;
+                    tableBody.append(row);
+                });
+            },
+            error: function(error) {
+                console.error('Error fetching inventory data:', error);
+            }
+        });
+
+    }
+
+    top_selling_table()
+
     fetchDashboardData()
 
     setInterval(fetchDashboardData,60000)

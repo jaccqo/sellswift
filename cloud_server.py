@@ -239,6 +239,7 @@ def insert_item():
         else:
             # Item does not exist, insert it into the database
             data["stock"]=len(data["barcodes"])
+            data["date_created"]=datetime.datetime.now()
 
             item_result = collection.insert_one(data)
 
@@ -1014,6 +1015,36 @@ def get_dashboard_data():
     
     return jsonify(data)
 
+@app.route('/api/inventory', methods=['GET'])
+def get_inventory():
+    dbname = request.args.get('dbname')
+    if not dbname:
+        return jsonify({"error": "Missing dbname parameter"}), 400
+
+    db = client[dbname]
+    inventory_collection = db["inventory"]
+
+    inventory_data = inventory_collection.find()
+    result = []
+
+    for item in inventory_data:
+        price = item.get('price', 0)
+        sales_count = item.get('sales_count', 0)
+
+        result.append({
+            'id': str(item['_id']),
+            'name': item['name'],
+            'date': item.get('date_created', ''),  
+            'price': price,
+            'quantity': sales_count,
+            'amount': float(price) * sales_count
+        })
+     # Sort the result by sales_count in descending order and take the top 5
+    top_selling_products = sorted(result, key=lambda x: x['quantity'], reverse=True)[:5]
+
+    return jsonify(top_selling_products)
+
+
 def generate_reference_number():
     # Get the current timestamp
     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -1077,24 +1108,35 @@ def checkout():
 
     sales_collection.insert_one(sale)
     
-    
+
     # Update the inventory
     for item_id, barcodes in customer_cart_barcode.items():
         for barcode in barcodes:
-            result=inventory_collection.update_one(
-                {"_id": ObjectId(item_id)},
-                {"$pull": {"barcodes": barcode}}
-            )
-
-            if result.modified_count > 0:
-
-                inventory_collection.update_one(
-                    {'_id': ObjectId(item_id)},
-                    {'$inc': {'stock': -1,
-                            'sales_count': 1}}
+            # Fetch the current document
+            item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+            
+            if item and "barcodes" in item and barcode in item["barcodes"]:
+                # Remove the barcode from the barcodes list
+                updated_barcodes = item["barcodes"]
+                updated_barcodes.remove(barcode)
+                
+                # Update the document with the new barcodes array
+                result = inventory_collection.update_one(
+                    {"_id": ObjectId(item_id)},
+                    {"$set": {"barcodes": updated_barcodes}}
                 )
-
-                db.barcodes_date.delete_one({'barcode': barcode})
+                
+                if result.modified_count > 0:
+                    # Update stock and sales count
+                    inventory_collection.update_one(
+                        {"_id": ObjectId(item_id)},
+                        {"$inc": {"stock": -1, "sales_count": 1}}
+                    )
+                    
+                    updated_item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                    if not updated_item["barcodes"]:
+                        # Remove the barcode from barcodes_date collection
+                        db.barcodes_date.delete_one({"barcode": barcode})
 
     return jsonify({"success": True, "customer_id": str(customer_id)})
 

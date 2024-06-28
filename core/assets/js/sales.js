@@ -3,6 +3,17 @@ $(document).ready(function() {
     var table = $('#sales-datatable').DataTable();
     var base_url=user_info.base_url
 
+    const options = {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false // Ensure 24-hour format
+    };
+
     // Function to fetch and display data
     function fetchSalesData() {
         fetch(`${base_url}/api/sales-data?dbname=${user_info.organization}`)
@@ -32,9 +43,9 @@ $(document).ready(function() {
                         `ksh ${parseFloat(sale.purchase_amount).toLocaleString()}`,
                         sale.tax || '',
                         sale.total_discount || '',
-                        new Date(sale.timestamp).toLocaleString(),
-                        sale.last_modified ? new Date(sale.last_modified).toLocaleString() : '',
-                        sale.sent_date ? new Date(sale.sent_date).toLocaleString() : '',
+                        new Date(sale.timestamp).toLocaleString('en-US',options),
+                        sale.last_modified ? new Date(sale.last_modified).toLocaleString('en-US',options) : '',
+                        sale.sent_date ? new Date(sale.sent_date).toLocaleString('en-US',options) : '',
                         sale.store_id || '',
                         sale.notes || ''
                        
