@@ -8,6 +8,21 @@ $(document).ready( function() {
     let revenueChartInstance;
     let highPerformingChartInstance;
 
+    async function showToast(heading, text, position, loaderBg, icon, hideAfter = 3000, stack = 1, showHideTransition = "fade") {
+        const options = {
+            heading: heading,
+            text: text,
+            position: position,
+            loaderBg: loaderBg,
+            icon: icon,
+            hideAfter: hideAfter,
+            stack: stack,
+            showHideTransition: showHideTransition
+        };
+        $.toast().reset("all");
+        $.toast(options);
+    }
+
     const renderRevenueChart = (data) => {
         const revenueColors = ["#727cf5", "#0acf97"];
         const revenueChartColors = $("#revenue-chart").data("colors");
@@ -196,25 +211,24 @@ $(document).ready( function() {
         });
     }
 
-    const options = {
-        timeZone: 'UTC',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false // Ensure 24-hour format
-    };
+    
 
-    const convertToCSV = (data) => {
+    const convertToCSV = async (data) => {
+        const progressBar = $('#conversion-progress-bar');
+
+        progressBar.css('width', '0%');
+        progressBar.attr('aria-valuenow', 0);
+        progressBar.text('0%');
+
+   
         const csvRows = [];
-        // Add the headers
         const headers = ['Name', 'Date Added', 'Price', 'Quantity', 'Amount'];
         csvRows.push(headers.join(','));
 
-        // Add the data
-        data.forEach(item => {
+
+    
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
             const row = [
                 `"${item.name}"`,
                 `"${item.date}"`,
@@ -223,34 +237,78 @@ $(document).ready( function() {
                 `"${parseFloat(item.amount).toLocaleString()}"`
             ];
             csvRows.push(row.join(','));
-        });
+    
+            // Update progress
+            const progress = Math.round((i + 1) / data.length * 100);
+            progressBar.css('width', `${progress}%`);
+            progressBar.attr('aria-valuenow', progress);
+            progressBar.text(`${progress}%`);
+        }
 
+        await showToast(
+            "! Download ",
+            `Your csv file is ready`,
+            "top-center",
+            "rgba(0,0,0,0.2)",
+            "success"
+        );
+
+        $(".progress-div").fadeOut()
+       
         return csvRows.join('\n');
     }
-
-    const downloadCSV = (csv, filename) => {
+    
+  
+    
+    const downloadCSV = async (csv, filename) => {
         const csvFile = new Blob([csv], { type: 'text/csv' });
         const downloadLink = document.createElement('a');
         downloadLink.download = filename;
         downloadLink.href = window.URL.createObjectURL(csvFile);
         downloadLink.style.display = 'none';
         document.body.appendChild(downloadLink);
+
         downloadLink.click();
         document.body.removeChild(downloadLink);
     }
+    
+    $('.export-topselling').click(async function() {
+        const conversionProgressBar = $('#conversion-progress-bar');
+        $(".progress-div").fadeIn()
+       
+       
+        await showToast(
+            "! Top selling products",
+            `Getting Data from server please wait ..`,
+            "top-center",
+            "rgba(0,0,0,0.2)",
+            "success"
+        );
+    
+        try {
+            const response = await fetch(`${base_url}/api/inventory?dbname=${dbname}`);
+            const data = await response.json();
 
-    $('.export-topselling').click(function() {
-        $.ajax({
-            url: `${base_url}/api/inventory?dbname=${dbname}`,
-            method: 'GET',
-            success: function(data) {
-                const csv = convertToCSV(data);
-                downloadCSV(csv, 'top_selling_products.csv');
-            },
-            error: function(error) {
-                console.error('Error fetching inventory data:', error);
-            }
-        });
+    
+            // Reset and show progress bars
+            conversionProgressBar.css('width', '0%').attr('aria-valuenow', 0).text('0%');
+
+            
+            // Convert data to CSV
+            const csv = await convertToCSV(data);
+    
+            // Download CSV
+            await downloadCSV(csv, 'top_selling_products.csv');
+        } catch (error) {
+            console.error('Error fetching inventory data:', error);
+            await showToast(
+                "! Error fetching inventory data:",
+                `Getting Data from server please wait ..`,
+                "top-center",
+                "rgba(0,0,0,0.2)",
+                "success"
+            );
+        }
     });
 
     // Initial fetch to populate the table

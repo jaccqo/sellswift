@@ -12,6 +12,21 @@ $(document).ready(function () {
         var addUserBtn = $("#addUserForm button[type='submit']");
         var loadingBtn = $(".add-user-load");
 
+        async function showToast(heading, text, position, loaderBg, icon, hideAfter = 3000, stack = 1, showHideTransition = "fade") {
+            const options = {
+                heading: heading,
+                text: text,
+                position: position,
+                loaderBg: loaderBg,
+                icon: icon,
+                hideAfter: hideAfter,
+                stack: stack,
+                showHideTransition: showHideTransition
+            };
+            $.toast().reset("all");
+            $.toast(options);
+        }
+
         // Show loading spinner and hide submit button
         addUserBtn.addClass('d-none');
         loadingBtn.removeClass('d-none');
@@ -127,22 +142,23 @@ $(document).ready(function () {
         }
     };
 
-    const populateUsersTable = () => {
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-        
-            // Extracting parts of the date
-            const year = date.getUTCFullYear();
-            const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Months are zero-indexed
-            const day = date.getUTCDate().toString().padStart(2, '0');
-            const hours = date.getUTCHours().toString().padStart(2, '0');
-            const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-        
-            // Format: YYYY-MM-DD HH:MM
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
-        }
-        
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+    
+        // Extracting parts of the date
+        const year = date.getUTCFullYear();
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Months are zero-indexed
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const hours = date.getUTCHours().toString().padStart(2, '0');
+        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    
+        // Format: YYYY-MM-DD HH:MM
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
 
+    const populateUsersTable = () => {
+        
+        
         getUsers(user_info.organization).then(users => {
             if (users) {
 
@@ -403,16 +419,107 @@ $(document).ready(function () {
         });
     };
 
+    const exportUsers = async () => {
+        const progressBar = $('#conversion-progress-bar');
+    
+        try {
+            const users = await getUsers(user_info.organization);
+    
+            // Initialize progress bar
+            progressBar.css('width', '0%');
+            progressBar.attr('aria-valuenow', 0);
+            progressBar.text('0%');
+            $(".progress-div").fadeIn();
+    
+            if (users) {
+                const csvRows = [];
+                const headers = ['Name', 'Admin', 'Email', 'Location', 'Created Date', 'Last login', 'Online'];
+                csvRows.push(headers.join(','));
+    
+                users.forEach((user, index) => {
+                    const joinedDate = user.joined_date && user.joined_date.$date ? formatDate(user.joined_date.$date) : '';
+                    const lastlogin = user.last_login && user.last_login.$date ? formatDate(user.last_login.$date) : '';
+    
+                    const row = [
+                        `"${user.fullname}"`,
+                        `"${user.is_admin}"`,
+                        `"${user.email}"`,
+                        `"${user.login_location.city}"`,
+                        `"${joinedDate}"`,
+                        `"${lastlogin}"`,
+                        `"${user.is_online}"`
+                    ];
+                    csvRows.push(row.join(','));
+    
+                    // Update progress
+                    const progress = Math.round((index + 1) / users.length * 100);
+                    progressBar.css('width', `${progress}%`);
+                    progressBar.attr('aria-valuenow', progress);
+                    progressBar.text(`${progress}%`);
+                });
+    
+                await showToast(
+                    "! Download ",
+                    `Your CSV file is ready`,
+                    "top-center",
+                    "rgba(0,0,0,0.2)",
+                    "success"
+                );
+    
+                $(".progress-div").fadeOut();
+    
+                // Trigger CSV download
+                const csvContent = csvRows.join('\n');
+                const csvFile = new Blob([csvContent], { type: 'text/csv' });
+                const downloadLink = document.createElement('a');
+                downloadLink.download = 'users.csv';
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+        } catch (error) {
+            console.error('Error exporting users:', error);
+            $(".progress-div").fadeOut();
+        }
+    };
+
+    $(".export-users").on("click",async function(){
+
+        const conversionProgressBar = $('#conversion-progress-bar');
+        $(".progress-div").fadeIn()
+       
+        await showToast(
+            "! Users",
+            `Getting Users from server please wait ..`,
+            "top-center",
+            "rgba(0,0,0,0.2)",
+            "success"
+        );
+
+         // Reset and show progress bars
+         conversionProgressBar.css('width', '0%').attr('aria-valuenow', 0).text('0%');
+
+         // Convert data to CSV
+          await exportUsers();
+
+    })
+
+
+
     // Call the confirmEdit function
+
+
     confirmEdit();
 
     populateUsersTable()
 
     confirmDeleteUserHandler()
 
-    // new table data each 3 seconds
-    // setInterval(function () {
-    //     populateUsersTable()
-    // }, 4000)
+    //new table data each 3 seconds
+    setInterval(function () {
+        populateUsersTable()
+    }, 4000)
 
 });
