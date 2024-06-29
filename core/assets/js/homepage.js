@@ -158,7 +158,9 @@ $(document).ready( function() {
 
     }
 
-    const top_selling_table=()=>{
+
+
+    const top_selling_table = () => {
         $.ajax({
             url: `${base_url}/api/inventory?dbname=${dbname}`,
             method: 'GET',
@@ -192,10 +194,68 @@ $(document).ready( function() {
                 console.error('Error fetching inventory data:', error);
             }
         });
-
     }
 
-    top_selling_table()
+    const options = {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false // Ensure 24-hour format
+    };
+
+    const convertToCSV = (data) => {
+        const csvRows = [];
+        // Add the headers
+        const headers = ['Name', 'Date Added', 'Price', 'Quantity', 'Amount'];
+        csvRows.push(headers.join(','));
+
+        // Add the data
+        data.forEach(item => {
+            const row = [
+                `"${item.name}"`,
+                `"${item.date}"`,
+                `"${parseFloat(item.price).toLocaleString()}"`,
+                item.quantity,
+                `"${parseFloat(item.amount).toLocaleString()}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        return csvRows.join('\n');
+    }
+
+    const downloadCSV = (csv, filename) => {
+        const csvFile = new Blob([csv], { type: 'text/csv' });
+        const downloadLink = document.createElement('a');
+        downloadLink.download = filename;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
+    $('.export-topselling').click(function() {
+        $.ajax({
+            url: `${base_url}/api/inventory?dbname=${dbname}`,
+            method: 'GET',
+            success: function(data) {
+                const csv = convertToCSV(data);
+                downloadCSV(csv, 'top_selling_products.csv');
+            },
+            error: function(error) {
+                console.error('Error fetching inventory data:', error);
+            }
+        });
+    });
+
+    // Initial fetch to populate the table
+    top_selling_table();
+
 
     fetchDashboardData()
 

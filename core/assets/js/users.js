@@ -23,7 +23,7 @@ $(document).ready(function () {
             const organization = user_info.organization;
             const sessionID = generateSessionID();
             const acceptTerms = "Yes"
-            const isAdminUser = false
+            const isAdminUser = "No"
 
             var data = {
                 fullname: fullName,
@@ -223,7 +223,7 @@ $(document).ready(function () {
             }
 
             // Set the state of the admin switch
-            if (userAdmin) {
+            if (userAdmin==="Yes" || userAdmin===true) {
                 $('#is_admin').prop('checked', true);
             } else {
                 $('#is_admin').prop('checked', false);
@@ -246,13 +246,13 @@ $(document).ready(function () {
             if (userId === user_info._id) {
 
                 // Show success message
-                $('#userdelete-status').show().fadeIn().delay(1800).fadeOut();
-                $('#user-delete-text').addClass("text-danger").text('You cannot delete your own account. Please log in to another account to perform this action.');
+                $('#userdelete-status').show().fadeIn().delay(1800).fadeOut(2500);
+                $('#user-delete-text').removeClass("badge-success-lighten").addClass("badge-danger-lighten").addClass("text-danger").text('You cannot delete your own account. Please log in to another account to perform this action.');
 
                 return
             }
             else{
-                $('#user-delete-text').removeClass("text-danger").addClass("text-success").text(`Deleting ${userName}`)
+                $('#user-delete-text').removeClass("text-danger").removeClass("badge-danger-lighten").addClass("badge-success-lighten").addClass("text-success").text(`Deleting ${userName}`)
 
             }
 

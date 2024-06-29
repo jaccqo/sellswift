@@ -6,9 +6,9 @@ $(document).ready(function () {
         previous: "<i class='mdi mdi-chevron-left'>",
         next: "<i class='mdi mdi-chevron-right'>",
       },
-      info: "Showing products _START_ to _END_ of _TOTAL_",
+      info: "Showing inventory _START_ to _END_ of _TOTAL_",
       lengthMenu:
-        'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+        'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> Inventory',
     },
     pageLength: 5,
     columns: [
@@ -57,9 +57,9 @@ $(document).ready(function () {
             previous: "<i class='mdi mdi-chevron-left'></i>",
             next: "<i class='mdi mdi-chevron-right'></i>",
         },
-        info: "Showing products _START_ to _END_ of _TOTAL_",
+        info: "Showing Barcodes _START_ to _END_ of _TOTAL_",
         lengthMenu:
-            'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+            'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> Barcodes',
     },
     pageLength: 5,
     columns: [
@@ -94,9 +94,9 @@ $("#sales-datatable").DataTable({
           previous: "<i class='mdi mdi-chevron-left'></i>",
           next: "<i class='mdi mdi-chevron-right'></i>",
       },
-      info: "Showing products _START_ to _END_ of _TOTAL_",
+      info: "Showing Sales _START_ to _END_ of _TOTAL_",
       lengthMenu:
-          'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+          'Display <select class=\'form-select form-select-sm ms-1 me-1\'><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> Sales',
   },
   pageLength: 5,
   columns: [
