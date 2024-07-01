@@ -28,7 +28,9 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   returnBase64file:(file_path)=> ipcRenderer.invoke("returnBase64file",file_path),
 
-  ScanBarcode:() => ipcRenderer.invoke("start-scanning")
+  ScanBarcode:() => ipcRenderer.invoke("start-scanning"),
+
+  GetInventory:()=> ipcRenderer.invoke("get-inventory")
   
 
 

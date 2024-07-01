@@ -553,6 +553,13 @@ ipcMain.on('request-initial-data', async (event) => {
   event.sender.send('initial-data', initialData);
 });
 
+ipcMain.handle("get-inventory",async (event,args)=>{
+
+  const initialData = await getAllItems();
+
+  return initialData;
+})
+
 
 const return_theme = async () => {
   try {

@@ -292,7 +292,6 @@ $(document).ready( function() {
     
             // Reset and show progress bars
             conversionProgressBar.css('width', '0%').attr('aria-valuenow', 0).text('0%');
-
             
             // Convert data to CSV
             const csv = await convertToCSV(data);

@@ -17,6 +17,23 @@ $(document).ready(function(){
         $.toast(options);
     }
 
+    async function showExportToast(heading, text, position, loaderBg, icon, hideAfter = 3000, stack = 1, showHideTransition = "fade") {
+        const options = {
+            heading: heading,
+            text: text,
+            position: position,
+            loaderBg: loaderBg,
+            icon: icon,
+            hideAfter: hideAfter,
+            stack: stack,
+            showHideTransition: showHideTransition
+        };
+        $.toast().reset("all");
+        $.toast(options);
+    }
+
+    
+
     function populateInventoryTable(inventoryData) {
 
         // Assuming you have already initialized DataTables on the table with ID 'inventoryTable'
@@ -615,6 +632,94 @@ const handleDeleteInventoryBarcode = () => {
 
         });
     };
+
+    const downloadCSV = async (csv, filename) => {
+        const csvFile = new Blob([csv], { type: 'text/csv' });
+        const downloadLink = document.createElement('a');
+        downloadLink.download = filename;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
+   
+
+    const convertToCSV = async (data) => {
+        const progressBar = $('#conversion-progress-bar');
+
+        progressBar.css('width', '0%');
+        progressBar.attr('aria-valuenow', 0);
+        progressBar.text('0%');
+
+   
+        const csvRows = [];
+        const headers = ['Product', 'Category', 'Price', 'Stock Quantity', 'Active','Date added'];
+        csvRows.push(headers.join(','));
+
+
+    
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const row = [
+                `"${item.name}"`,
+                `"${item.category}"`,
+                `"${parseFloat(item.price).toLocaleString()}"`,
+                `"${item.stock}"`,
+                `"${item.status}"`,
+                `"${item.date_created}"`,
+            ];
+            csvRows.push(row.join(','));
+    
+            // Update progress
+            const progress = Math.round((i + 1) / data.length * 100);
+            progressBar.css('width', `${progress}%`);
+            progressBar.attr('aria-valuenow', progress);
+            progressBar.text(`${progress}%`);
+        }
+
+        await showToast(
+            "! Download ",
+            `Your csv file is ready`,
+            "top-center",
+            "rgba(0,0,0,0.2)",
+            "success"
+        );
+
+        $(".progress-div").fadeOut()
+       
+        return csvRows.join('\n');
+    }
+
+
+
+
+    $(".export-inventory").on("click",async function(){
+
+        const conversionProgressBar = $('#conversion-progress-bar');
+        $(".progress-div").fadeIn()
+       
+       
+        await showExportToast(
+            "! Top selling products",
+            `Getting Data from server please wait ..`,
+            "top-center",
+            "rgba(0,0,0,0.2)",
+            "success"
+        );
+
+        // Reset and show progress bars
+        conversionProgressBar.css('width', '0%').attr('aria-valuenow', 0).text('0%');
+
+        const inventory_data=await ipcRenderer.GetInventory();
+
+        const csv=await convertToCSV(inventory_data)
+        await downloadCSV(csv,"inventory.csv")
+            
+    })
+
 
 
     handleDeleteInventoryBarcode();

@@ -480,25 +480,28 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="row mb-2">
-
-                                        <div class="col-sm-5">
+                                    <div class="row mb-2 d-flex justify-content-between align-items-center">
+                                        <div class="col-sm-3">
                                             <a class="btn btn-warning mb-2" id="addProductsBtn">
-                                                <i class="mdi mdi-plus-circle me-2 add-products"
-                                                    data-bs-toggle="tooltip" data-bs-placement="right"
-                                                    title="Add new inventory"></i> Add Inventory
+                                                <i class="mdi mdi-plus-circle me-2 add-products" data-bs-toggle="tooltip" data-bs-placement="right" title="Add new inventory"></i>
+                                                Add Inventory
                                             </a>
                                         </div>
-
-
-
-                                        <div class="col-sm-7">
-                                            <div class="text-sm-end">
-
-                                                <button type="button" class="btn btn-light mb-2 export-inventory">Export  <i class="mdi mdi-download ms-1"></i></button>
+                                    
+                                        <div class="col-sm-6 d-flex justify-content-center">
+                                            <div class="progress progress-md progress-div w-100" style="display:none;">
+                                              <div id="conversion-progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
-                                        </div><!-- end col-->
+                                          </div>
+                                    
+                                        <div class="col-sm-3  d-flex justify-content-end">
+                                            <button type="button" class="btn btn-light mb-2 export-inventory">
+                                                Export <i class="mdi mdi-download ms-1"></i>
+                                            </button>
+                                        </div>
                                     </div>
+                                    
+                                    
 
                                     <div class="table-responsive">
                                         <table class="table table-centered w-100 dt-responsive nowrap"
