@@ -5198,8 +5198,8 @@ fieldset:disabled .btn {
   --ct-accordion-btn-focus-box-shadow: none;
   --ct-accordion-body-padding-x: 1.25rem;
   --ct-accordion-body-padding-y: 1rem;
-  --ct-accordion-active-color: var(--ct-primary);
-  --ct-accordion-active-bg: var(--ct-primary-bg-subtle);
+  --ct-accordion-active-color: var(--ct-warning);
+  --ct-accordion-active-bg: var(--ct-warning-bg-subtle);
 }
 .accordion-button {
   position: relative;

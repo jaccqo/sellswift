@@ -10,7 +10,7 @@ const { error } = require("console");
 
 let mainWindow;
 
-let base_url = "http://192.168.100.14:5000";
+let base_url="http://172.20.10.2:5000";
 
 
 insert_axios.interceptors.response.use(

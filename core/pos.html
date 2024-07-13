@@ -479,121 +479,95 @@
       <!-- Checkout Modal -->
       <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header bg-warning">
-              <h5 class="modal-title text-white" id="checkoutModalLabel">
-                Complete Checkout
-              </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                aria-label="Close"></button>
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-white" id="checkoutModalLabel">
+                        Complete Checkout
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Payment Method Selection -->
+                    <p class="fw-bold mb-3">Select payment method:</p>
+                    <div id="paymentMethodSelection" class="row g-2 mb-4">
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment" value="cash" />
+                                <label class="form-check-label" for="cashPayment">
+                                    <i class="uil uil-money-withdrawal"></i> Cash
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="mpesaPayment" value="mpesa" />
+                                <label class="form-check-label" for="mpesaPayment">
+                                    <i class="fas fa-mobile text-success"></i> Mpesa
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card" />
+                                <label class="form-check-label" for="cardPayment">
+                                    <i class="fas fa-credit-card text-warning"></i> Card
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="paypalPayment" value="paypal" />
+                                <label class="form-check-label" for="paypalPayment">
+                                    <i class="fab fa-paypal text-info"></i> PayPal
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Amount Paid for Cash Payment -->
+                    <div class="mb-3 d-none" id="cashAmountDiv">
+                        <label for="cashAmount" class="form-label">Cash Amount Paid:</label>
+                        <input type="text" class="form-control" id="cashAmount" placeholder="Amount paid" />
+                    </div>
+    
+                    <!-- Purchase Summary -->
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Purchase Summary</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-start">Total Items:</td>
+                                            <td class="text-end modaltotalitems">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-start">Amount Paid:</td>
+                                            <td class="text-end" id="totalpaidmodal" data-total-paidmodal="0">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-start">Change Due:</td>
+                                            <td class="text-end" id="changedue" data-total-changedue="0">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-start">Purchases Subtotal:</td>
+                                            <td class="text-end fw-semibold totalAmount modaltotalamount" data-total-amount="0">0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Purchase Summary -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-warning" id="completeCheckout">Complete Checkout</button>
+                </div>
             </div>
-            <div class="modal-body">
-              <!-- Payment Method Selection -->
-              <p>Select payment method:</p>
-              <!-- Payment Method Selection -->
-              <div id="paymentMethodSelection" class="row">
-                <div class="col-sm-4">
-                  <div class="form-check">
-                    
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment" value="cash" />
-                    <label class="form-check-label" for="cashPayment">
-                     <i class="uil-money-withdrawal"></i> Cash
-                    </label>
-                  </div>
-                </div>
-
-                <div class="col-sm-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="mpesaPayment" value="mpesa" />
-                    <label class="form-check-label" for="mpesaPayment">
-                      <i class="fas fa-mobile text-success"></i> Mpesa
-                    </label>
-                  </div>
-                </div>
-
-                <div class="col-sm-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card" />
-                    <label class="form-check-label" for="cardPayment">
-                      <i class="fas fa-credit-card text-warning"></i> Card
-                    </label>
-                  </div>
-                </div>
-
-                <div class="col-sm-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="paypalPayment"
-                      value="paypal" />
-                    <label class="form-check-label" for="paypalPayment">
-                      <i class="fab fa-paypal text-info"></i> PayPal
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Amount Paid for Cash Payment -->
-              <div class="mb-3 d-none" id="cashAmountDiv">
-                <label for="cashAmount" class="form-label">Cash Amount Paid:</label>
-                <input type="text" class="form-control" id="cashAmount" placeholder="Amount paid" />
-              </div>
-
-              <div class="col-lg-12">
-                <div class="border-none p-3 mt-4 mt-lg-0 rounded">
-                  <h4 class="header-title mb-3">Purchase Summary</h4>
-
-                  <div class="table-responsive">
-                    <table class="table table-nowrap table-centered mb-0">
-                      <tbody>
-                        <tr class="text-end">
-                          <td>
-                            <h6 class="m-0">Total Items :</h6>
-                          </td>
-                          <td class="text-end modaltotalitems">10</td>
-                        </tr>
-
-                        <tr class="text-end">
-                          <td>
-                            <h6 class="m-0">Amount Paid :</h6>
-                          </td>
-                          <td class="text-end" id="totalpaidmodal" data-total-paidmodal="0">
-                            0
-                          </td>
-                        </tr>
-                        <tr class="text-end">
-                          <td>
-                            <h6 class="m-0">Change Due:</h6>
-                          </td>
-                          <td class="text-end" id="changedue" data-total-changedue="0">
-                            0
-                          </td>
-                        </tr>
-                        <tr class="text-end">
-                          <td>
-                            <h5 class="m-0">Purchases Sub total:</h5>
-                          </td>
-                          <td class="text-end fw-semibold totalAmount modaltotalamount" data-total-amount="0">
-                            0
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <!-- end table-responsive -->
-                </div>
-                <!-- end .border-->
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Close
-              </button>
-              <button type="button" class="btn btn-warning" id="completeCheckout">
-                Complete Checkout
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
+    </div>
+    
 
       <div id="success-checkout-alert-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm">
@@ -623,11 +597,9 @@
       <!-- Footer Start -->
       <footer class="footer">
         <div class="container-fluid">
-          <div class="col-md-6">
-            <script>
-              document.write(new Date().getFullYear());
-            </script>
-            © RTS - v1.0.0
+          <div class="d-flex justify-content-between align-items-center">
+            <div>© <span id="current-year"></span> RTS - v1.0.0</div>
+            <div>Crafted with <i class="mdi mdi-heart text-danger"></i> by RTS Team</div>
           </div>
         </div>
       </footer>

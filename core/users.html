@@ -497,70 +497,64 @@
 
       <div id="editUserModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog">
-          <div class="modal-content ribbon-box">
-            <div class="modal-body">
-              <div class="ribbon ribbon-success float-start">
-                <img src="assets/images/logo.png" alt="" height="30" />
-                <span id="editing-user"></span>
-              </div>
-
-              <form class="ps-3 pe-3" id="editUserForm" action="#">
-                <div class="mb-3">
-                  <label for="fullNameInput" class="form-label">Full Name</label>
-                  <input class="form-control" type="text" id="editfullNameInput" placeholder="Full Name" value="" />
-                </div>
-
-                <div class="mb-3">
-                  <label for="emailInput" class="form-label">Email</label>
-                  <input class="form-control" type="email" id="editemailInput" placeholder="Email" value="" />
-                </div>
-
-                <!-- <div class="mb-3 ">
-                          <label for="passwordInput" class="form-label">Password</label>
-                           <div class="input-group input-group-merge">
-                           
-                            <input class="form-control" type="password" id="editpasswordInput"  type="password"  placeholder="Password" value="">
-                            <div class="input-group-text" data-password="false">
-                                  <span class="password-eye"></span>
+            <div class="modal-content ribbon-box">
+                <div class="modal-body">
+                    <div class="ribbon ribbon-success float-start">
+                        <img src="assets/images/logo.png" alt="" height="30" />
+                        <span id="editing-user"></span>
+                    </div>
+    
+                    <form class="ps-3 pe-3" id="editUserForm" action="#">
+                        <div class="mb-3">
+                            <label for="fullNameInput" class="form-label">Full Name</label>
+                            <input class="form-control" type="text" id="editfullNameInput" placeholder="Full Name" value="" />
+                        </div>
+    
+                        <div class="mb-3">
+                            <label for="emailInput" class="form-label">Email</label>
+                            <input class="form-control" type="email" id="editemailInput" placeholder="Email" value="" />
+                        </div>
+    
+                        <div class="mb-0 d-flex justify-content-between">
+                            <!-- Admin User Switch -->
+                            <div class="d-flex flex-column align-items-start">
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" id="is_admin" data-switch="warning" />
+                                    <label for="is_admin" data-on-label="Yes" data-off-label="No"></label>
+                                </div>
+                                <label for="is_admin" class="form-label ms-2 mt-1">Admin User</label>
                             </div>
+    
+                            <!-- Status Switch -->
+                            <div class="d-flex flex-column align-items-start">
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" id="is_online" data-switch="success" />
+                                    <label for="is_online" data-on-label="Online" data-off-label="Offline"></label>
+                                </div>
+                                <label for="is_online" class="form-label ms-2 mt-1">Status</label>
                             </div>
-                        </div> -->
-
-                <div class="mb-0 d-flex justify-content-between">
-                  <!-- Admin User Switch -->
-                  <div class="d-flex align-items-center">
-                    <input type="checkbox" id="is_admin" data-switch="warning" />
-                    <label for="is_admin" data-on-label="Yes" data-off-label="No"></label>
-                    <label for="createAdminUser" class="p-2">Admin User</label>
-                  </div>
-
-                  <!-- Status Switch -->
-                  <div class="d-flex align-items-center">
-                    <label for="createAdminUser" class="p-2">Status</label>
-                    <input type="checkbox" id="is_online" data-switch="success" />
-                    <label for="is_online" data-on-label="Online" data-off-label="Offline"></label>
-                  </div>
+                        </div>
+    
+                        <div class="mb-3 text-center">
+                            <button class="btn btn-success" type="submit">
+                                Edit User
+                            </button>
+    
+                            <button class="btn btn-success d-none edit-user-load" type="button" disabled>
+                                <span>Editing user...</span>
+                                <div class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></div>
+                            </button>
+                        </div>
+    
+                        <div class="mb-3" id="useredit-status" style="display: none">
+                            <span id="user-edit-text" class="badge badge-success-lighten me-2 text-wrap"></span>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="mb-3 text-center">
-                  <button class="btn btn-success" type="submit">
-                    Edit User
-                  </button>
-
-                  <button class="btn btn-success d-none edit-user-load" type="button" disabled>
-                    <span>Editing user...</span>
-                    <div class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></div>
-                  </button>
-                </div>
-
-                <div class="mb-3" id="useredit-status" style="display: none">
-                  <span id="user-edit-text" class="badge badge-success-lighten me-2 text-wrap"></span>
-                </div>
-              </form>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+    
 
       <div id="delete-user-alert-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm">
@@ -594,19 +588,18 @@
       <!-- content -->
 
       <!-- Footer Start -->
-      <!-- Footer Start -->
+
+  
       <footer class="footer">
         <div class="container-fluid">
-          <div class="col-md-6">
-            <script>
-              document.write(new Date().getFullYear());
-            </script>
-            © RTS - v1.0.0
+          <div class="d-flex justify-content-between align-items-center">
+            <div>© <span id="current-year"></span> RTS - v1.0.0</div>
+            <div>Crafted with <i class="mdi mdi-heart text-danger"></i> by RTS Team</div>
           </div>
         </div>
       </footer>
       <!-- end Footer -->
-      <!-- end Footer -->
+   
     </div>
 
     <!-- ============================================================== -->

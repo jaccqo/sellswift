@@ -247,6 +247,9 @@
                                 font-size: 1.1rem;
                                 /* Adjust icon size */
                             }
+
+                    
+
                         </style>
         
                         <nav class="navbar navbar-expand-lg justify-content-end">
@@ -691,62 +694,52 @@
 
                 <!-- Full width modal -->
 
-                <div id="barcodes-modal" class="modal fade" tabindex="-1" role="dialog"
-                    aria-labelledby="fullWidthModalLabelProducts" data-inventoryId="" aria-hidden="true">
-                    <div class="modal-dialog modal-full-width">
-                        <div class="modal-content ribbon-box">
-                            <div class="modal-header d-flex align-items-center ">
-
-                                <div class="ribbon ribbon-success float-start" id="fullWidthModalLabelProducts"><i
-                                        class="mdi mdi-access-point me-1"></i> Primary</div>
-
-                                <div class="card w-50">
-                                    <div class="card-body py-3 px-4 d-flex flex-column align-items-center">
-                                        <div class="mb-3 p-3 text-center">
+                <div id="barcodes-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fullWidthModalLabelProducts" data-inventoryId="" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title" id="fullWidthModalLabelProducts">
+                                    <i class="mdi mdi-access-point me-1"></i> Manage Barcodes
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card mb-4">
+                                    <div class="card-body py-3 px-4">
+                                        <div class="mb-3 text-center">
                                             <label for="barcodeInput" class="form-label">Add Barcode</label>
-                                            <input type="text" class="form-control w-100 text-center" id="barcodeInput"
-                                                placeholder="Enter barcode">
+                                            <input type="text" class="form-control w-100 text-center" id="barcodeInput" placeholder="Enter barcode">
                                         </div>
-                                        <div class="mb-3 d-none" id="barcode-loading">
-                                            <span id="barcode-load-text" class="badge badge-success-lighten me-2">Adding
-                                                barcode...</span>
-                                            <div class="spinner-border spinner-border-sm text-success" role="status"
-                                                aria-hidden="true"></div>
+                                        <div class="mb-3 text-center d-none" id="barcode-loading">
+                                            <span id="barcode-load-text" class="badge bg-success-lighten me-2">Adding barcode...</span>
+                                            <div class="spinner-border spinner-border-sm text-success" role="status" aria-hidden="true"></div>
                                         </div>
                                     </div>
                                 </div>
-
-
-
-
-                            </div>
-
-                            <div class="modal-body">
-                                <table class="table table-striped table-centered mb-0" id="BarcodeTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Inventory Name.</th>
-                                            <th>Barcode</th>
-                                            <th>Date added</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="barcodestree">
-
-
-
-
-                                    </tbody>
-                                </table>
+                
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-centered mb-0" id="BarcodeTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Inventory Name</th>
+                                                <th>Barcode</th>
+                                                <th>Date Added</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="barcodestree">
+                                            <!-- Rows will be dynamically added here -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div><!-- /.modal-content -->
                     </div><!-- /.modal-dialog -->
                 </div><!-- /.modal -->
-
-
+                
 
 
                 <!-- Warning Alert Modal -->
@@ -794,17 +787,18 @@
             </script>
 
 
-            <!-- Footer Start -->
-            <footer class="footer">
-                <div class="container-fluid">
+             <!-- Footer Start -->
 
-                    <div class="col-md-6">
-                        <script>document.write(new Date().getFullYear())</script> © RTS - v1.0.0
-                    </div>
-
-                </div>
-            </footer>
-            <!-- end Footer -->
+  
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>© <span id="current-year"></span> RTS - v1.0.0</div>
+            <div>Crafted with <i class="mdi mdi-heart text-danger"></i> by RTS Team</div>
+          </div>
+        </div>
+      </footer>
+      <!-- end Footer -->
 
         </div>
 
