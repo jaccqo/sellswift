@@ -1072,6 +1072,7 @@ def get_inventory():
             'date': item.get('date_created', ''),  
             'price': price,
             'quantity': sales_count,
+            'stock_quantity':item.get("stock"),
             'amount': float(price) * sales_count,
             'image':item.get("image")
         })

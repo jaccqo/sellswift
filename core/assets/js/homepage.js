@@ -195,7 +195,7 @@ $(document).ready( function() {
                         </td>
                         <td>
                             <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
-                            <span class="text-muted font-13">Quantity</span>
+                            <span class="text-muted font-13">Quantity Sold</span>
                         </td>
                         <td>
                             <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
