@@ -481,11 +481,33 @@ def get_item():
         return jsonify({'error': 'Internal server error'}), 500
 
 
+
+@app.route('/api/get-item/<item_id>', methods=['GET'])
+def get_item_two(item_id):
+    try:
+        dbname = request.args.get('dbname')
+        if not dbname:
+            return jsonify({'error': 'Missing "dbname" parameter'}), 400
+
+        db = client[dbname]
+        items_collection = db.inventory
+
+        item = items_collection.find_one({"_id": ObjectId(item_id)})
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+
+        # Remove ObjectId from the item to avoid serialization issues
+        item['_id'] = str(item['_id'])
+
+        return jsonify({'success': True, 'data': item}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/edit-inventory', methods=['POST'])
 def edit_inventory():
     try:
         data = request.get_json()
-      
 
         dbname = data.get('dbname')
         itemId = data.get('itemId')
@@ -503,18 +525,36 @@ def edit_inventory():
             update_data['status'] = data['status']
         if 'fileData' in data:
             update_data['image'] = data['fileData']
-
+        
         db = client[dbname]
-
-        # Assuming your item collection is named 'inventory'
         items_collection = db.inventory
+        barcode_dates_collection = db['barcode_dates']
+
+        existing_item = items_collection.find_one({"_id": ObjectId(itemId)})
+        if not existing_item:
+            return jsonify({'error': 'Item not found'}), 404
+
+        # Handle barcode updates
+        new_barcodes = data.get('barcodes', [])
+        barcode_quantity = data.get("barcodeQuantity", 0)  # Get the barcode quantity, default to 0 if not present
+        item_barcode = data.get("itemBarcode", "")  # Get the item barcode
+
+        if barcode_quantity and item_barcode:
+            for _ in range(int(barcode_quantity)):
+                new_barcodes.append(int(item_barcode))
+
+        if new_barcodes:
+            update_data['barcodes'] = existing_item.get('barcodes', []) + new_barcodes
+            update_data['stock'] = len(update_data['barcodes'])
+
+            for barcode in new_barcodes:
+                barcode_dates_collection.insert_one({'barcode': barcode, 'date_added': datetime.datetime.now()})
 
         # Update the item in the database
         result = items_collection.update_one(
             {'_id': ObjectId(itemId)},
             {'$set': update_data}
         )
-
 
         if result.modified_count == 1:
             return jsonify({'success': True, 'message': 'Inventory modified'}), 200
@@ -523,6 +563,7 @@ def edit_inventory():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/get-barcodes', methods=['POST'])
 def get_barcodes():

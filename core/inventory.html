@@ -624,72 +624,66 @@
                     <div class="modal-dialog">
                         <div class="modal-content ribbon-box">
                             <div class="modal-body">
-
-
-
                                 <div class="ribbon ribbon-success float-start">
-                                    <span><img src="assets/images/logo.png" alt="" height="30"></span> <span
-                                        id="inventoryname">Edit inventory</span>
+                                    <span><img src="assets/images/logo.png" alt="" height="30"></span>
+                                    <span id="inventoryname">Edit inventory</span>
                                 </div>
-
-
-                                <form class="ps-3 pe-3" action="#">
-
-
+                
+                                <form class="ps-3 pe-3" id="editProductForm" action="#">
                                     <div class="mb-3">
-
-                                        <input class="form-control" type="text" id="edititemNameInput"
-                                            placeholder="Name" value="">
+                                        <input class="form-control" type="text" id="edititemNameInput" required placeholder="Name" value="">
                                     </div>
-
+                                    
                                     <div class="mb-3">
-                                        <label for="itemCategory" class="form-label">Category</label>
-                                        <input class="form-control" type="text" id="edititemCategoryInput"
-                                            placeholder="Category" value="">
+                                        <label for="edititemCategoryInput" class="form-label">Category</label>
+                                        <input class="form-control" type="text" id="edititemCategoryInput" required placeholder="Category" value="">
                                     </div>
-
+                                    
                                     <div class="mb-3">
-                                        <label for="itemPrice" class="form-label">Price</label>
-                                        <input class="form-control" type="number" id="edititemPrice" placeholder="Price"
-                                            value="">
+                                        <label for="edititemPrice" class="form-label">Price</label>
+                                        <input class="form-control" type="number" id="edititemPrice" required placeholder="Price" value="">
                                     </div>
-
-                                    <div class="mb-3  d-flex align-items-center  justify-content-between">
-                                        <label for="itemStatus" class="form-label">Active</label>
-                                        <!-- Warning Switch-->
+                                    
+                                    <div class="mb-3 d-flex align-items-center">
+                                        <label for="edititemStatusInput" class="form-label me-2 mb-0">Active</label>
                                         <input type="checkbox" id="edititemStatusInput" checked data-switch="warning" />
-                                        <label for="edititemStatusInput" data-on-label="Yes"
-                                            data-off-label="No"></label>
+                                        <label for="edititemStatusInput" data-on-label="Yes" data-off-label="No" class="ms-2 mb-0"></label>
                                     </div>
-
-                                    <!-- Hide the file input for image as it's not editable -->
+                                    
                                     <div class="mb-3">
                                         <label for="edititemImage" class="form-label">Product Image</label>
-                                        <input type="file" class="filepond" id="edititemImage" name="edititemImage"
-                                            required>
+                                        <input type="file" class="filepond" id="edititemImage" name="edititemImage">
                                     </div>
-
-
-                                    <!-- Other input fields -->
-
+                                    
+                                    <div class="mb-3 row">
+                                        <div class="col">
+                                            <label for="editbarcodeScan" class="form-label">Scan Barcode</label>
+                                            <input type="text" class="form-control" id="editbarcodeScan" placeholder="Scan barcode" readonly>
+                                        </div>
+                                        <div class="col">
+                                            <label for="editbarcodeManual" class="form-label">Add Barcode Manually</label>
+                                            <input type="text" class="form-control" id="editbarcodeManual" placeholder="Enter barcode manually">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="editbarcodeQuantity" class="form-label">Barcode Quantity</label>
+                                        <input id="editbarcodeQuantity" data-toggle="touchspin" type="text" value="0" class="form-control">
+                                    </div>
+                                    
                                     <div class="mb-3 text-center">
-                                        <!-- Change button text to "Save" for editing -->
-                                        <button class="btn btn-success editInventory" id="editProductForm">Save</button>
-
-                                        <!-- Add loading spinner for better user feedback -->
-                                        <button class="btn btn-success d-none editinventory-load" type="button"
-                                            disabled>
-                                            <span class="spinner-border spinner-border-sm me-1" role="status"
-                                                aria-hidden="true"></span>
+                                        <button class="btn btn-success editInventory" id="save-editInventory" type="submit">Save</button>
+                                        <button class="btn btn-success d-none editinventory-load" type="button" disabled>
+                                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                             Saving inventory ...
                                         </button>
-
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
+                
 
 
                 <!-- Full width modal -->

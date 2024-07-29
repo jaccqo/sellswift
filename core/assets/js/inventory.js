@@ -232,18 +232,39 @@ $(document).ready(function () {
         acceptedFileTypes: ['image/*']
     });
 
-    function handleEditInventory() {
+    async function handleEditInventory() {
         $('#products-datatable').off('click', '.editInventory');
-        $('#products-datatable').on('click', '.editInventory', function () {
+        $('#products-datatable').on('click', '.editInventory', async function () {
             const itemId = $(this).data('editinventory');
             const row_text = $(this).closest('tr').find('td:eq(1) p').text();
 
-            $("#inventoryname").text(`Edit ${row_text} inventory`);
-            $("#EditProductsModal").data('itemid', itemId).modal("toggle");
+            try {
+                const response = await fetch(`${base_url}/api/get-item/${itemId}?dbname=${user_info.organization}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const item = result.data;
+                    $("#edititemNameInput").val(item.name);
+                    $("#edititemCategoryInput").val(item.category);
+                    $("#edititemPrice").val(item.price);
+                    $("#edititemStatusInput").prop('checked', item.status);
+                    //$("#editbarcodeScan").val(item.itemBarcode);
+                    $('#editbarcodeManual').val(item.itemBarcode)
+                    $("#editbarcodeQuantity").val(item.barcodeQuantity);
+                    //$("#edititemImage").val(item.image);
+
+                    $("#inventoryname").text(`Edit ${row_text} inventory`);
+                    $("#EditProductsModal").data('itemid', itemId).modal("toggle");
+                } else {
+                    showToast("Oh snap!", result.error, "top-center", "rgba(0,0,0,0.2)", "error");
+                }
+            } catch (error) {
+                showToast("Oh snap!", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
+            }
         });
     }
 
-    $("#editProductForm").on("click", async function (event) {
+    $("#save-editInventory").on("click", async function (event) {
         event.preventDefault();
         $(".editinventory-load").removeClass("d-none");
         $(this).addClass("d-none");
@@ -253,9 +274,13 @@ $(document).ready(function () {
         const category = $('#edititemCategoryInput').val();
         const price = $('#edititemPrice').val();
         const status = $('#edititemStatusInput').prop('checked');
+        const itemBarcode = $('#editbarcodeScan').val() || $('#editbarcodeManual').val();
+        const barcodeQuantity = $('#editbarcodeQuantity').val();
 
         const files = pond_two.getFiles();
-        const file_path = files.length ? files[0].file.path : null;
+
+        let file_path = files.length ? files[0].file.path : "./core/assets/images/brand-identity.png";
+
         const base64_img_ = file_path ? await ipcRenderer.returnBase64file(file_path) : null;
 
         const formData = {
@@ -265,6 +290,8 @@ $(document).ready(function () {
             category,
             price,
             status,
+            itemBarcode,
+            barcodeQuantity,
             fileData: base64_img_
         };
 
@@ -277,13 +304,13 @@ $(document).ready(function () {
             success: function (response) {
                 showToast("! Inventory edited", response.message, "top-center", "rgba(0,0,0,0.2)", "success");
                 ipcRenderer.send('request-initial-data');
-                $("#editProductForm").removeClass("d-none");
+                $("#save-editInventory").removeClass("d-none");
                 $(".editinventory-load").addClass("d-none");
-                $("#EditProductsModal").modal("toggle");
+                $("#EditProductsModal").modal("hide"); // Change this line
             },
             error: function (xhr, status, error) {
                 showToast("! error", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
-                $("#editProductForm").removeClass("d-none");
+                $("#editInventory").removeClass("d-none");
                 $(".editinventory-load").addClass("d-none");
             }
         });
@@ -376,7 +403,7 @@ $(document).ready(function () {
     $(".export-inventory").on("click", async function () {
         const conversionProgressBar = $('#conversion-progress-bar');
         $(".progress-div").fadeIn();
-        showToast("! Top selling products", "Getting Data from server please wait ..", "top-center", "rgba(0,0,0,0.2)", "success");
+        showToast("! Inventory ", "Getting Data from server please wait ..", "top-center", "rgba(0,0,0,0.2)", "success");
 
         conversionProgressBar.css('width', '0%').attr('aria-valuenow', 0).text('0%');
 
