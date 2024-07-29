@@ -36,6 +36,11 @@
 
   <script>
 
+    function capitalizeWords(str) {
+        return str.replace(/\b\w/g, function(char) {
+            return char.toUpperCase();
+        });
+    }
     const get_user = async () => {
 
       user_info = await ipcRenderer.GetUser()
@@ -43,14 +48,18 @@
       $(".logged-user").text(user_info["fullname"])
       $(".leftbar-user-name").text(user_info["fullname"])
 
+      $(".organization_name").text(user_info["organization"].toUpperCase())
+
       if (user_info.is_admin === "Yes") {
 
         $(".logged-user-status").text("Admin")
+
       }
       else {
         $(".logged-user-status").text("Employee")
 
       }
+
 
     }
 
@@ -445,37 +454,52 @@
        
       <div class="row cart-total-widget">
         <div class="col-sm-6">
-          <div class="card card-body">
-
-            <p class="card-text">
-              RUHMTECH SYSTEMS
-            </p>
-          </div>
-          <!-- end card-->
+            <div class="card card-body">
+                <p class="card-text organization_name">
+                    RUHMTECH SYSTEMS
+                </p>
+                <!-- Most Popular Products Section -->
+                <div class="popular-products">
+                    <h5>Most Popular Products</h5>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-table-body">
+                            <!-- Rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- end card-->
         </div>
-        <!-- end col-->
+    
         <div class="col-sm-6">
-          <div class="card card-body">
-            <h5 class="card-title">Total Items</h5>
-            <p class="card-text">
-              total quantity of items in the transaction.
-            </p>
-            <p class="card-text"><strong>Total Items:</strong> <span id="total-items">0</span></p>
-
-            <p class="card-text totalAmount" data-total-amount="0">
-              <strong>Total Price:</strong> <span id="total-amount">0</span>
-            </p>
-
-            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-              Checkout
-            </button>
-          </div>
-          <!-- end card-->
+            <div class="card card-body">
+                <h5 class="card-title">Total Items</h5>
+                <p class="card-text">
+                    Total quantity of items in the transaction.
+                </p>
+                <p class="card-text"><strong>Total Items:</strong> <span id="total-items">0</span></p>
+    
+                <p class="card-text totalAmount" data-total-amount="0">
+                    <strong>Total Price:</strong> <span id="total-amount">0</span>
+                </p>
+    
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                    Checkout
+                </button>
+            </div>
+            <!-- end card-->
         </div>
         <!-- end col-->
-      </div>
-
-      <!-- Checkout Modal -->
+    </div>
+    
       <!-- Checkout Modal -->
       <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -562,6 +586,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Open Cash Register</button>
                     <button type="button" class="btn btn-warning" id="completeCheckout">Complete Checkout</button>
                 </div>
             </div>
@@ -581,7 +606,7 @@
                   completed successfully.
                 </p>
                 <button type="button" class="btn btn-light my-2" data-bs-dismiss="modal">
-                  Continue
+                  Print receipt
                 </button>
               </div>
             </div>

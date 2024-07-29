@@ -13,6 +13,30 @@ from bson.json_util import dumps
 from datetime import timedelta
 import random
 import string
+import logging
+import colorlog
+
+# Configure colored logging
+log_colors_config = {
+    'DEBUG': 'cyan',
+    'INFO': 'green',
+    'WARNING': 'yellow',
+    'ERROR': 'red',
+    'CRITICAL': 'bold_red'
+}
+
+formatter = colorlog.ColoredFormatter(
+    "%(log_color)s%(asctime)s - %(levelname)s - %(message)s",
+    log_colors=log_colors_config
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger = logging.getLogger()
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
 
 colorama.init()
 
@@ -41,11 +65,11 @@ def get_location_by_ip(ip):
             }
         else:
             # If the request fails, print an error message and return None
-            print(f"Failed to get location for IP {ip}. Status code: {response.status_code}")
+            logging.error(f"Failed to get location for IP {ip}. Status code: {response.status_code}")
             return None
     except Exception as e:
         # If an exception occurs, print the error message and return None
-        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
         return None
 
 
@@ -73,7 +97,7 @@ def add_user():
     # Check if the username or email already exists
     if collection.find_one({"$and": [ {"email": email}, {"organization": organization}]}):
 
-        print(colored(f"Failed to add user '{fullname} email {email}'. User already exists. IP: {ip} at {datetime.datetime.now()}", "red"))
+        logging.error(f"Failed to add user '{fullname} email {email}'. User already exists. IP: {ip} at {datetime.datetime.now()}")
         return jsonify({"error": f"User with this email already exists in {organization}"}), 400
 
     # If username and email are unique, proceed to add the user
@@ -104,12 +128,12 @@ def add_user():
             "is_online":is_online
         })
 
-        print(colored(f"User '{fullname}' added successfully. IP: {ip} at {datetime.datetime.now()}", "green"))
+        logging.info(f"User '{fullname}' added successfully. IP: {ip} at {datetime.datetime.now()}")
     
 
         return jsonify({"message": "User added successfully","sessionID":sessionID,"status":"success"}), 200
     else:
-        print(colored(f"Invalid request to add user. IP: {ip} at {datetime.datetime.now()}", "yellow"))
+        logging.error(f"Invalid request to add user. IP: {ip} at {datetime.datetime.now()}")
         return jsonify({"error": "Invalid request"}), 400
 
 @app.route('/login', methods=['POST'])
@@ -133,18 +157,18 @@ def login():
         # Check if the provided password matches the hashed password in the database
         if check_password_hash(user['password'], password):
             # Password is correct, return success message with status code 200
-            print(colored(f"User '{email}' logged in successfully. IP: {ip} at {datetime.datetime.now()}", "green"))
+            logging.info(f"User '{email}' logged in successfully. IP: {ip} at {datetime.datetime.now()}")
 
             collection.update_one({"email": email}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip,"is_online":True}})
 
             return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember}), 200
         else:
             # Password is incorrect, return error message with status code 401
-            print(colored(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}", "red"))
+            logging.error(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}")
             return jsonify({"success": False, "message": "Invalid username or password"}), 401
     else:
         # User not found, return error message with status code 404
-        print(colored(f"User '{email}' not found. IP: {ip} at {datetime.datetime.now()}", "yellow"))
+        logging.error(f"User '{email}' not found. IP: {ip} at {datetime.datetime.now()}")
         return jsonify({"success": False, "message": "User not found"}), 404
 
 
@@ -174,7 +198,7 @@ def verify_user():
             return jsonify({'status': 'error', 'message': 'User not found'}),404
 
     except Exception as e:
-        print(e)
+        logging.error(e)
         return jsonify({'status': 'error', 'message': str(e)}),500
     
 @app.route('/test_connection', methods=['GET'])
@@ -219,7 +243,7 @@ def insert_item():
             for _ in range(0, int(barcode_quantity)):
                 data["barcodes"].append(int(item_barcode))
         else:
-            print("Either barcode quantity or item barcode is missing")
+            logging.warning("Either barcode quantity or item barcode is missing")
 
 
         data["sales_count"]=0
@@ -285,7 +309,7 @@ def get_all_items():
         return jsonify(inventory_items), 200
     
     except Exception as e:
-        print(e)
+        logging.error(e)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/delete-inventory', methods=['POST'])
@@ -312,7 +336,7 @@ def delete_inventory():
 
         query_resp=collection.delete_one({'_id': ObjectId(inventory_id)})
 
-        print(query_resp)
+        logging.info(query_resp)
 
         # Return a success message or any relevant response
         return jsonify({'message': 'Inventory item deleted successfully'}), 200
@@ -370,7 +394,7 @@ def search_items_by_barcode():
             query = int(query)
             # Use $in operator to search for documents where the barcode list contains the queried barcode
             item_by_barcode = items_collection.find_one({"barcodes": {"$in": [query]}})
-            print("Searching by barcode")
+            logging.info("Searching by barcode")
 
             if item_by_barcode:
                 item_by_barcode["_id"] = str(item_by_barcode["_id"])
@@ -389,7 +413,7 @@ def search_items_by_barcode():
                     item['_id'] = str(item['_id'])  # Convert _id to string
                     formatted_items.append(item)
             except Exception as e:
-                print(e)
+                logging.error(e)
 
     return jsonify(formatted_items)
 
@@ -409,7 +433,7 @@ def get_logged_user():
         # Return the user data
         return jsonify(user), 200
     except Exception as e:
-        print('Error getting logged-in user:', e)
+        logging.error('Error getting logged-in user:%s', e)
         return jsonify({'error': 'Internal server error'}), 500
     
 # Function to retrieve user from MongoDB
@@ -453,7 +477,7 @@ def get_item():
         # Return the item data
         return jsonify(item), 200
     except Exception as e:
-        print('Error getting item:', e)
+        logging.error(f'Error getting item: {e}')
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -649,7 +673,7 @@ def pull_one_barcode(inventory_collection,inventoryid, barcode):
     inventory = inventory_collection.find_one({'_id': ObjectId(inventoryid)})
     
     if not inventory:
-        print(f"No inventory found with id: {inventoryid}")
+        logging.warning(f"No inventory found with id: {inventoryid}")
         return
     
     # Get the barcodes list
@@ -666,14 +690,14 @@ def pull_one_barcode(inventory_collection,inventoryid, barcode):
         )
         
         if result.modified_count > 0:
-            print(f"Successfully removed one instance of barcode {barcode}")
+            logging.info(f"Successfully removed one instance of barcode {barcode}")
 
             return 200
         else:
-            print(f"Failed to update the inventory with id: {inventoryid}")
+            logging.warning(f"Failed to update the inventory with id: {inventoryid}")
             return 400
     else:
-        print(f"Barcode {barcode} not found in the inventory with id: {inventoryid}")
+        logging.info(f"Barcode {barcode} not found in the inventory with id: {inventoryid}")
 
         return 400
 
@@ -719,7 +743,7 @@ def delete_inventory_barcode():
 @app.route('/api-updateEmail', methods=['POST'])
 def update_email():
     data = request.get_json()
-    print(data)
+    logging.info(data)
     new_email = data.get('newEmail')
     email_password = data.get('emailPassword')
     user_id = data.get('user_id')
@@ -973,6 +997,15 @@ def get_dashboard_data():
     
     sales_collection = db['sales']
     customers_collection = db['customers']
+    inventory_collection = db['inventory']
+
+    # Inventory count for the current month
+    inventory_count = inventory_collection.count_documents({})
+    
+    current_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": current_start, "$lt": current_end}})
+    
+    # Inventory count for the previous month
+    prev_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": prev_start, "$lt": prev_end}})
 
     # Calculate high-performing data
     high_performing_data = calculate_high_performing_data(sales_collection)
@@ -994,26 +1027,28 @@ def get_dashboard_data():
     customer_growth = ((current_customers_count - prev_customers_count) / prev_customers_count * 100) if prev_customers_count else 0
     revenue_growth = ((current_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue else 0
     purchase_growth = ((len(current_sales) - len(prev_sales)) / len(prev_sales) * 100) if prev_sales else 0
+    inventory_growth = ((current_inventory_count - prev_inventory_count) / prev_inventory_count * 100) if prev_inventory_count else 0
 
     # Overall growth percentage
-    growth_percentage = (customer_growth + revenue_growth + purchase_growth) / 3
-
-
+    growth_percentage = (customer_growth + revenue_growth + purchase_growth + inventory_growth) / 4
 
     # Construct response
     data = {
         "customers": current_customers_count,
-        "customer_growth": round(customer_growth,2),
+        "customer_growth": round(customer_growth, 2),
         "revenue": current_revenue,
-        "revenue_growth": round(revenue_growth,2),
+        "revenue_growth": round(revenue_growth, 2),
         "purchases": len(current_sales),
-        "purchase_growth": round(purchase_growth,2),
-        "growth_percentage": round(growth_percentage,2),
+        "inventory_count": inventory_count,
+        "inventory_growth": round(inventory_growth, 2),
+        "purchase_growth": round(purchase_growth, 2),
+        "growth_percentage": round(growth_percentage, 2),
         "highPerformingData": high_performing_data,
         "revenueData": revenue_data
     }
     
     return jsonify(data)
+
 
 @app.route('/api/inventory', methods=['GET'])
 def get_inventory():
@@ -1037,7 +1072,8 @@ def get_inventory():
             'date': item.get('date_created', ''),  
             'price': price,
             'quantity': sales_count,
-            'amount': float(price) * sales_count
+            'amount': float(price) * sales_count,
+            'image':item.get("image")
         })
      # Sort the result by sales_count in descending order and take the top 5
     top_selling_products = sorted(result, key=lambda x: x['quantity'], reverse=True)[:5]
@@ -1083,7 +1119,7 @@ def checkout():
     for item_id, barcodes in customer_cart_barcode.items():
 
         if not barcodes or "undefined" in barcodes:
-            print("No barcodes detected")
+            logging.warning("No barcodes detected")
             item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'barcodes': 1})
             if item and 'barcodes' in item and item['barcodes']:
                 quantity_needed = len(barcodes) if barcodes else 1
@@ -1175,7 +1211,7 @@ def get_sales_data():
                     item_details.append(item)
 
         except Exception as e:
-            print(f"Failed to get {e} for {sale.get('_id')}")
+            logging.error(f"Failed to get {e} for {sale.get('_id')}")
         
         sale["quantity"]=checkout_quantity
         sale['item_details'] = item_details
@@ -1199,6 +1235,6 @@ def logout():
 if __name__ == "__main__":
     port=5000
 
-    print(colored(f"[ {datetime.datetime.now()} ] Server started on port {port} ","green"))
+    logging.info(f"[ {datetime.datetime.now()} ] Server started on port {port} ")
 
     app.run(host="0.0.0.0",port=port)

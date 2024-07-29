@@ -106,7 +106,7 @@ $(document).ready( function() {
             .then(data => {
                 if (!data.error) {
                     $('#customer-count').text(data.customers.toLocaleString());
-                    $('#purchase-count').text(data.purchases.toLocaleString());
+                    $('#purchase-count').text(data.inventory_count.toLocaleString());
                     $('#revenue-amount').text(`ksh ${data.revenue.toLocaleString()}`);
                     $('#growth-percentage').text(data.growth_percentage + '%');
 
@@ -117,11 +117,11 @@ $(document).ready( function() {
                             `<span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> ${data.customer_growth}%</span> <span class="text-nowrap">Since last month</span>` :
                             `<span class="text-warning me-2"><i class="mdi mdi-arrow-right-bold"></i> ${data.customer_growth}%</span> <span class="text-nowrap">Since last month</span>`));
                     
-                    $('#purchase-growth').html(data.purchase_growth > 0 ? 
-                        `<span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> ${data.purchase_growth}%</span> <span class="text-nowrap">Since last month</span>` : 
-                        (data.purchase_growth < 0 ? 
-                            `<span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> ${data.purchase_growth}%</span> <span class="text-nowrap">Since last month</span>` :
-                            `<span class="text-warning me-2"><i class="mdi mdi-arrow-right-bold"></i> ${data.purchase_growth}%</span> <span class="text-nowrap">Since last month</span>`));
+                    $('#purchase-growth').html(data.inventory_growth > 0 ? 
+                        `<span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> ${data.inventory_growth}%</span> <span class="text-nowrap">Since last month</span>` : 
+                        (data.inventory_growth < 0 ? 
+                            `<span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> ${data.inventory_growth}%</span> <span class="text-nowrap">Since last month</span>` :
+                            `<span class="text-warning me-2"><i class="mdi mdi-arrow-right-bold"></i> ${data.inventory_growth}%</span> <span class="text-nowrap">Since last month</span>`));
                     
                     $('#revenue-growth').html(data.revenue_growth > 0 ? 
                         `<span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> ${data.revenue_growth}%</span> <span class="text-nowrap">Since last month</span>` : 
@@ -200,6 +200,11 @@ $(document).ready( function() {
                         <td>
                             <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
                             <span class="text-muted font-13">Amount</span>
+                        </td>
+                        <td>
+                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 100px;">
+                        
+                        
                         </td>
                     </tr>`;
                     tableBody.append(row);

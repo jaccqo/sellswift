@@ -444,7 +444,48 @@ function renderCart() {
         });
     }
 
+    const popular_products = () => {
+        $.ajax({
+            url: `${base_url}/api/inventory?dbname=${user_info.organization}`,
+            method: 'GET',
+            success: function(data) {
+                let tableBody = $('#product-table-body');
+                tableBody.empty();  // Clear any existing rows
+    
+                data.forEach(function(product) {
+        
+                    let row = `<tr id="pop_${product.id}">
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
+                            <span class="text-muted font-13">${product.date}</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
+                            <span class="text-muted font-13">Price</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
+                            <span class="text-muted font-13">Quantity</span>
+                        </td>
+                        <td>
+                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 100px;">
+                        </td>
+                    </tr>`;
+                    tableBody.append(row);
+                });
+            },
+            error: function(error) {
+                console.error('Error fetching inventory data:', error);
+            }
+        });
+    }
+    
+    // Call the function to populate the table
+    popular_products();
+    
+    
 
+    popular_products()
     
     completeCheckout()
 
