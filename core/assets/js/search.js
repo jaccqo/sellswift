@@ -39,7 +39,7 @@ $(document).ready(function() {
             } else if (item.stock < 1) {
                 $('.search-result-count').text(`${item.name} is out of stock`);
             } else {
-                console.log(item.matching_barcode)
+                console.log(item.matching_barcode);
                 var listItem = `
                     <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}" data-stock-count="${item.stock}">
                         <div class="d-flex">
@@ -60,8 +60,12 @@ $(document).ready(function() {
     });
 
     const sync_item = () => {
+        // Unbind previous click events to prevent duplicates
+        $(document).off("click", ".search-result-item");
+        $(document).off("click", ".popular-product-item");
+
         // Event listener for adding items to the cart from search results
-        $(".search-result-item").on("click", async function() {
+        $(document).on("click", ".search-result-item", async function() {
             var itemId = $(this).data('item-id');
             var barcode = $(this).data('item-barcode');
             let availableQuantity = $(this).data('stock-count');
@@ -87,7 +91,7 @@ $(document).ready(function() {
         });
 
         // Event listener for adding items to the cart from popular products
-        $(".popular-product-item").on("click", async function() {
+        $(document).on("click", ".popular-product-item", async function() {
             var itemId = $(this).data('item-id');
             var barcode = $(this).data('item-barcode');
             let availableQuantity = $(this).data('stock-count');
@@ -159,7 +163,7 @@ $(document).ready(function() {
 
     // Function to render the customer's cart
     function renderCart() {
-        $('#customer-shopping-cart').empty();
+        
         for (const [itemId, quantity] of Object.entries(customerCart)) {
             const barcode = customerCartBarcode[itemId];
 
@@ -204,6 +208,7 @@ $(document).ready(function() {
                             </div>
                         `;
                         $('#customer-shopping-cart').append(widget);
+
                         $(`#${itemId}`)[0].scrollIntoView({
                             behavior: "smooth",
                             block: "start"
