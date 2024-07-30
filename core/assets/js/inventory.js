@@ -244,13 +244,14 @@ $(document).ready(function () {
 
                 if (result.success) {
                     const item = result.data;
+                    console.log(item)
                     $("#edititemNameInput").val(item.name);
                     $("#edititemCategoryInput").val(item.category);
                     $("#edititemPrice").val(item.price);
                     $("#edititemStatusInput").prop('checked', item.status);
                     //$("#editbarcodeScan").val(item.itemBarcode);
                     $('#editbarcodeManual').val(item.itemBarcode)
-                    $("#editbarcodeQuantity").val(item.barcodeQuantity);
+                    $("#editbarcodeQuantity").val(item.stock);
                     //$("#edititemImage").val(item.image);
 
                     $("#inventoryname").text(`Edit ${row_text} inventory`);
