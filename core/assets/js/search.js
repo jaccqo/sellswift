@@ -67,12 +67,20 @@ $(document).ready(function() {
         sync_item();
     });
     
-    // Hide the dropdown when the input loses focus, but delay to allow interaction with dropdown items
-    // $('#top-search').on('blur', function() {
-    //     setTimeout(function() {
-    //         $('.search_result_div').removeClass('show');
-    //     }, 200);
-    // });
+    
+
+    // Hide the dropdown when clicking outside of it
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.app-search, .search_result_div').length) {
+            $('.search_result_div').removeClass('show');
+        }
+    });
+
+    // Prevent hiding dropdown when clicking inside the search input or dropdown
+    $('.app-search').on('click', function(e) {
+       
+        $('.search_result_div').addClass('show');
+    });
     
 
     const sync_item = () => {
