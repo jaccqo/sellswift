@@ -23,14 +23,21 @@ $(document).ready(function() {
     $('#top-search').on('input', async function() {
         var searchTerm = $(this).val().trim();
         console.log('Searching for: ' + searchTerm);
-
+    
+        // Display the dropdown menu when the user types in the search box
+        if (searchTerm.length > 0) {
+            $('.search_result_div').addClass('show');
+        } else {
+            $('.search_result_div').removeClass('show');
+        }
+    
         const search_result = await ipcRenderer.SearchInventory(searchTerm);
-
+    
         $('.search-result-list').empty();
         $('.search-result-count').text("");
-
+    
         $('.search-result-count').text(search_result.length);
-
+    
         search_result.forEach(function(item) {
             if (!item.status) {
                 $('.search-result-list').empty();
@@ -39,6 +46,7 @@ $(document).ready(function() {
             } else if (item.stock < 1) {
                 $('.search-result-count').text(`${item.name} is out of stock`);
             } else {
+               
                 console.log(item.matching_barcode);
                 var listItem = `
                     <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}" data-stock-count="${item.stock}">
@@ -55,9 +63,17 @@ $(document).ready(function() {
                 $('.search-result-list').prepend(listItem);
             }
         });
-
+    
         sync_item();
     });
+    
+    // Hide the dropdown when the input loses focus, but delay to allow interaction with dropdown items
+    $('#top-search').on('blur', function() {
+        setTimeout(function() {
+            $('.search_result_div').removeClass('show');
+        }, 200);
+    });
+    
 
     const sync_item = () => {
         // Unbind previous click events to prevent duplicates
