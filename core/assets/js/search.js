@@ -68,11 +68,11 @@ $(document).ready(function() {
     });
     
     // Hide the dropdown when the input loses focus, but delay to allow interaction with dropdown items
-    $('#top-search').on('blur', function() {
-        setTimeout(function() {
-            $('.search_result_div').removeClass('show');
-        }, 200);
-    });
+    // $('#top-search').on('blur', function() {
+    //     setTimeout(function() {
+    //         $('.search_result_div').removeClass('show');
+    //     }, 200);
+    // });
     
 
     const sync_item = () => {
