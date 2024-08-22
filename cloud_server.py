@@ -174,6 +174,7 @@ def login():
 
 @app.route('/verifyUser', methods=['POST'])
 def verify_user():
+ 
     try:
         data = request.json
 

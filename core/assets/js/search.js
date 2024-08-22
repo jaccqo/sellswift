@@ -364,10 +364,11 @@ $(document).ready(function() {
                 tableBody.empty();
 
                 data.forEach(function(product) {
+           
                     let row = `<tr id="pop_${product.id}" class="popular-product-item" data-item-id="${product.id}" data-item-barcode="${product.matching_barcode}" data-stock-count="${product.stock_quantity}">
                         <td>
                             <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
-                            <span class="text-muted font-13">${product.date_created}</span>
+                            <span class="text-muted font-13">${product.date}</span>
                         </td>
                         <td>
                             <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>

@@ -448,15 +448,27 @@ ipcMain.handle("get/cookie", async (event, cookieName) => {
     let cookieValue = null;
     let organization = null;
 
+
     if (cookies.length > 0) {
       cookieValue = cookies[0].value;
       if (cookies.length > 1) {
         organization = cookies[1].value;
       }
-    }
 
+      else {
+        await sleep(1000);
+        delete_cookies()
+        const theme = await return_theme()
+        openNewWindow(500, 800, "pages-login.html", false, theme)
+  
+        return "user cookies not found login or signup"
+      }
+
+    }
+    
     else {
       await sleep(1000);
+      delete_cookies()
       const theme = await return_theme()
       openNewWindow(500, 800, "pages-login.html", false, theme)
 
