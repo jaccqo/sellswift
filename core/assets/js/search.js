@@ -47,9 +47,10 @@ $(document).ready(function() {
                 $('.search-result-count').text(`${item.name} is out of stock`);
             } else {
                
-                console.log(item.matching_barcode);
+                console.log(item.barcodes);
+                
                 var listItem = `
-                    <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.matching_barcode}" data-stock-count="${item.stock}">
+                    <a href="javascript:void(0);" class="dropdown-item notify-item search-result-item" data-item-id="${item._id}" data-item-barcode="${item.barcodes}" data-stock-count="${item.stock}">
                         <div class="d-flex">
                             <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
                             <div class="w-100">
