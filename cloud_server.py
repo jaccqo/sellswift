@@ -1263,6 +1263,116 @@ def get_sales_data():
 
     return jsonify(sales_data)
 
+@app.route('/api-dailySales', methods=['POST'])
+def get_daily_sales():
+    try:
+        # Get the request data (user_id and db_name)
+        data = request.get_json()
+        user_id = data.get('user_id')
+        db_name = data.get('db_name')
+
+        # Connect to the user's specific database
+        db = client[db_name]
+        sales_collection = db['sales']
+
+        # Logging the action
+        logging.info(f"Calculating daily sales for user: {user_id} on database: {db_name}")
+
+        # Calculate today's sales
+        today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start + timedelta(days=1)
+
+        # Fetch today's sales from the 'sales' collection
+        today_sales = list(sales_collection.find({"timestamp": {"$gte": today_start, "$lt": today_end}}))
+
+        # Calculate total sales and profits
+        daily_sales = sum(sale['purchase_amount'] for sale in today_sales)
+        daily_profits = sum(sale['purchase_amount'] * 0.25 for sale in today_sales)  # Assuming 25% profit margin
+
+        # Calculate growth from yesterday
+        yesterday_start = today_start - timedelta(days=1)
+        yesterday_end = today_start
+
+        yesterday_sales = list(sales_collection.find({"timestamp": {"$gte": yesterday_start, "$lt": yesterday_end}}))
+        yesterday_sales_total = sum(sale['purchase_amount'] for sale in yesterday_sales)
+
+        growth = 0
+        if yesterday_sales_total > 0:
+            growth = ((daily_sales - yesterday_sales_total) / yesterday_sales_total) * 100
+
+        # Logging the result
+        logging.info(f"Daily sales: {daily_sales}, Profits: {daily_profits}, Growth: {growth}%")
+
+        # Return the result as JSON
+        return jsonify({
+            'sales': daily_sales,
+            'profits': daily_profits,
+            'growth': growth
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error calculating daily sales: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+
+@app.route('/api-monthlyYearlyProfits', methods=['POST'])
+def get_monthly_yearly_profits():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    db_name = data.get('db_name')
+
+    # Use db_name and user_id to fetch user-specific data
+    db = client[db_name]
+    sales_collection = db['sales']
+
+    # Current date and time
+    now = datetime.datetime.now()
+
+    # Calculate the start of the current month and year
+    first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    first_day_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # Get the sales for the current month
+    monthly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_month}}))
+    monthly_profits = sum(sale['purchase_amount'] * 0.25 for sale in monthly_sales)
+    monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
+    monthly_units_sold = sum(len(sale['items'][item_id]) for sale in monthly_sales for item_id in sale['items'])  # Count the total number of items sold
+
+    # Get the sales for the current year
+    yearly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_year}}))
+    yearly_profits = sum(sale['purchase_amount'] * 0.25 for sale in yearly_sales)
+    yearly_revenue = sum(sale['purchase_amount'] for sale in yearly_sales)
+    yearly_units_sold = sum(len(sale['items'][item_id]) for sale in yearly_sales for item_id in sale['items'])  # Count the total number of items sold
+
+    # Get the sales for the previous month (for growth comparison)
+    previous_month_end = first_day_of_month - timedelta(seconds=1)
+    first_day_of_previous_month = previous_month_end.replace(day=1)
+    previous_month_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_previous_month, "$lt": first_day_of_month}}))
+    previous_month_profits = sum(sale['purchase_amount'] * 0.25 for sale in previous_month_sales)
+
+    # Get the sales for the previous year (for growth comparison)
+    previous_year_sales = list(sales_collection.find({"timestamp": {"$gte": now.replace(year=now.year-1, month=1, day=1), "$lt": first_day_of_year}}))
+    previous_year_profits = sum(sale['purchase_amount'] * 0.25 for sale in previous_year_sales)
+
+    # Calculate growth rates
+    monthly_growth = ((monthly_profits - previous_month_profits) / previous_month_profits * 100) if previous_month_profits else 0
+    yearly_growth = ((yearly_profits - previous_year_profits) / previous_year_profits * 100) if previous_year_profits else 0
+
+    # Return the data as JSON
+    return jsonify({
+        'monthly_profits': round(monthly_profits, 2),
+        'monthly_revenue': round(monthly_revenue, 2),
+        'monthly_units_sold': monthly_units_sold,
+        'monthly_growth': round(monthly_growth, 2),
+        'yearly_profits': round(yearly_profits, 2),
+        'yearly_revenue': round(yearly_revenue, 2),
+        'yearly_units_sold': yearly_units_sold,
+        'yearly_growth': round(yearly_growth, 2)
+    })
+
+
+
     
 @app.route('/api/logout', methods=['POST'])
 def logout():

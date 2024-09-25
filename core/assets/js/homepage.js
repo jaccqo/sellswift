@@ -315,6 +315,172 @@ $(document).ready( function() {
         }
     });
 
+
+   
+    // Function to fetch daily sales data
+    function fetchDailySales() {
+        const user_id = user_info._id;  // Retrieve user ID from the user_info object
+        const db_name = user_info.organization;  // Retrieve the database name
+    
+        $.ajax({
+            type: "POST",  // Change to POST for sending data
+            url: `${base_url}/api-dailySales`,  // Flask route to get the daily sales data
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({
+                user_id: user_id,  // Include user_id in the request payload
+                db_name: db_name   // Include db_name in the request payload
+            }),
+            success: function (response) {
+                // Assume response contains 'sales', 'profits', and 'growth' data
+                const dailySales = response.sales;
+                const dailyProfits = response.profits;
+                const growth = response.growth;
+    
+                // Update the ApexChart with new data
+                chart.updateSeries([dailySales, dailyProfits, growth]);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching daily sales:", error);
+            }
+        });
+    }
+    
+    // Initial ApexChart options
+    var colors = ["#727cf5", "#6c757d", "#0acf97", "#fa5c7c"];
+    var dataColors = $("#Daily-sales").data("colors");
+    
+    var options = {
+        chart: {
+            height: 320,
+            type: "donut",
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function (val, opts) {
+                // Show actual values, not percentages
+                const seriesIndex = opts.seriesIndex;
+                const actualValue = opts.w.config.series[seriesIndex];
+                // Format numbers with commas
+                return actualValue.toLocaleString('en-US');
+            },
+            style: {
+                fontSize: '14px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                colors: ['#FFFFFF']  // Color of the labels
+            },
+            dropShadow: {
+                enabled: true,
+                top: 1,
+                left: 1,
+                blur: 1,
+                opacity: 0.45
+            }
+        },
+        series: [0, 0, 0], // Placeholder values, will be updated via AJAX
+        labels: ["Today's Sales", "Today's Profits", "Growth from Yesterday"],
+        colors: dataColors ? dataColors.split(",") : colors,
+        legend: {
+            show: true,
+            position: "bottom",
+            horizontalAlign: "left",
+            floating: false,
+            fontSize: "14px",
+            offsetX: 0,
+            offsetY: 7,
+        },
+        responsive: [
+            {
+                breakpoint: 600,
+                options: { chart: { height: 340 }, legend: { show: false } },
+            },
+        ],
+    };
+    
+    // Initialize the ApexChart
+    var chart = new ApexCharts(document.querySelector("#Daily-sales"), options);
+    chart.render();
+    
+
+
+
+
+    // Function to fetch and update the Monthly and Yearly profit widgets
+    function updateProfits() {
+        const user_id = user_info._id;  // Retrieve user ID from the user_info object
+        const db_name = user_info.organization;  // Retrieve the database name
+    
+        $.ajax({
+            url: `${base_url}/api-monthlyYearlyProfits`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                user_id: user_id,
+                db_name: db_name
+            }),
+            success: function(response) {
+                // Format numbers with commas and no trailing decimals
+                const formatCurrency = (amount) => {
+                    return parseFloat(amount).toLocaleString('en-US');
+                };
+    
+                // Update Monthly Profits
+                $('#monthly-profit-amount').text('Ksh ' + formatCurrency(response.monthly_profits));
+                
+                // Update Monthly Growth
+                const monthlyGrowthClass = response.monthly_growth >= 0 ? 'text-success' : 'text-danger';
+                $('#monthly-profit-growth').html(`
+                    <span class="${monthlyGrowthClass} me-2"><i class="mdi ${response.monthly_growth >= 0 ? 'mdi-arrow-up-bold' : 'mdi-arrow-down-bold'}"></i> ${response.monthly_growth}%</span>
+                    <span class="text-nowrap">Since last month</span>
+                `);
+                
+                // Update Monthly Revenue
+                $('#monthly-revenue-amount').text('Ksh ' + formatCurrency(response.monthly_revenue));
+                
+                // Update Monthly Units Sold
+                $('#monthly-units-sold').text(response.monthly_units_sold + ' units');
+                
+                // Update Yearly Profits
+                $('#yearly-profit-amount').text('Ksh ' + formatCurrency(response.yearly_profits));
+                
+                // Update Yearly Growth
+                const yearlyGrowthClass = response.yearly_growth >= 0 ? 'text-success' : 'text-danger';
+                $('#yearly-profit-growth').html(`
+                    <span class="${yearlyGrowthClass} me-2"><i class="mdi ${response.yearly_growth >= 0 ? 'mdi-arrow-up-bold' : 'mdi-arrow-down-bold'}"></i> ${response.yearly_growth}%</span>
+                    <span class="text-nowrap">Since last year</span>
+                `);
+    
+                // Update Yearly Revenue
+                $('#yearly-revenue-amount').text('Ksh ' + formatCurrency(response.yearly_revenue));
+                
+                // Update Yearly Units Sold
+                $('#yearly-units-sold').text(response.yearly_units_sold + ' units');
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching profits: ", error);
+            }
+        });
+    }
+    
+    
+    
+
+    // Call the function to update the profits when the page loads
+    updateProfits();
+
+    // Optionally, you can refresh the data periodically
+    setInterval(updateProfits, 60000); // Update every 60 seconds
+
+      
+    // Fetch daily sales data when the page loads
+    fetchDailySales();
+    
+    // Optionally, you can refresh data at intervals (e.g., every minute)
+    setInterval(fetchDailySales, 60000); // Fetch new data every 60 seconds
+   
+      
+
     // Initial fetch to populate the table
     top_selling_table();
 
