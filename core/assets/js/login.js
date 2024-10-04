@@ -27,57 +27,65 @@ $(document).ready(async function() {
         // Prevent the default form submission
         event.preventDefault();
     
-        // Show the loading spinner button
+        // Show the loading spinner button and hide the login button
         loginButton.classList.add('d-none');
         loadingButton.classList.remove('d-none');
     
         try {
-            // Perform AJAX request to submit the form data
+            // Perform the AJAX request to submit the form data
+            const formData = new FormData(form);
             
+            // Fetch the organization name, secret key, email, and password
+            const organization = formData.get('organization');
+            const orgSecretKey = formData.get('orgSecretKey');
+            const email = formData.get('email');
+            const password = formData.get('password');
+            
+            // Include organization secret key in the form data
+            formData.append('orgSecretKey', orgSecretKey);
+    
+            // Perform the fetch request
             const response = await fetch(`${base_url}/login`, {
                 method: 'POST',
-                body: new FormData(form)
+                body: formData
             });
     
-
             // Assuming response indicates success
-            // Reset the form
             if (response.status === 200) {
                 const data = await response.json();
-                console.log(data); // This will log the response data object
+               // Reset the form fields
+                form.reset();
     
-                loginMessage.html(` <div class="card-body" >
-                    <div class="ribbon ribbon-success float-end " ><i class="mdi mdi-access-point me-1"></i></div>
+                loginMessage.html(`<div class="card-body">
+                    <div class="ribbon ribbon-success float-end"><i class="mdi mdi-access-point me-1"></i></div>
                     <h5 class="text-success float-start mt-0">${data.message}</h5>
-                </div> <!-- end card-body -->`);
+                </div> <!-- end card-body -->`)
     
                 loginMessage.removeClass('d-none');
-
-                if(data.remember_me){
-
-                    ipcRenderer.send('set-cookie', { name: 'sessionID', value:data.sessionID ,organization:data.org, days: 30 });
-
+    
+                // Set cookie and navigate to main if "remember me" is checked
+                if (data.remember_me) {
+                    ipcRenderer.send('set-cookie', { name: 'sessionID', value: data.sessionID, organization: data.org, days: 30 });
                 }
 
-               
+    
                 ipcRenderer.send("proceedMain");
             } else {
+                // Handle errors from the server response
                 const errorData = await response.json();
                 console.log(errorData); // This will log the error response data object
     
-                loginMessage.html(` <div class="card-body" >
-                    <div class="ribbon ribbon-danger float-end " ><i class="mdi mdi-access-point me-1"></i></div>
+                loginMessage.html(`<div class="card-body">
+                    <div class="ribbon ribbon-danger float-end"><i class="mdi mdi-access-point me-1"></i></div>
                     <h5 class="text-danger float-start mt-0">${errorData.message}</h5>
                 </div> <!-- end card-body -->`);
     
                 loginMessage.removeClass('d-none');
-
-                
             }
     
-            form.reset();
+            
         } catch (error) {
-            // Handle errors
+            // Handle any other errors
             console.error('Error:', error);
         } finally {
             // Hide the loading spinner button and show the login button
@@ -85,5 +93,6 @@ $(document).ready(async function() {
             loadingButton.classList.add('d-none');
         }
     });
+    
     
 });

@@ -15,6 +15,9 @@ import random
 import string
 import logging
 import colorlog
+import base64
+import secrets
+
 
 # Configure colored logging
 log_colors_config = {
@@ -73,103 +76,227 @@ def get_location_by_ip(ip):
         return None
 
 
+@app.route('/create-organization', methods=['POST'])
+def create_organization():
+    # Static database for organizations
+    organization_db = client['organizations']
+    organization_collection = organization_db['organization_details']  # Collection to store organization data
+
+    try:
+        # Get JSON data from the request
+        data = request.get_json()
+
+        # Extract organization name, email, and logo from the request data
+        org_name = data.get('orgName')
+        email = data.get('email')
+        logo_base64 = data.get('logo')
+
+        # Sanitize organization name for use in user-related databases
+        db_name = org_name.strip().replace(" ", "_").lower()
+
+        # Check if the organization already exists in the organizations database
+        if organization_collection.find_one({'orgName': org_name}):
+            return jsonify({
+                'status': 'error',
+                'message': 'Organization already exists.'
+            }), 400
+
+        # Decode the base64 image (if provided) and store it
+        logo = None
+        if logo_base64:
+            logo = base64.b64decode(logo_base64)
+
+        # Generate a random secret key for the organization (for API or authentication purposes)
+        secret_key = secrets.token_hex(16)  # Generates a 32-character hex string
+
+        # Create the organization data object to insert into MongoDB
+        organization_data = {
+            'orgName': org_name,
+            'email': email,
+            'logo': logo,  # Store the binary image (base64-decoded)
+            'created_at': datetime.datetime.now(),
+            'secret_key': secret_key  # Store the generated secret key
+        }
+
+        # Insert the organization into the 'organization_details' collection
+        organization_collection.insert_one(organization_data)
+
+        logging.info(f"Organization '{org_name}' created successfully with secret key.")
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Organization created successfully!',
+            'db_name': db_name,  # Return the sanitized database name for future use
+            'secret_key': secret_key  # Return the generated secret key to the client
+        }), 201
+
+    except Exception as e:
+        logging.error(f"Error creating organization: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+
+
     
 @app.route("/add-user", methods=["POST"])
 def add_user():
-    data = request.json  # Access JSON data sent from client
-    #print(data)
-    # Extract data fields as needed
-    fullname = data.get("fullname")
-    organization = data.get("organization")
-    email = data.get("email")
-    password = data.get("password")
-    sessionID=data.get("sessionID")
-    ip=data.get("ipAddress")
-    accepted_terms=data.get("acceptTerms")
-    is_admin = data.get("isAdminUser")
+    try:
+        data = request.json  # Access JSON data sent from client
+        
+        # Extract data fields as needed
+        fullname = data.get("fullname")
+        organization = data.get("organization")
+        email = data.get("email")
+        password = data.get("password")
+        sessionID = data.get("sessionID")
+        ip = data.get("ipAddress")
+        accepted_terms = data.get("acceptTerms")
+        is_admin = data.get("isAdminUser")
+        secret_key = data.get("organizationSecretKey")  # New field for secret key
 
+        # Validate inputs
+        if not all([fullname, organization, email, password, secret_key]):
+            return jsonify({"error": "Missing required fields"}), 400
 
-    db_name = organization  # Variable for the database name
-    db = client[db_name]  # Use the variable for the database
-    collection_name = "users"  # Variable for the collection name
-    collection = db[collection_name]  # Use the variable for the collection
+        # Connect to the organizations database to validate the organization and secret key
+        org_db = client["organizations"]
+        org_collection = org_db["organization_details"]
 
-    # Check if the username or email already exists
-    if collection.find_one({"$and": [ {"email": email}, {"organization": organization}]}):
+        # Find the organization and check the secret key
+        organization_data = org_collection.find_one({"orgName": organization})
 
-        logging.error(f"Failed to add user '{fullname} email {email}'. User already exists. IP: {ip} at {datetime.datetime.now()}")
-        return jsonify({"error": f"User with this email already exists in {organization}"}), 400
+        if not organization_data:
+            logging.error(f"Invalid organization name '{organization}'. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"success": False, "message": "Invalid organization name"}), 403
+        
+        if not organization_data or organization_data.get("secret_key") != secret_key:
+            logging.error(f"Invalid secret key for organization '{organization}'. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"error": "Invalid secret key for organization"}), 400
 
-    # If username and email are unique, proceed to add the user
-    if email and password:
-        # Hash the password before storing it
-        hashed_password = generate_password_hash(password)
+        # Now proceed with user creation in the organization's database
+        db_name = organization  # Use the organization name as the database name
+        db = client[db_name]  # Access the organization's database
+        collection_name = "users"  # Use the 'users' collection
+        collection = db[collection_name]  # Get the users collection
 
-        if data.get("isAddedByexistinguser",False):
-            is_online=False
+        # Check if the email already exists in the organization
+        if collection.find_one({"email": email}):
+            logging.error(f"Failed to add user '{fullname} email {email}'. User already exists in {organization}. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"error": f"User with this email already exists in {organization}"}), 400
+
+        # If email is unique, proceed to add the user
+        if email and password:
+            # Hash the password before storing it
+            hashed_password = generate_password_hash(password)
+
+            # Determine online status if user is added by an existing user
+            is_online = not data.get("isAddedByexistinguser", False)
+
+            # Insert the user into the collection
+            collection.insert_one({
+                "fullname": fullname,
+                "organization": organization,
+                "email": email,
+                "is_admin": is_admin,
+                "password": hashed_password,  # Store hashed password
+                "sessionID": sessionID,
+                "accepted_terms": accepted_terms,
+                "ip": ip,  # Log the IP address
+                "joined_date": datetime.datetime.now(),
+                "last_login": datetime.datetime.now(),
+                "login_location": get_location_by_ip(ip),
+                "bio": "",
+                "is_online": is_online
+            })
+
+            logging.info(f"User '{fullname}' added successfully to {organization}. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"message": "User added successfully", "sessionID": sessionID, "status": "success"}), 200
+
         else:
-            is_online=True
+            logging.error(f"Invalid request to add user. Missing email or password. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"error": "Invalid request. Missing email or password."}), 400
 
+    except Exception as e:
+        logging.error(f"Error adding user: {str(e)}. IP: {ip} at {datetime.datetime.now()}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-
-        collection.insert_one({
-            "fullname": fullname,
-            "organization": organization,
-            "email": email,
-            "is_admin": is_admin,
-            "password": hashed_password,  # Store the hashed password in the database
-            "sessionID":sessionID,
-            "accepted_terms":accepted_terms,
-            "ip": ip,  # Log the IP address
-            "joined_date":datetime.datetime.now(),
-            "last_login":datetime.datetime.now(),
-            "login_location": get_location_by_ip(ip),
-            "bio":"",
-            "is_online":is_online
-        })
-
-        logging.info(f"User '{fullname}' added successfully. IP: {ip} at {datetime.datetime.now()}")
-    
-
-        return jsonify({"message": "User added successfully","sessionID":sessionID,"status":"success"}), 200
-    else:
-        logging.error(f"Invalid request to add user. IP: {ip} at {datetime.datetime.now()}")
-        return jsonify({"error": "Invalid request"}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
-    # Get the username, password, and organization from the request JSON data
-    organization = request.form.get('organization')
-    email = request.form.get('email')
-    password = request.form.get('password')
-    remember = request.form.get('remember')
+    try:
+        # Get the organization, email, password, secret key, and remember me from the request form
+        organization = request.form.get('organization')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        secret_key = request.form.get('orgSecretKey')
+        remember = request.form.get('remember')
 
-    ip = request.remote_addr
+        ip = request.remote_addr
 
-    # Connect to MongoDB
-    db = client[organization]  # Use the organization as the database name
-    collection = db["users"]  # Use "users" collection
+        # Connect to the global 'org_db' to get the organization details
+        org_db = client['organizations']  # This is where organization data is stored
+        organization_collection = org_db["organization_details"]
 
-    # Query the database to find the user
-    user = collection.find_one({"email": email})
+        # Fetch organization data from 'org_db' using the organization name
+        organization_data = organization_collection.find_one({"orgName": organization})
+        if not organization_data:
+            logging.error(f"Invalid organization name '{organization}'. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"success": False, "message": "Invalid organization name"}), 403
 
-    if user:
-        # Check if the provided password matches the hashed password in the database
-        if check_password_hash(user['password'], password):
-            # Password is correct, return success message with status code 200
-            logging.info(f"User '{email}' logged in successfully. IP: {ip} at {datetime.datetime.now()}")
 
-            collection.update_one({"email": email}, {"$set": {"last_login": datetime.datetime.now(), "login_location": get_location_by_ip(ip), "ip": ip,"is_online":True}})
+        # Check if the organization exists and validate the secret key
+        if not organization_data or organization_data.get("secret_key") != secret_key:
+            logging.error(f"Invalid secret key for organization '{organization}'. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"success": False, "message": "Invalid organization secret key"}), 403
 
-            return jsonify({"success": True, "message": "Login successful", "email": user["email"],"sessionID":user["sessionID"],"org":user["organization"],"remember_me":remember}), 200
+        # Connect to the organization's unique database for user information
+        db = client[organization]  # Use the organization as the database name
+        users_collection = db["users"]  # Use "users" collection
+
+        # Query the user's collection to find the user by email
+        user = users_collection.find_one({"email": email})
+
+        if user:
+            # Check if the provided password matches the hashed password in the database
+            if check_password_hash(user['password'], password):
+                # Password is correct, update login details and return success message
+                logging.info(f"User '{email}' logged in successfully. IP: {ip} at {datetime.datetime.now()}")
+
+                users_collection.update_one(
+                    {"email": email}, 
+                    {"$set": {
+                        "last_login": datetime.datetime.now(), 
+                        "login_location": get_location_by_ip(ip), 
+                        "ip": ip,
+                        "is_online": True
+                    }}
+                )
+
+                return jsonify({
+                    "success": True, 
+                    "message": "Login successful", 
+                    "email": user["email"],
+                    "sessionID": user["sessionID"],
+                    "org": user["organization"],
+                    "remember_me": remember
+                }), 200
+            else:
+                # Password is incorrect, return error message
+                logging.error(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}")
+                return jsonify({"success": False, "message": "Invalid username or password"}), 401
         else:
-            # Password is incorrect, return error message with status code 401
-            logging.error(f"Invalid password for user '{email}'. IP: {ip} at {datetime.datetime.now()}")
-            return jsonify({"success": False, "message": "Invalid username or password"}), 401
-    else:
-        # User not found, return error message with status code 404
-        logging.error(f"User '{email}' not found. IP: {ip} at {datetime.datetime.now()}")
-        return jsonify({"success": False, "message": "User not found"}), 404
+            # User not found, return error message
+            logging.error(f"User '{email}' not found. IP: {ip} at {datetime.datetime.now()}")
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+    except Exception as e:
+        logging.error(f"Error during login process: {str(e)}")
+        return jsonify({"success": False, "message": "An error occurred during login"}), 500
+
+
 
 
 @app.route('/verifyUser', methods=['POST'])

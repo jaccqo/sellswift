@@ -89,6 +89,8 @@
 
     <script src="assets/js/jquery.min.js"></script>
 
+    <link rel="stylesheet" href="assets/vendor/jquery-toast-plugin/jquery.toast.min.css" />
+
 
 </head>
 
@@ -147,61 +149,79 @@
                         <div class="ribbon ribbon-dark ">
                             <span><img src="assets/images/logo.png" alt="" height="30"></span> Register
                         </div>
-
+            
                         <div class="card-body p-4">
-
                             <div class="text-center w-75 m-auto">
                                 <h4 class="text-dark-50 text-center mt-0 fw-bold">Free Sign Up</h4>
                                 <p class="text-muted mb-4">Don't have an account? Create your account, it takes less
                                     than a minute</p>
                             </div>
-
-
+            
                             <form id="signupForm">
                                 <!-- Right -->
-                                <div class="card ribbon-box d-none" id="signupMessage">
-
-                                </div> <!-- end card-->
-
+                                <div class="card ribbon-box d-none" id="signupMessage"></div> <!-- end card-->
+                            
                                 <div class="mb-3">
                                     <label for="organization" class="form-label">Organization Name</label>
                                     <input class="form-control" type="text" id="organization" name="organization"
                                         placeholder="Enter your organization name" required>
+                                    <small class="form-text text-muted">
+                                        Don't have an organization? <a href="./create-organization.html" class="text-warning">Create one here</a>.
+                                    </small>
                                 </div>
-
+                            
+                                <!-- Organization Secret Key Field -->
+                                <div class="mb-3">
+                                    <label for="organization-secret-key" class="form-label">Organization Secret Key</label>
+                                    <input class="form-control" type="text" id="organization-secret-key" name="organization-secret-key"
+                                        placeholder="Enter your organization secret key" required>
+                                    <small class="form-text text-muted">
+                                        This key is required to verify your organization. If you don't have it, contact your organization admin.
+                                    </small>
+                                </div>
+                            
                                 <div class="mb-3">
                                     <label for="fullname" class="form-label">Full Name</label>
                                     <input class="form-control" type="text" id="fullname" name="fullname"
                                         placeholder="Enter your name" required>
                                 </div>
-
+                            
                                 <div class="mb-3">
                                     <label for="emailaddress" class="form-label">Email address</label>
                                     <input class="form-control" type="email" name="email" id="emailaddress" required
                                         placeholder="Enter your email" required>
                                 </div>
-
+                            
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Password</label>
                                     <div class="input-group input-group-merge">
                                         <input type="password" id="password" name="password" class="form-control"
                                             placeholder="Enter your password" required>
-                                            <div class="input-group-text" data-password="false">
-                                                <span class="password-eye"></span>
-                                              </div>
-
+                                        <div id="togglePassword" class="input-group-text" data-password="false">
+                                            <span class="password-eye"></span>
+                                        </div>
                                     </div>
                                 </div>
+                            
+                                <!-- Confirm Password Field -->
+                                <div class="mb-3">
+                                    <label for="confirm-password" class="form-label">Confirm Password</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="password" id="confirm-password" name="confirm-password" class="form-control" placeholder="Confirm your password" required>
+                                        <div id="toggleConfirmPassword" class="input-group-text" data-password="false">
+                                            <span class="password-eye"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            
                                 <div class="mb-0 align-items-center d-flex justify-content-between">
                                     <!-- Info Switch-->
                                     <!-- Success Switch-->
-                                    <label for="createAdminUser " class="p-2">Admin User</label>
+                                    <label for="createAdminUser" class="p-2">Admin User</label>
                                     <input type="checkbox" id="switch3" data-switch="success" />
                                     <label for="switch3" data-on-label="Yes" data-off-label="No"></label>
-
                                 </div>
-
-
+                            
                                 <div class="mb-3">
                                     <div class="form-check">
                                         <input type="checkbox" class="form-check-input" id="checkbox-signup">
@@ -209,34 +229,32 @@
                                                 href="./terms.html" class="text-warning">Terms and Conditions</a></label>
                                     </div>
                                 </div>
-
+                            
                                 <div class="mb-3 text-center">
                                     <button class="btn btn-warning signup" type="submit"> Sign Up </button>
-
+                            
                                     <button class="btn btn-warning d-none signup-loading" type="button" disabled>
-                                        <span class="spinner-border spinner-border-sm me-1" role="status"
-                                            aria-hidden="true"></span>
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                         Signing up...
                                     </button>
-
                                 </div>
-
-
                             </form>
+                            
+            
                         </div> <!-- end card-body -->
                     </div>
                     <!-- end card -->
-
+            
                     <div class="row mt-3">
                         <div class="col-12 text-center">
-                            <p class="text-muted">Already have account? <a href="pages-login.html"
+                            <p class="text-muted">Already have an account? <a href="pages-login.html"
                                     class="text-muted ms-1"><b>Log In</b></a></p>
                         </div> <!-- end col-->
                     </div>
                     <!-- end row -->
-
                 </div> <!-- end col -->
             </div>
+            
             <!-- end row -->
         </div>
 
@@ -280,6 +298,12 @@
     <script src="assets/js/signup.js"></script>
 
     <script src="assets/js/win-controls.js"></script>
+
+    
+    <script src="assets/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
+
+    <!-- Toastr Demo js -->
+    <script src="assets/js/pages/demo.toastr.js"></script>
 
     <script>
         $(document).ready(function () {

@@ -217,20 +217,20 @@ $(document).ready(function() {
                         existingWidget.find('.card-img-top').attr('src', imageData);
                     } else {
                         var widget = `
-                            <div class="col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
-                                <div class="card shadow-sm rounded-lg border-0 h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
-                                    <img src="${imageData}" class="card-img-top mx-auto d-block rounded" alt="${response.name}" title="${response.name}" style="max-height: 140px; max-width: 140px; object-fit: contain;">
-                                    <div class="card-body text-center p-3">
-                                        <h5 class="card-title mb-2 fw-bold" style="font-size: 14px; color: #2d2d2d;">${response.name}</h5>
-                                        <p class="card-text mb-1" style="font-size: 12px; color: #555;">Price: <span class="fw-semibold">Ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}</span></p>
-                                        <p class="card-text mb-1" style="font-size: 12px; color: #555;">Quantity: <span class="badge bg-success">${quantity}</span></p>
-                                        <p class="card-text mb-2 item-total fw-bold" style="font-size: 12px; color: #2d2d2d;">Total: Ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</p>
-                                        <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm delete-item">
-                                            <i class="mdi mdi-delete"></i> Remove
-                                        </a>
+                                <div class="col-6 col-sm-6 col-md-4 col-lg-3 mb-3" id="widget-${itemId}">
+                                    <div class="card shadow-sm rounded-lg border-0 h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
+                                        <img src="${imageData}" class="card-img-top mx-auto d-block rounded" alt="${response.name}" title="${response.name}" style="max-height: 140px; max-width: 140px; object-fit: contain;">
+                                        <div class="card-body text-center p-3">
+                                            <h5 class="card-title mb-2 fw-bold" style="font-size: 14px; color: #2d2d2d;">${response.name}</h5>
+                                            <p class="card-text mb-1" style="font-size: 12px; color: #555;">Price: <span class="fw-semibold">Ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}</span></p>
+                                            <p class="card-text mb-1" style="font-size: 12px; color: #555;">Quantity: <span class="badge bg-success">${quantity}</span></p>
+                                            <p class="card-text mb-2 item-total fw-bold" style="font-size: 12px; color: #2d2d2d;">Total: Ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</p>
+                                            <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm delete-item">
+                                                <i class="mdi mdi-delete"></i> Remove
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             `;
                             $('#customer-shopping-cart').append(widget);
 
@@ -280,7 +280,7 @@ $(document).ready(function() {
             event.stopPropagation();
             var itemId = $(this).closest('.card').attr('id');
             removeItemFromCart(itemId);
-            $(this).closest('.card-widget').remove();
+            $(this).closest('.col-6').remove(); // Use the correct class for the parent container
         });
     }
 
@@ -387,29 +387,29 @@ $(document).ready(function() {
             success: function(data) {
                 let tableBody = $('#product-table-body');
                 tableBody.empty();
-
+    
                 data.forEach(function(product) {
-           
-                    let row = `<tr id="pop_${product.id}" class="popular-product-item" data-item-id="${product.id}" data-item-barcode="${product.matching_barcode}" data-stock-count="${product.stock_quantity}">
+                    let row = `
+                    <tr id="pop_${product.id}" class="popular-product-item" data-item-id="${product.id}" data-item-barcode="${product.matching_barcode}" data-stock-count="${product.stock_quantity}">
                         <td>
-                            <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
-                            <span class="text-muted font-13">${product.date}</span>
+                            <h6 class="font-13 my-1 fw-semibold" style="color: #2d2d2d;">${product.name}</h6>
+                            <span class="text-muted font-12">${product.date}</span>
                         </td>
                         <td>
-                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
-                            <span class="text-muted font-13">Price</span>
+                            <h6 class="font-13 my-1 fw-semibold" style="color: #2d2d2d;">Ksh ${parseFloat(product.price).toLocaleString()}</h6>
+                            <span class="text-muted font-12">Price</span>
                         </td>
                         <td>
-                            <h5 class="font-14 my-1 fw-normal">${product.stock_quantity}</h5>
-                            <span class="text-muted font-13">Stock Quantity</span>
+                            <h6 class="font-13 my-1 fw-semibold" style="color: #2d2d2d;">${product.stock_quantity}</h6>
+                            <span class="text-muted font-12">Stock Quantity</span>
                         </td>
                         <td>
-                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 100px;">
+                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid rounded" style="max-width: 60px; max-height: 60px; object-fit: contain;">
                         </td>
                     </tr>`;
                     tableBody.append(row);
                 });
-
+    
                 sync_item(); // Sync item click events after rendering
             },
             error: function(error) {
@@ -417,6 +417,7 @@ $(document).ready(function() {
             }
         });
     };
+    
 
     // Call the function to populate the table
     popular_products();

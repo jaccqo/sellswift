@@ -153,57 +153,63 @@
 
                             <form id="loginForm" action="#">
 
-                                <div class="card ribbon-box d-none" id="loginMessage">
-
-                                </div> <!-- end card-->
-
-                                <!-- Form content -->
+                                <div class="card ribbon-box d-none" id="loginMessage"></div> <!-- end card-->
+                            
+                                <!-- Organization Name -->
                                 <div class="mb-3">
                                     <label for="organization" class="form-label">Organization Name</label>
                                     <input class="form-control" type="text" id="organization" name="organization"
                                         placeholder="Enter your organization name" required>
                                 </div>
-
+                            
+                                <!-- Organization Secret Key -->
+                                <div class="mb-3">
+                                    <label for="orgSecretKey" class="form-label">Organization Secret Key</label>
+                                    <input class="form-control" type="text" id="orgSecretKey" name="orgSecretKey"
+                                        placeholder="Enter your organization's secret key" required>
+                                        <small class="form-text text-muted">
+                                            Don't have an organization? <a href="./create-organization.html" class="text-warning">Create one here</a>.
+                                        </small>
+                                </div>
+                            
+                                <!-- Email -->
                                 <div class="mb-3">
                                     <label for="emailaddress" class="form-label">Email address</label>
                                     <input class="form-control" type="email" id="emailaddress" name="email" required=""
                                         placeholder="Enter your email">
-                                    <!-- Add name attribute for email input -->
                                 </div>
-
+                            
+                                <!-- Password -->
                                 <div class="mb-3">
-                                    <a href="pages-recoverpw.html" class="text-muted float-end"><small>Forgot your
-                                            password?</small></a>
+                                    <a href="pages-recoverpw.html" class="text-muted float-end"><small>Forgot your password?</small></a>
                                     <label for="password" class="form-label">Password</label>
                                     <div class="input-group input-group-merge">
                                         <input type="password" id="password" class="form-control" name="password"
                                             placeholder="Enter your password">
-                                        <!-- Add name attribute for password input -->
-                                        <div class="input-group-text" data-password="false">
+                                        <div id="togglePassword" class="input-group-text" data-password="false">
                                             <span class="password-eye"></span>
-                                          </div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="mb-3 mb-3">
+                            
+                                <!-- Remember me -->
+                                <div class="mb-3">
                                     <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="checkbox-signin"
-                                            name="remember" checked>
-                                        <!-- Add name attribute for remember checkbox -->
+                                        <input type="checkbox" class="form-check-input" id="checkbox-signin" name="remember" checked>
                                         <label class="form-check-label" for="checkbox-signin">Remember me</label>
                                     </div>
                                 </div>
-
-                                <div class="mb-3 mb-0 text-center">
+                            
+                                <!-- Submit Button -->
+                                <div class="mb-3 text-center">
                                     <button class="btn btn-warning login-btn" type="submit"> Log In </button>
-                                    <!-- Add the loading spinner button -->
                                     <button class="btn btn-warning d-none login-loading" type="button" disabled>
-                                        <span class="spinner-border spinner-border-sm me-1" role="status"
-                                            aria-hidden="true"></span>
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                         Logging in...
                                     </button>
                                 </div>
                             </form>
+                            
 
 
                         </div> <!-- end card-body -->

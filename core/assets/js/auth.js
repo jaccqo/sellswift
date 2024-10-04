@@ -1,7 +1,14 @@
 
     $(document).ready(function() {
 
-        let base_url=user_info.base_url
+        let base_url = '';
+
+        // Try to fetch user info, handle errors if it fails without showing toast
+        try {
+            base_url = user_info.base_url;
+        } catch (error) {
+            console.error('Error retrieving user info:', error.message);
+        }
 
         function showToast(heading, text, position, loaderBg, icon, hideAfter = 3000, stack = 1, showHideTransition = "fade") {
             const options = {
@@ -19,19 +26,24 @@
         }
 
 
-        $('#togglePassword').click(function() {
-            // Toggle the 'fa-eye' and 'fa-eye-slash' classes
-            $('#togglePassword span').toggleClass('fa-eye fa-eye-slash');
-
-            // Toggle the input type between 'password' and 'text'
-            var passwordField = $('#password');
+        $('#togglePassword, #toggleConfirmPassword').click(function() {
+            // Toggle the eye icon class
+            $(this).find('.password-eye').toggleClass('show-password');
+        
+            // Get the associated input field
+            var passwordField = $(this).siblings('input');
             var fieldType = passwordField.attr('type');
+        
+            // Toggle the input type between 'password' and 'text'
             if (fieldType === 'password') {
                 passwordField.attr('type', 'text');
             } else {
                 passwordField.attr('type', 'password');
             }
         });
+        
+        
+        
 
         $('.logout').on("click", async ()=>{
 
