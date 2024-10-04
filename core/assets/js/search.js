@@ -217,22 +217,22 @@ $(document).ready(function() {
                         existingWidget.find('.card-img-top').attr('src', imageData);
                     } else {
                         var widget = `
-                            <div class="card-widget col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
-                                <div class="card h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
-                                    <img src="${imageData}" class="card-img-top mx-auto d-block" alt="${response.name}" title="${response.name}" style="max-height: 70%; max-width: 70%;">
-                                    <div class="card-body p-2">
-                                        <h5 class="card-title mb-1" style="font-size: 14px;">${response.name}</h5>
-                                        <p class="card-text mb-1" style="font-size: 12px;">Price: ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}</p>
-                                        <p class="card-text mb-1" style="font-size: 12px;">Quantity: <span class="badge bg-success">${quantity}</span></p>
-                                        <p class="card-text mb-1 item-total" style="font-size: 12px;">Total: ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</p>
-                                        <a href="javascript:void(0);" class="btn btn-danger btn-sm delete-item">
-                                            <i class="mdi mdi-delete text-light"></i> Remove
+                            <div class="col-6 col-sm-6 col-md-4 col-lg-3 mb-3">
+                                <div class="card shadow-sm rounded-lg border-0 h-100" id="${itemId}" data-barcodes="${barcode.join(', ')}">
+                                    <img src="${imageData}" class="card-img-top mx-auto d-block rounded" alt="${response.name}" title="${response.name}" style="max-height: 140px; max-width: 140px; object-fit: contain;">
+                                    <div class="card-body text-center p-3">
+                                        <h5 class="card-title mb-2 fw-bold" style="font-size: 14px; color: #2d2d2d;">${response.name}</h5>
+                                        <p class="card-text mb-1" style="font-size: 12px; color: #555;">Price: <span class="fw-semibold">Ksh ${parseFloat(itemPrice.toFixed(2)).toLocaleString()}</span></p>
+                                        <p class="card-text mb-1" style="font-size: 12px; color: #555;">Quantity: <span class="badge bg-success">${quantity}</span></p>
+                                        <p class="card-text mb-2 item-total fw-bold" style="font-size: 12px; color: #2d2d2d;">Total: Ksh ${parseFloat(itemTotal.toFixed(2)).toLocaleString()}</p>
+                                        <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm delete-item">
+                                            <i class="mdi mdi-delete"></i> Remove
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                        `;
-                        $('#customer-shopping-cart').append(widget);
+                            `;
+                            $('#customer-shopping-cart').append(widget);
 
                         $(`#${itemId}`)[0].scrollIntoView({
                             behavior: "smooth",

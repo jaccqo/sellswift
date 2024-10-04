@@ -512,7 +512,7 @@ def edit_inventory():
 
         dbname = data.get('dbname')
         itemId = data.get('itemId')
-        
+
         update_data = {}
 
         # Extract the fields that have been supplied
@@ -526,11 +526,14 @@ def edit_inventory():
             update_data['status'] = data['status']
         if 'fileData' in data:
             update_data['image'] = data['fileData']
-        
+        if 'markupPercentage' in data:
+            update_data['markupPercentage'] = data['markupPercentage']  # Add markup percentage to the update data
+
         db = client[dbname]
         items_collection = db.inventory
         barcode_dates_collection = db['barcode_dates']
 
+        # Fetch the existing item
         existing_item = items_collection.find_one({"_id": ObjectId(itemId)})
         if not existing_item:
             return jsonify({'error': 'Item not found'}), 404
@@ -548,6 +551,7 @@ def edit_inventory():
             update_data['barcodes'] = existing_item.get('barcodes', []) + new_barcodes
             update_data['stock'] = len(update_data['barcodes'])
 
+            # Insert new barcodes into the barcode_dates collection
             for barcode in new_barcodes:
                 barcode_dates_collection.insert_one({'barcode': barcode, 'date_added': datetime.datetime.now()})
 
@@ -564,6 +568,7 @@ def edit_inventory():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/api/get-barcodes', methods=['POST'])
@@ -1274,6 +1279,7 @@ def get_daily_sales():
         # Connect to the user's specific database
         db = client[db_name]
         sales_collection = db['sales']
+        inventory_collection = db['inventory']
 
         # Logging the action
         logging.info(f"Calculating daily sales for user: {user_id} on database: {db_name}")
@@ -1285,9 +1291,33 @@ def get_daily_sales():
         # Fetch today's sales from the 'sales' collection
         today_sales = list(sales_collection.find({"timestamp": {"$gte": today_start, "$lt": today_end}}))
 
-        # Calculate total sales and profits
-        daily_sales = sum(sale['purchase_amount'] for sale in today_sales)
-        daily_profits = sum(sale['purchase_amount'] * 0.25 for sale in today_sales)  # Assuming 25% profit margin
+        # Initialize sales and profits
+        daily_sales = 0
+        daily_profits = 0
+
+        # Helper function to calculate profit for each sale
+        def calculate_profit_for_sale(sale):
+            sale_profit = 0
+            for item_id in sale['items']:  # Loop through each item_id in the sale
+                # Fetch the related inventory item by item ID
+                item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                
+                if item and 'markupPercentage' in item:
+                    markup_percentage = float(item['markupPercentage']) / 100  # Convert percentage to decimal
+                else:
+                    markup_percentage = 0.25  # Default to 25% if no markupPercentage is provided
+
+                # Assuming 'price' and 'quantity' are stored inside the 'items' field
+                quantity_sold = len(sale['items'][item_id]) if isinstance(sale['items'][item_id], list) else 1
+                price_per_item = sale['purchase_amount'] / quantity_sold  # Assuming equal distribution of price
+                
+                sale_profit += price_per_item * quantity_sold * markup_percentage
+            return sale_profit
+
+        # Loop through each sale and calculate sales and profits
+        for sale in today_sales:
+            daily_sales += sale['purchase_amount']
+            daily_profits += calculate_profit_for_sale(sale)
 
         # Calculate growth from yesterday
         yesterday_start = today_start - timedelta(days=1)
@@ -1316,61 +1346,124 @@ def get_daily_sales():
 
 
 
+
+
+
 @app.route('/api-monthlyYearlyProfits', methods=['POST'])
 def get_monthly_yearly_profits():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    db_name = data.get('db_name')
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        db_name = data.get('db_name')
 
-    # Use db_name and user_id to fetch user-specific data
-    db = client[db_name]
-    sales_collection = db['sales']
+        # Use db_name and user_id to fetch user-specific data
+        db = client[db_name]
+        sales_collection = db['sales']
+        inventory_collection = db['inventory']
 
-    # Current date and time
-    now = datetime.datetime.now()
+        # Current date and time
+        now = datetime.datetime.now()
 
-    # Calculate the start of the current month and year
-    first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    first_day_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        # Calculate the start of the current month and year
+        first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        first_day_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    # Get the sales for the current month
-    monthly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_month}}))
-    monthly_profits = sum(sale['purchase_amount'] * 0.25 for sale in monthly_sales)
-    monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
-    monthly_units_sold = sum(len(sale['items'][item_id]) for sale in monthly_sales for item_id in sale['items'])  # Count the total number of items sold
+        # Initialize variables for monthly and yearly calculations
+        monthly_profits, yearly_profits = 0, 0
+        monthly_revenue, yearly_revenue = 0, 0
+        monthly_units_sold, yearly_units_sold = 0, 0
 
-    # Get the sales for the current year
-    yearly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_year}}))
-    yearly_profits = sum(sale['purchase_amount'] * 0.25 for sale in yearly_sales)
-    yearly_revenue = sum(sale['purchase_amount'] for sale in yearly_sales)
-    yearly_units_sold = sum(len(sale['items'][item_id]) for sale in yearly_sales for item_id in sale['items'])  # Count the total number of items sold
+        # Helper function to calculate profit for each sale
+        def calculate_profit_for_sale(sale):
+            sale_profit = 0
+            for item_id in sale['items']:  # Loop through each item_id
+                # Find the related inventory item by item ID
+                item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                
+                if item and 'markupPercentage' in item:
+                    markup_percentage = float(item['markupPercentage']) / 100  # Convert percentage to decimal
+                else:
+                    markup_percentage = 0.25  # Default to 25% if no markupPercentage is provided
 
-    # Get the sales for the previous month (for growth comparison)
-    previous_month_end = first_day_of_month - timedelta(seconds=1)
-    first_day_of_previous_month = previous_month_end.replace(day=1)
-    previous_month_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_previous_month, "$lt": first_day_of_month}}))
-    previous_month_profits = sum(sale['purchase_amount'] * 0.25 for sale in previous_month_sales)
+                # Assuming 'price' and 'quantity' are stored inside the 'items' field
+                quantity_sold = len(sale['items'][item_id]) if isinstance(sale['items'][item_id], list) else 1
+                price_per_item = sale['purchase_amount'] / quantity_sold  # Assuming equal distribution of price
+                
+                sale_profit += price_per_item * quantity_sold * markup_percentage
+            return sale_profit
 
-    # Get the sales for the previous year (for growth comparison)
-    previous_year_sales = list(sales_collection.find({"timestamp": {"$gte": now.replace(year=now.year-1, month=1, day=1), "$lt": first_day_of_year}}))
-    previous_year_profits = sum(sale['purchase_amount'] * 0.25 for sale in previous_year_sales)
+        # Get the sales for the current month
+        monthly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_month}}))
+        monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
+        monthly_profits = sum(calculate_profit_for_sale(sale) for sale in monthly_sales)
+        monthly_units_sold = sum(len(sale['items']) for sale in monthly_sales)  # Counting the number of items
 
-    # Calculate growth rates
-    monthly_growth = ((monthly_profits - previous_month_profits) / previous_month_profits * 100) if previous_month_profits else 0
-    yearly_growth = ((yearly_profits - previous_year_profits) / previous_year_profits * 100) if previous_year_profits else 0
+        # Get the sales for the current year
+        yearly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_year}}))
+        yearly_revenue = sum(sale['purchase_amount'] for sale in yearly_sales)
+        yearly_profits = sum(calculate_profit_for_sale(sale) for sale in yearly_sales)
+        yearly_units_sold = sum(len(sale['items']) for sale in yearly_sales)  # Counting the number of items
 
-    # Return the data as JSON
-    return jsonify({
-        'monthly_profits': round(monthly_profits, 2),
-        'monthly_revenue': round(monthly_revenue, 2),
-        'monthly_units_sold': monthly_units_sold,
-        'monthly_growth': round(monthly_growth, 2),
-        'yearly_profits': round(yearly_profits, 2),
-        'yearly_revenue': round(yearly_revenue, 2),
-        'yearly_units_sold': yearly_units_sold,
-        'yearly_growth': round(yearly_growth, 2)
-    })
+        # Get the sales for the previous month (for growth comparison)
+        previous_month_end = first_day_of_month - timedelta(seconds=1)
+        first_day_of_previous_month = previous_month_end.replace(day=1)
+        previous_month_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_previous_month, "$lt": first_day_of_month}}))
+        previous_month_profits = sum(calculate_profit_for_sale(sale) for sale in previous_month_sales)
 
+        # Get the sales for the previous year (for growth comparison)
+        previous_year_sales = list(sales_collection.find({"timestamp": {"$gte": now.replace(year=now.year-1, month=1, day=1), "$lt": first_day_of_year}}))
+        previous_year_profits = sum(calculate_profit_for_sale(sale) for sale in previous_year_sales)
+
+        # Calculate growth rates
+        monthly_growth = ((monthly_profits - previous_month_profits) / previous_month_profits * 100) if previous_month_profits else 0
+        yearly_growth = ((yearly_profits - previous_year_profits) / previous_year_profits * 100) if previous_year_profits else 0
+
+        # Return the data as JSON
+        return jsonify({
+            'monthly_profits': round(monthly_profits, 2),
+            'monthly_revenue': round(monthly_revenue, 2),
+            'monthly_units_sold': monthly_units_sold,
+            'monthly_growth': round(monthly_growth, 2),
+            'yearly_profits': round(yearly_profits, 2),
+            'yearly_revenue': round(yearly_revenue, 2),
+            'yearly_units_sold': yearly_units_sold,
+            'yearly_growth': round(yearly_growth, 2)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/api/notifications', methods=['POST'])
+def get_notifications():
+    try:
+        # Assuming we have a 'notifications' collection
+        data = request.get_json()
+        user_id = data.get('user_id')
+        db_name = data.get('db_name')
+
+        db = client[db_name]
+        notifications_collection = db['notifications']
+
+        # Fetch notifications sorted by date, grouped by day
+        today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        yesterday_start = today_start - timedelta(days=1)
+
+        today_notifications = list(notifications_collection.find({"timestamp": {"$gte": today_start}}))
+        yesterday_notifications = list(notifications_collection.find({"timestamp": {"$gte": yesterday_start, "$lt": today_start}}))
+        older_notifications = list(notifications_collection.find({"timestamp": {"$lt": yesterday_start}}))
+
+        notifications_data = {
+            "today": today_notifications,
+            "yesterday": yesterday_notifications,
+            "older": older_notifications
+        }
+
+        return jsonify({'success': True, 'notifications': notifications_data}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
     

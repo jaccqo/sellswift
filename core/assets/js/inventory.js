@@ -61,10 +61,10 @@ $(document).ready(function () {
         event.preventDefault();
         $(".addinventory-load").removeClass("d-none");
         $(".addinventory").addClass("d-none");
-
+    
         const files = pond_one.getFiles();
         let file_path = files.length ? files[0].file.path : "./images/brand-identity.png";
-
+    
         const item = {
             name: $('#itemNameInput').val(),
             image: file_path,
@@ -72,9 +72,10 @@ $(document).ready(function () {
             price: $('#itemPrice').val(),
             status: $('#itemStatusInput').prop('checked'),
             itemBarcode: $('#barcodeScan').val() || $('#barcodeManual').val(),
-            barcodeQuantity: $('#barcodeQuantity').val()
+            barcodeQuantity: $('#barcodeQuantity').val(),
+            markupPercentage: $('#markupPercentage').val()  // Added the markup percentage
         };
-
+    
         try {
             const result = await ipcRenderer.Insertinventory(item);
             if (result.message === "Item inserted successfully") {
@@ -84,12 +85,13 @@ $(document).ready(function () {
         } catch (error) {
             showToast("Oh snap!", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
         }
-
+    
         $(".addinventory").removeClass("d-none");
         $(".addinventory-load").addClass("d-none");
         $(this)[0].reset();
         ipcRenderer.send('request-initial-data');
     });
+    
 
     function setupEventHandlers() {
         handleInventoryDeletion();
@@ -237,23 +239,24 @@ $(document).ready(function () {
         $('#products-datatable').on('click', '.editInventory', async function () {
             const itemId = $(this).data('editinventory');
             const row_text = $(this).closest('tr').find('td:eq(1) p').text();
-
+    
             try {
                 const response = await fetch(`${base_url}/api/get-item/${itemId}?dbname=${user_info.organization}`);
                 const result = await response.json();
-
+    
                 if (result.success) {
                     const item = result.data;
-                    console.log(item)
+                    console.log(item);
+    
+                    // Populate the edit form fields
                     $("#edititemNameInput").val(item.name);
                     $("#edititemCategoryInput").val(item.category);
                     $("#edititemPrice").val(item.price);
                     $("#edititemStatusInput").prop('checked', item.status);
-                    //$("#editbarcodeScan").val(item.itemBarcode);
-                    $('#editbarcodeManual').val(item.itemBarcode)
+                    $('#editbarcodeManual').val(item.itemBarcode);
                     $("#editbarcodeQuantity").val(item.stock);
-                    //$("#edititemImage").val(item.image);
-
+                    $("#editMarkupPercentage").val(item.markupPercentage); // Set the markup percentage value
+    
                     $("#inventoryname").text(`Edit ${row_text} inventory`);
                     $("#EditProductsModal").data('itemid', itemId).modal("toggle");
                 } else {
@@ -264,12 +267,12 @@ $(document).ready(function () {
             }
         });
     }
-
+    
     $("#save-editInventory").on("click", async function (event) {
         event.preventDefault();
         $(".editinventory-load").removeClass("d-none");
         $(this).addClass("d-none");
-
+    
         const itemId = $("#EditProductsModal").data('itemid');
         const name = $('#edititemNameInput').val();
         const category = $('#edititemCategoryInput').val();
@@ -277,13 +280,13 @@ $(document).ready(function () {
         const status = $('#edititemStatusInput').prop('checked');
         const itemBarcode = $('#editbarcodeScan').val() || $('#editbarcodeManual').val();
         const barcodeQuantity = $('#editbarcodeQuantity').val();
-
+        const markupPercentage = $('#editMarkupPercentage').val();  // Added markup percentage
+    
         const files = pond_two.getFiles();
-
         let file_path = files.length ? files[0].file.path : "./core/assets/images/brand-identity.png";
-
+    
         const base64_img_ = file_path ? await ipcRenderer.returnBase64file(file_path) : null;
-
+    
         const formData = {
             dbname: user_info.organization,
             itemId,
@@ -293,9 +296,10 @@ $(document).ready(function () {
             status,
             itemBarcode,
             barcodeQuantity,
+            markupPercentage,  // Include markup percentage in the formData
             fileData: base64_img_
         };
-
+    
         $.ajax({
             type: "POST",
             contentType: "application/json",
@@ -307,17 +311,18 @@ $(document).ready(function () {
                 ipcRenderer.send('request-initial-data');
                 $("#save-editInventory").removeClass("d-none");
                 $(".editinventory-load").addClass("d-none");
-                $("#EditProductsModal").modal("hide"); // Change this line
+                $("#EditProductsModal").modal("hide");
             },
             error: function (xhr, status, error) {
                 showToast("! error", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
-                $("#editInventory").removeClass("d-none");
+                $("#save-editInventory").removeClass("d-none");
                 $(".editinventory-load").addClass("d-none");
             }
         });
-
-        $('#edititemNameInput, #edititemCategoryInput, #edititemPrice').val("");
+    
+        $('#edititemNameInput, #edititemCategoryInput, #edititemPrice, #edititemMarkupInput').val("");
     });
+    
 
     function handleDeleteInventoryBarcode() {
         $(document).off('click', '.deleteInventoryBarcode');

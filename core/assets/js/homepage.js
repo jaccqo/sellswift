@@ -175,46 +175,45 @@ $(document).ready( function() {
 
 
 
-    const top_selling_table = () => {
-        $.ajax({
-            url: `${base_url}/api/inventory?dbname=${dbname}`,
-            method: 'GET',
-            success: function(data) {
-                let tableBody = $('#product-table-body');
-                tableBody.empty();  // Clear any existing rows
-
-                data.forEach(function(product) {
-                    let row = `<tr id=${product.id}>
-                        <td>
-                            <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
-                            <span class="text-muted font-13">${product.date}</span>
-                        </td>
-                        <td>
-                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
-                            <span class="text-muted font-13">Price</span>
-                        </td>
-                        <td>
-                            <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
-                            <span class="text-muted font-13">Quantity Sold</span>
-                        </td>
-                        <td>
-                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
-                            <span class="text-muted font-13">Amount</span>
-                        </td>
-                        <td>
-                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 100px;">
-                        
-                        
-                        </td>
-                    </tr>`;
-                    tableBody.append(row);
-                });
-            },
-            error: function(error) {
-                console.error('Error fetching inventory data:', error);
-            }
-        });
-    }
+        const top_selling_table = () => {
+            $.ajax({
+                url: `${base_url}/api/inventory?dbname=${dbname}`,
+                method: 'GET',
+                success: function(data) {
+                    let tableBody = $('#product-table-body');
+                    tableBody.empty();  // Clear any existing rows
+        
+                    data.forEach(function(product) {
+                        let row = `<tr id=${product.id}>
+                            <td>
+                                <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
+                                <span class="text-muted font-13">${product.date}</span>
+                            </td>
+                            <td>
+                                <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
+                                <span class="text-muted font-13">Price</span>
+                            </td>
+                            <td>
+                                <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
+                                <span class="text-muted font-13">Quantity Sold</span>
+                            </td>
+                            <td>
+                                <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
+                                <span class="text-muted font-13">Amount</span>
+                            </td>
+                            <td>
+                                <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 60px; height: auto;"> <!-- Reduced size here -->
+                            </td>
+                        </tr>`;
+                        tableBody.append(row);
+                    });
+                },
+                error: function(error) {
+                    console.error('Error fetching inventory data:', error);
+                }
+            });
+        }
+    
 
     
 
@@ -356,7 +355,7 @@ $(document).ready( function() {
             type: "donut",
         },
         dataLabels: {
-            enabled: true,
+            enabled: false,
             formatter: function (val, opts) {
                 // Show actual values, not percentages
                 const seriesIndex = opts.seriesIndex;
@@ -462,11 +461,118 @@ $(document).ready( function() {
             }
         });
     }
+
+
+    function loadNotifications() {
+        $.ajax({
+            url: `${base_url}/api/notifications`,  // Backend route to fetch notifications
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                user_id: user_info._id,   // Assuming user_info contains the user ID
+                db_name: user_info.organization  // Assuming db_name is needed
+            }),
+            success: function(response) {
+                if (response.success) {
+                    updateNotificationList(response.notifications);
     
+                    // Check if there are any notifications and toggle the badge visibility
+                    const totalNotifications = response.notifications.today.length 
+                        + response.notifications.yesterday.length 
+                        + response.notifications.older.length;
+    
+                    if (totalNotifications > 0) {
+                        $('#notificationBadge').show();  // Show the badge
+                    } else {
+                        $('#notificationBadge').hide();  // Hide the badge
+                    }
+                } else {
+                    console.error('Failed to load notifications:', response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading notifications:', error);
+            }
+        });
+    }
+    
+    function updateNotificationList(notifications) {
+        let notificationContainer = $('#notificationsContent');
+        notificationContainer.empty();  // Clear existing notifications
+    
+        // Today Notifications
+        if (notifications.today.length) {
+            notificationContainer.append('<h5 class="text-muted font-13 fw-normal mt-2">Today</h5>');
+            notifications.today.forEach(function(notification) {
+                let item = createNotificationItem(notification);
+                notificationContainer.append(item);
+            });
+        }
+    
+        // Yesterday Notifications
+        if (notifications.yesterday.length) {
+            notificationContainer.append('<h5 class="text-muted font-13 fw-normal mt-2">Yesterday</h5>');
+            notifications.yesterday.forEach(function(notification) {
+                let item = createNotificationItem(notification);
+                notificationContainer.append(item);
+            });
+        }
+    
+        // Older Notifications
+        if (notifications.older.length) {
+            notificationContainer.append('<h5 class="text-muted font-13 fw-normal mt-2">Older</h5>');
+            notifications.older.forEach(function(notification) {
+                let item = createNotificationItem(notification);
+                notificationContainer.append(item);
+            });
+        }
+    }
+    
+    function createNotificationItem(notification) {
+        return `
+            <a href="javascript:void(0);" class="dropdown-item p-0 notify-item card shadow-none mb-2 notification-item">
+                <div class="card-body">
+                    <span class="float-end noti-close-btn text-muted notification-close"><i class="mdi mdi-close"></i></span>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="notify-icon bg-${notification.iconColor || 'primary'}">
+                                <i class="mdi ${notification.icon || 'mdi-comment-account-outline'}"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 text-truncate ms-2">
+                            <h5 class="noti-item-title fw-semibold font-14">${notification.title} 
+                                <small class="fw-normal text-muted ms-1">${formatTimeAgo(notification.timestamp)}</small>
+                            </h5>
+                            <small class="noti-item-subtitle text-muted">${notification.message}</small>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        `;
+    }
+    
+    // Utility function to format time
+    function formatTimeAgo(timestamp) {
+        let date = new Date(timestamp);
+        let now = new Date();
+        let timeDiff = Math.floor((now - date) / 1000 / 60); // in minutes
+    
+        if (timeDiff < 60) return `${timeDiff} min ago`;
+        if (timeDiff < 1440) return `${Math.floor(timeDiff / 60)} hours ago`;
+        return `${Math.floor(timeDiff / 1440)} days ago`;
+    }
+    
+    // Trigger the notifications load when the dropdown is opened
+    $('#notificationsDropdown').on('show.bs.dropdown', function() {
+        loadNotifications();
+    });
+
     
     
 
     // Call the function to update the profits when the page loads
+    setInterval(loadNotifications(),30000)
+
     updateProfits();
 
     // Optionally, you can refresh the data periodically

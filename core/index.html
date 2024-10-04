@@ -198,171 +198,41 @@
                 </div>
 
                 <ul class="topbar-menu d-flex align-items-center gap-3">
-                    <li class="dropdown d-lg-none">
-                        <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#" role="button"
-                            aria-haspopup="false" aria-expanded="false">
-                            <i class="ri-search-line font-22"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-animated dropdown-lg p-0">
-                            <form class="p-3">
-                                <input type="search" class="form-control" placeholder="Search ..."
-                                    aria-label="Recipient's username">
-                            </form>
-                        </div>
-                    </li>
+                   
 
 
 
-                    <li class="dropdown notification-list">
-                        <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#" role="button"
-                            aria-haspopup="false" aria-expanded="false">
-                            <i class="ri-notification-3-line font-22"></i>
-                            <span class="noti-icon-badge"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0">
-                            <div class="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="m-0 font-16 fw-semibold"> Notification</h6>
-                                    </div>
-                                    <div class="col-auto">
-                                        <a href="javascript: void(0);" class="text-dark text-decoration-underline">
-                                            <small>Clear All</small>
-                                        </a>
-                                    </div>
+                  <li id="notificationsDropdown" class="dropdown notification-list">
+                    <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#" role="button"
+                        aria-haspopup="false" aria-expanded="false" id="notificationsIcon">
+                        <i class="ri-notification-3-line font-22"></i>
+                        <span id="notificationBadge" class="noti-icon-badge"></span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0" id="notificationsMenu">
+                        <div class="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h6 class="m-0 font-16 fw-semibold">Notification</h6>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="javascript: void(0);" class="text-dark text-decoration-underline" id="clearAllNotifications">
+                                        <small>Clear All</small>
+                                    </a>
                                 </div>
                             </div>
-
-                            <div class="px-2" style="max-height: 300px;" data-simplebar>
-
-                                <h5 class="text-muted font-13 fw-normal mt-2">Today</h5>
-                                <!-- item-->
-
-                                <a href="javascript:void(0);"
-                                    class="dropdown-item p-0 notify-item card unread-noti shadow-none mb-2">
-                                    <div class="card-body">
-                                        <span class="float-end noti-close-btn text-muted"><i
-                                                class="mdi mdi-close"></i></span>
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-shrink-0">
-                                                <div class="notify-icon bg-primary">
-                                                    <i class="mdi mdi-comment-account-outline"></i>
-                                                </div>
-                                            </div>
-                                            <div class="flex-grow-1 text-truncate ms-2">
-                                                <h5 class="noti-item-title fw-semibold font-14">Datacorp <small
-                                                        class="fw-normal text-muted ms-1">1 min ago</small></h5>
-                                                <small class="noti-item-subtitle text-muted">Caleb Flakelar commented on
-                                                    Admin</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <!-- item-->
-                                <a href="javascript:void(0);"
-                                    class="dropdown-item p-0 notify-item card read-noti shadow-none mb-2">
-                                    <div class="card-body">
-                                        <span class="float-end noti-close-btn text-muted"><i
-                                                class="mdi mdi-close"></i></span>
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-shrink-0">
-                                                <div class="notify-icon bg-info">
-                                                    <i class="mdi mdi-account-plus"></i>
-                                                </div>
-                                            </div>
-                                            <div class="flex-grow-1 text-truncate ms-2">
-                                                <h5 class="noti-item-title fw-semibold font-14">Admin <small
-                                                        class="fw-normal text-muted ms-1">1 hours ago</small></h5>
-                                                <small class="noti-item-subtitle text-muted">New user registered</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <h5 class="text-muted font-13 fw-normal mt-0">Yesterday</h5>
-
-                                <!-- item-->
-                                <a href="javascript:void(0);"
-                                    class="dropdown-item p-0 notify-item card read-noti shadow-none mb-2">
-                                    <div class="card-body">
-                                        <span class="float-end noti-close-btn text-muted"><i
-                                                class="mdi mdi-close"></i></span>
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-shrink-0">
-                                                <div class="notify-icon">
-                                                    <img src="assets/images/users/avatar-2.jpg"
-                                                        class="img-fluid rounded-circle" alt="" />
-                                                </div>
-                                            </div>
-                                            <div class="flex-grow-1 text-truncate ms-2">
-                                                <h5 class="noti-item-title fw-semibold font-14">Cristina Pride <small
-                                                        class="fw-normal text-muted ms-1">1 day ago</small></h5>
-                                                <small class="noti-item-subtitle text-muted">Hi, How are you? What about
-                                                    our next meeting</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <h5 class="text-muted font-13 fw-normal mt-0">30 Dec 2021</h5>
-
-                                <!-- item-->
-                                <a href="javascript:void(0);"
-                                    class="dropdown-item p-0 notify-item card read-noti shadow-none mb-2">
-                                    <div class="card-body">
-                                        <span class="float-end noti-close-btn text-muted"><i
-                                                class="mdi mdi-close"></i></span>
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-shrink-0">
-                                                <div class="notify-icon bg-primary">
-                                                    <i class="mdi mdi-comment-account-outline"></i>
-                                                </div>
-                                            </div>
-                                            <div class="flex-grow-1 text-truncate ms-2">
-                                                <h5 class="noti-item-title fw-semibold font-14">Datacorp</h5>
-                                                <small class="noti-item-subtitle text-muted">Caleb Flakelar commented on
-                                                    Admin</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <!-- item-->
-                                <a href="javascript:void(0);"
-                                    class="dropdown-item p-0 notify-item card read-noti shadow-none mb-2">
-                                    <div class="card-body">
-                                        <span class="float-end noti-close-btn text-muted"><i
-                                                class="mdi mdi-close"></i></span>
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-shrink-0">
-                                                <div class="notify-icon">
-                                                    <img src="assets/images/users/avatar-4.jpg"
-                                                        class="img-fluid rounded-circle" alt="" />
-                                                </div>
-                                            </div>
-                                            <div class="flex-grow-1 text-truncate ms-2">
-                                                <h5 class="noti-item-title fw-semibold font-14">Karen Robinson</h5>
-                                                <small class="noti-item-subtitle text-muted">Wow ! this admin looks good
-                                                    and awesome design</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <div class="text-center">
-                                    <i class="mdi mdi-dots-circle mdi-spin text-muted h3 mt-0"></i>
-                                </div>
-                            </div>
-
-                            <!-- All-->
-                            <a href="javascript:void(0);"
-                                class="dropdown-item text-center text-primary notify-item border-top py-2">
-                                View All
-                            </a>
-
                         </div>
-                    </li>
+                
+                        <div id="notificationsContent" class="px-2" style="max-height: 300px;" data-simplebar>
+                            <!-- Notifications will be inserted dynamically here -->
+                        </div>
+                
+                        <!-- View All Notifications -->
+                        <a href="javascript:void(0);" class="dropdown-item text-center text-primary notify-item border-top py-2" id="viewAllNotifications">
+                            View All
+                        </a>
+                    </div>
+                </li>
+                
 
 
 
@@ -374,12 +244,7 @@
 
                    
 
-                    <li class="d-none d-sm-inline-block light-switch">
-                        <div class="nav-link" id="light-dark-mode" data-bs-toggle="tooltip" data-bs-placement="left"
-                            title="Theme Mode">
-                            <i class="ri-moon-line font-22"></i>
-                        </div>
-                    </li>
+                 
 
 
 
@@ -405,10 +270,10 @@
                             </a>
 
                             <!-- item-->
-                            <a href="javascript:void(0);" class="dropdown-item">
+                            <!-- <a href="javascript:void(0);" class="dropdown-item">
                                 <i class="mdi mdi-lifebuoy me-1"></i>
                                 <span>Support</span>
-                            </a>
+                            </a> -->
 
 
 
@@ -617,15 +482,16 @@
 
                     <!-- Help Box -->
                     <div class="help-box text-white text-center">
-                        <a href="javascript: void(0);" class="float-end close-btn text-white">
-                            <i class="mdi mdi-close"></i>
-                        </a>
-                        <img src="assets/images/svg/help-icon.svg" height="90" alt="Helper Icon Image" />
-                        <h5 class="mt-3">Need Assistance?</h5>
-
-                        <a href="javascript: void(0);" class="btn btn-secondary btn-sm">Contact us</a>
-                    </div>
-                    <!-- end Help Box -->
+                      <a href="javascript: void(0);" class="float-end close-btn text-white">
+                          <i class="mdi mdi-close"></i>
+                      </a>
+                      <img src="assets/images/svg/help-icon.svg" height="90" alt="Helper Icon Image" />
+                      <h5 class="mt-3">Need Assistance?</h5>
+                  
+                      <a href="mailto:support@yourdomain.com" class="btn btn-secondary btn-sm">Contact us</a>
+                  </div>
+                  <!-- end Help Box -->
+                  
 
 
                 </ul>
@@ -670,136 +536,134 @@
                                         </a>
                                     </form> -->
                                 </div>
-                                <h4 class="page-title small">Monthly Overview  </h4>
+                                <h4 class="page-title small">Analytics Overview  </h4>
                             </div>
                         </div>
                     </div>
 
                     <div class="row">
-                        <div class="col-xl-5 col-lg-6">
-
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="card widget-flat" id="customer-card">
-                                        <div class="card-body">
-                                            <div class="float-end">
-                                                <i class="mdi mdi-account-multiple widget-icon"></i>
-                                            </div>
-                                            <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
-                                            <h3 class="mt-3 mb-3" id="customer-count">0</h3>
-                                            <p class="mb-0 text-muted" id="customer-growth">
-                                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
-                                                <span class="text-nowrap">Since last month</span>
-                                            </p>
-                                        </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </div> <!-- end col-->
-                            
-                                <div class="col-sm-6">
-                                    <div class="card widget-flat" id="purchase-card">
-                                        <div class="card-body">
-                                            <div class="float-end">
-                                                <i class="mdi mdi-package-variant widget-icon"></i>
-
-                                            </div>
-                                            <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Inventory</h5>
-                                            <h3 class="mt-3 mb-3" id="purchase-count">0</h3>
-                                            <p class="mb-0 text-muted" id="purchase-growth">
-                                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
-                                                <span class="text-nowrap">Since last month</span>
-                                            </p>
-                                        </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </div> <!-- end col-->
-                            </div> <!-- end row -->
-                            
-
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="card widget-flat" id="revenue-card">
-                                        <div class="card-body">
-                                            <div class="float-end">
-                                                <i class="mdi mdi-currency-usd widget-icon"></i>
-                                            </div>
-                                            <h5 class="text-muted fw-normal mt-0" title="Average Revenue"> Revenue</h5>
-                                            <h3 class="mt-3 mb-3" id="revenue-amount">Ksh 0</h3>
-                                            <p class="mb-0 text-muted" id="revenue-growth">
-                                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
-                                                <span class="text-nowrap">Since last month</span>
-                                            </p>
-                                        </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </div> <!-- end col-->
-                            
-                                <div class="col-sm-6">
-                                    <div class="card widget-flat" id="growth-card">
-                                        <div class="card-body">
-                                            <div class="float-end">
-                                                <i class="mdi mdi-pulse widget-icon"></i>
-                                            </div>
-                                            <h5 class="text-muted fw-normal mt-0" title="Growth">Growth</h5>
-                                            <h3 class="mt-3 mb-3" id="growth-percentage">+ 30.56%</h3>
-                                            <p class="mb-0 text-muted" id="growth-indicator">
-                                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.87%</span>
-                                                <span class="text-nowrap">Since last month</span>
-                                            </p>
-                                        </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </div> <!-- end col-->
-                            </div> <!-- end row -->
-                            
-
-                        </div> <!-- end col -->
-
-                        <div class="col-xl-7 col-lg-6">
-                            <div class="card card-h-100">
-                                <div class="d-flex card-header justify-content-between align-items-center">
-                                    <h4 class="header-title">Sells</h4>
-                                    
-                                </div>
-                                <div class="card-body pt-0">
-                                    <div dir="ltr">
-                                        <div id="high-performing-product" class="apex-charts"
-                                            data-colors="#0acf97,#91a6bd40"></div>
-                                    </div>
-
-                                </div> <!-- end card-body-->
-                            </div> <!-- end card-->
-
-                        </div> <!-- end col -->
-                    </div>
+                      <div class="col-xl-5 col-lg-6">
+                          <div class="row">
+                              <div class="col-sm-6">
+                                  <div class="card widget-flat shadow-sm rounded-lg border-0" id="customer-card">
+                                      <div class="card-body">
+                                          <div class="float-end">
+                                              <i class="mdi mdi-account-multiple widget-icon" style="font-size: 1.8rem;"></i>
+                                          </div>
+                                          <h6 class="text-muted fw-normal mt-0" style="font-size: 0.95rem;" title="Number of Customers">Customers</h6>
+                                          <h4 class="mt-2 mb-2" id="customer-count" style="font-size: 1.5rem;">0</h4>
+                                          <p class="mb-0 text-muted" id="customer-growth" style="font-size: 0.85rem;">
+                                              <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
+                                              <span class="text-nowrap">Since last month</span>
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                              
+                              <div class="col-sm-6">
+                                  <div class="card widget-flat shadow-sm rounded-lg border-0" id="purchase-card">
+                                      <div class="card-body">
+                                          <div class="float-end">
+                                              <i class="mdi mdi-package-variant widget-icon" style="font-size: 1.8rem;"></i>
+                                          </div>
+                                          <h6 class="text-muted fw-normal mt-0" style="font-size: 0.95rem;" title="Number of Orders">Inventory</h6>
+                                          <h4 class="mt-2 mb-2" id="purchase-count" style="font-size: 1.5rem;">0</h4>
+                                          <p class="mb-0 text-muted" id="purchase-growth" style="font-size: 0.85rem;">
+                                              <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
+                                              <span class="text-nowrap">Since last month</span>
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                          
+                          <div class="row">
+                              <div class="col-sm-6">
+                                  <div class="card widget-flat shadow-sm rounded-lg border-0" id="revenue-card">
+                                      <div class="card-body">
+                                          <div class="float-end">
+                                              <i class="mdi mdi-currency-usd widget-icon" style="font-size: 1.8rem;"></i>
+                                          </div>
+                                          <h6 class="text-muted fw-normal mt-0" style="font-size: 0.95rem;" title="Average Revenue">Revenue</h6>
+                                          <h4 class="mt-2 mb-2" id="revenue-amount" style="font-size: 1.5rem;">Ksh 0</h4>
+                                          <p class="mb-0 text-muted" id="revenue-growth" style="font-size: 0.85rem;">
+                                              <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
+                                              <span class="text-nowrap">Since last month</span>
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                              
+                              <div class="col-sm-6">
+                                  <div class="card widget-flat shadow-sm rounded-lg border-0" id="growth-card">
+                                      <div class="card-body">
+                                          <div class="float-end">
+                                              <i class="mdi mdi-pulse widget-icon" style="font-size: 1.8rem;"></i>
+                                          </div>
+                                          <h6 class="text-muted fw-normal mt-0" style="font-size: 0.95rem;" title="Growth">Growth</h6>
+                                          <h4 class="mt-2 mb-2" id="growth-percentage" style="font-size: 1.5rem;">+ 30.56%</h4>
+                                          <p class="mb-0 text-muted" id="growth-indicator" style="font-size: 0.85rem;">
+                                              <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.87%</span>
+                                              <span class="text-nowrap">Since last month</span>
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  
+                      <div class="col-xl-7 col-lg-6">
+                          <div class="card card-h-100 shadow-sm rounded-lg border-0">
+                              <div class="d-flex card-header justify-content-between align-items-center">
+                                  <h5 class="header-title">Sales</h5>
+                              </div>
+                              <div class="card-body pt-0">
+                                  <div dir="ltr">
+                                      <div id="high-performing-product" class="apex-charts" data-colors="#0acf97,#91a6bd40"></div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  
                     <!-- end row -->
 
                     <div class="row">
                       <!-- Monthly Section -->
                       <div class="col-sm-6">
-                        <div class="card widget-flat" id="monthly-section-card">
+                        <div class="card shadow-sm rounded-lg border-0" id="monthly-section-card">
                           <div class="card-body">
-                            <h4 class="text-muted fw-normal mt-0" title="Monthly Section">Monthly Overview</h4>
-                            <div class="row">
+                            <h5 class="text-muted fw-bold mt-0 mb-3" title="Monthly Overview">Monthly Overview</h5>
+                            <div class="row text-center">
                               <!-- Monthly Profits -->
                               <div class="col-4">
-                                <i class="mdi mdi-currency-usd widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Monthly Profits">Profits</h5>
-                                <h3 id="monthly-profit-amount">Ksh 0</h3>
-                                <p class="text-muted" id="monthly-profit-growth">
-                                  <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-currency-usd widget-icon display-5 text-primary"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Monthly Profits">Profits</h6>
+                                <h5 id="monthly-profit-amount" class="my-1 text-dark">Ksh 0</h5>
+                                <p class="text-muted text-nowrap mt-3" id="monthly-profit-growth" style="font-size: 0.85rem;">
+                                  <span class="text-danger"><i class="mdi mdi-arrow-down-bold"></i> 0%</span>
                                   <span class="text-nowrap">Since last month</span>
                                 </p>
                               </div>
                     
                               <!-- Monthly Revenue -->
                               <div class="col-4">
-                                <i class="mdi mdi-chart-line widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Monthly Revenue">Revenue</h5>
-                                <h3 id="monthly-revenue-amount">Ksh 0</h3>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-chart-line widget-icon display-5 text-success"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Monthly Revenue">Revenue</h6>
+                                <h5 id="monthly-revenue-amount" class="my-1 text-dark">Ksh 0</h5>
                               </div>
                     
                               <!-- Monthly Units Sold -->
                               <div class="col-4">
-                                <i class="mdi mdi-cart widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Monthly Units Sold">Units Sold</h5>
-                                <h3 id="monthly-units-sold">0 units</h3>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-cart widget-icon display-5 text-info"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Monthly Units Sold">Units Sold</h6>
+                                <h5 id="monthly-units-sold" class="my-1 text-dark">0 units</h5>
                               </div>
                             </div>
                           </div>
@@ -808,33 +672,39 @@
                     
                       <!-- Yearly Section -->
                       <div class="col-sm-6">
-                        <div class="card widget-flat" id="yearly-section-card">
+                        <div class="card shadow-sm rounded-lg border-0" id="yearly-section-card">
                           <div class="card-body">
-                            <h4 class="text-muted fw-normal mt-0" title="Yearly Section">Yearly Overview</h4>
-                            <div class="row">
+                            <h5 class="text-muted fw-bold mt-0 mb-3" title="Yearly Overview">Yearly Overview</h5>
+                            <div class="row text-center">
                               <!-- Yearly Profits -->
                               <div class="col-4">
-                                <i class="mdi mdi-pulse widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Yearly Profits">Profits</h5>
-                                <h3 id="yearly-profit-amount">+ 30.56%</h3>
-                                <p class="text-muted" id="yearly-profit-growth">
-                                  <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.87%</span>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-pulse widget-icon display-5 text-warning"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Yearly Profits">Profits</h6>
+                                <h5 id="yearly-profit-amount" class="my-1 text-dark">Ksh 0</h5>
+                                <p class="text-muted text-nowrap mt-3" id="yearly-profit-growth" style="font-size: 0.85rem;">
+                                  <span class="text-success"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
                                   <span class="text-nowrap">Since last year</span>
                                 </p>
                               </div>
                     
                               <!-- Yearly Revenue -->
                               <div class="col-4">
-                                <i class="mdi mdi-chart-bar widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Yearly Revenue">Revenue</h5>
-                                <h3 id="yearly-revenue-amount">Ksh 0</h3>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-chart-bar widget-icon display-5 text-danger"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Yearly Revenue">Revenue</h6>
+                                <h5 id="yearly-revenue-amount" class="my-1 text-dark">Ksh 0</h5>
                               </div>
                     
                               <!-- Yearly Units Sold -->
                               <div class="col-4">
-                                <i class="mdi mdi-cart-outline widget-icon"></i>
-                                <h5 class="text-muted fw-normal mt-0" title="Yearly Units Sold">Units Sold</h5>
-                                <h3 id="yearly-units-sold">0 units</h3>
+                                <div class="icon-box mb-1">
+                                  <i class="mdi mdi-cart-outline widget-icon display-5 text-secondary"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold mt-1" title="Yearly Units Sold">Units Sold</h6>
+                                <h5 id="yearly-units-sold" class="my-1 text-dark">0 units</h5>
                               </div>
                             </div>
                           </div>
@@ -844,111 +714,99 @@
                     
                     
                     
+                    
+                    
+                    
 
                     <div class="row">
-                        <div class="col-lg-8">
-                            <div class="card">
-                                <div class="d-flex card-header justify-content-between align-items-center">
-                                    <h4 class="header-title">Weekly Revenue</h4>
-                                    
-                                </div>
-                                <div class="card-body pt-0">
-                                    <div class="chart-content-bg">
-                                        <div class="row text-center">
-                                            <div class="col-sm-6">
-                                                <p class="text-muted mb-0 mt-3">Current Week</p>
-                                                <h2 class="fw-normal mb-3">
-                                                    <small
-                                                        class="mdi mdi-checkbox-blank-circle text-warning align-middle me-1"></small>
-                                                    <span id="current-week-earning">Ksh 0</span>
-                                                </h2>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <p class="text-muted mb-0 mt-3">Previous Week</p>
-                                                <h2 class="fw-normal mb-3">
-                                                    <small
-                                                        class="mdi mdi-checkbox-blank-circle text-success align-middle me-1"></small>
-                                                    <span id="prev-week-earning">Ksh 0</span>
-                                                </h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="dash-item-overlay d-none d-md-block" dir="ltr">
-                                        <h5 id="today-earning">Today's Earning: Ksh 0</h5>
-                                        <p class="text-muted font-13 mb-3 mt-2">
-                                            Keep track of your earnings and monitor the financial progress of your business.
-                                        </p>
-
-                                        <a href="sales.html" class="btn btn-outline-warning">View Statements
-                                            <i class="mdi mdi-arrow-right ms-2"></i>
-                                           
-                                        </a>
-
-                                        
-
-                                       
-                                    </div>
-                                    <div dir="ltr">
-                                        <div id="revenue-chart" class="apex-charts mt-3" data-colors="#ffc35a,#0acf97">
-                                        </div>
-                                    </div>
-                                </div> <!-- end card-body-->
-                            </div> <!-- end card-->
-                        </div> <!-- end col-->
-
-                     
-                          <div class="col-lg-4">
-                              <div class="card">
-                                  <div class="card-body">
-                                      <h4 class="header-title mb-4">Daily sales </h4>
-                                      <div dir="ltr">
-                                          <div id="Daily-sales" class="apex-charts" data-colors="#727cf5,#0acf97,#fa5c7c"></div>
-                                      </div>
-  
-                                     
-  
-                                  </div>
-                                  <!-- end card body-->
-                              </div>
-                              <!-- end card -->
+                      <!-- Weekly Revenue Section -->
+                      <div class="col-lg-8">
+                        <div class="card shadow-sm rounded-lg border-0">
+                          <div class="d-flex card-header justify-content-between align-items-center">
+                            <h5 class="header-title">Weekly Revenue</h5> <!-- Reduced heading size -->
                           </div>
-                          <!-- end col-->
-                      
-
-
+                          <div class="card-body pt-0">
+                            <div class="chart-content-bg">
+                              <div class="row text-center">
+                                <div class="col-sm-6">
+                                  <p class="text-muted mb-0 mt-2" style="font-size: 0.875rem;">Current Week</p> <!-- Reduced font size -->
+                                  <h4 class="fw-normal mb-3"> <!-- Reduced heading size -->
+                                    <small class="mdi mdi-checkbox-blank-circle text-warning align-middle me-1"></small>
+                                    <span id="current-week-earning">Ksh 0</span>
+                                  </h4>
+                                </div>
+                                <div class="col-sm-6">
+                                  <p class="text-muted mb-0 mt-2" style="font-size: 0.875rem;">Previous Week</p> <!-- Reduced font size -->
+                                  <h4 class="fw-normal mb-3"> <!-- Reduced heading size -->
+                                    <small class="mdi mdi-checkbox-blank-circle text-success align-middle me-1"></small>
+                                    <span id="prev-week-earning">Ksh 0</span>
+                                  </h4>
+                                </div>
+                              </div>
+                            </div>
+                    
+                            <div class="dash-item-overlay d-none d-md-block" dir="ltr">
+                              <h6 id="today-earning" class="text-dark">Today's Earning: Ksh 0</h6> <!-- Reduced to h6 for smaller text -->
+                              <p class="text-muted font-13 mb-3 mt-2">
+                                Keep track of your earnings and monitor the financial progress of your business.
+                              </p>
+                              <a href="sales.html" class="btn btn-outline-warning btn-sm">View Statements <!-- Smaller button -->
+                                <i class="mdi mdi-arrow-right ms-2"></i>
+                              </a>
+                            </div>
+                    
+                            <div dir="ltr">
+                              <div id="revenue-chart" class="apex-charts mt-3" data-colors="#ffc35a,#0acf97"></div>
+                            </div>
+                          </div> <!-- end card-body-->
+                        </div> <!-- end card-->
+                      </div> <!-- end col-->
+                    
+                      <!-- Daily Sales Section -->
+                      <div class="col-lg-4">
+                        <div class="card shadow-sm rounded-lg border-0">
+                          <div class="card-body">
+                            <h5 class="header-title mb-3">Daily Sales</h5> <!-- Reduced heading size -->
+                            <div dir="ltr">
+                              <div id="Daily-sales" class="apex-charts" data-colors="#727cf5,#0acf97,#fa5c7c"></div>
+                            </div>
+                          </div> <!-- end card body-->
+                        </div> <!-- end card -->
+                      </div> <!-- end col-->
                     </div>
+                    
                     <!-- end row -->
 
                     
 
-                   <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="d-flex card-header justify-content-between align-items-center">
-
-                                <h4 class="header-title">Top Selling Products</h4>
-
-                                <div class="progress progress-md progress-div" style="min-width:50%;display:none;">
-                                    <div id="conversion-progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> </div>
-                                </div>
-
-                               
-
-                                <a href="javascript:void(0);" class="btn btn-sm btn-light export-topselling">Export <i class="mdi mdi-download ms-1"></i></a>
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <div class="card shadow-sm rounded-lg border-0">
+                          <div class="d-flex card-header justify-content-between align-items-center">
+                            <h5 class="header-title mb-0">Top Selling Products</h5> <!-- Reduced to h5 for compactness -->
+                    
+                            <!-- Progress Bar (hidden by default) -->
+                            <div class="progress progress-md progress-div" style="min-width:50%;display:none;">
+                              <div id="conversion-progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
-                            <div class="card-body pt-0">
-                                <div class="table-responsive">
-                                    <table class="table table-centered table-nowrap table-hover mb-0">
-                                        <tbody id="product-table-body">
-                                            <!-- Table rows will be appended here by jQuery -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                    
+                            <!-- Export Button -->
+                            <a href="javascript:void(0);" class="btn btn-sm btn-light export-topselling">Export <i class="mdi mdi-download ms-1"></i></a>
+                          </div>
+                    
+                          <div class="card-body pt-0">
+                            <div class="table-responsive">
+                              <table class="table table-centered table-nowrap table-hover mb-0">
+                                <tbody id="product-table-body">
+                                  <!-- Table rows will be appended here by jQuery -->
+                                </tbody>
+                              </table>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                          </div> <!-- end card-body -->
+                        </div> <!-- end card -->
+                      </div> <!-- end col -->
+                    </div> <!-- end row -->
+                    
 
                 
                   

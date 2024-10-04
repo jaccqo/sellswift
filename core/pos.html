@@ -173,12 +173,6 @@
             </a>
           </li>
 
-          <li class="d-none d-sm-inline-block">
-            <div class="nav-link" id="light-dark-mode" data-bs-toggle="tooltip" data-bs-placement="left"
-              title="Theme Mode">
-              <i class="ri-moon-line font-22"></i>
-            </div>
-          </li>
 
          
 
@@ -201,10 +195,10 @@
 
 
               <!-- item-->
-              <a href="javascript:void(0);" class="dropdown-item">
+              <!-- <a href="javascript:void(0);" class="dropdown-item">
                 <i class="mdi mdi-lifebuoy me-1"></i>
                 <span>Support</span>
-              </a>
+              </a> -->
 
               <!-- item-->
               <a href="javascript:void(0);" class="dropdown-item logout">
@@ -408,13 +402,15 @@
           <!-- Help Box -->
           <div class="help-box text-white text-center">
             <a href="javascript: void(0);" class="float-end close-btn text-white">
-              <i class="mdi mdi-close"></i>
+                <i class="mdi mdi-close"></i>
             </a>
             <img src="assets/images/svg/help-icon.svg" height="90" alt="Helper Icon Image" />
             <h5 class="mt-3">Need Assistance?</h5>
-
-            <a href="javascript: void(0);" class="btn btn-secondary btn-sm">Contact us</a>
-          </div>
+        
+            <a href="mailto:support@yourdomain.com" class="btn btn-secondary btn-sm">Contact us</a>
+        </div>
+        <!-- end Help Box -->
+        
           <!-- end Help Box -->
 
 
@@ -456,21 +452,22 @@
         
       
 
-      <div id="customer-shopping-cart" class="row"></div>
+      <div id="customer-shopping-cart" class="row "></div>
 
        
       <div class="row cart-total-widget">
+        <!-- Left Column: Most Popular Products -->
         <div class="col-sm-6">
-            <div class="card card-body ">
-                <p class="card-text organization_name">
+            <div class="card card-body shadow-sm rounded-lg border-0">
+                <p class="card-text organization_name fw-bold text-center" style="font-size: 1rem; color: #2d2d2d;">
                     RUHMTECH SYSTEMS
                 </p>
                 <!-- Most Popular Products Section -->
                 <div class="popular-products border border-secondary border-opacity-25 mb-3 mt-3 p-3 rounded">
-                    <h5>Most Popular Products</h5>
-                    <table class="table table-borderless ">
-                        <thead>
-                            <tr>
+                    <h6 class="fw-semibold text-dark" style="font-size: 0.95rem;">Most Popular Products</h6>
+                    <table class="table table-borderless text-center">
+                        <thead class="border-bottom">
+                            <tr class="text-muted" style="font-size: 0.85rem;">
                                 <th>Product</th>
                                 <th>Price</th>
                                 <th>Stock Quantity</th>
@@ -486,19 +483,22 @@
             <!-- end card-->
         </div>
     
+        <!-- Right Column: Total Items and Checkout -->
         <div class="col-sm-6">
-            <div class="card card-body">
-                <h5 class="card-title">Total Items</h5>
-                <p class="card-text">
+            <div class="card card-body shadow-sm rounded-lg border-0">
+                <h6 class="card-title text-dark fw-semibold" style="font-size: 1rem;">Total Items</h6>
+                <p class="card-text text-muted" style="font-size: 0.85rem;">
                     Total quantity of items in the transaction.
                 </p>
-                <p class="card-text"><strong>Total Items:</strong> <span id="total-items">0</span></p>
-    
-                <p class="card-text totalAmount" data-total-amount="0">
-                    <strong>Total Price:</strong> <span id="total-amount">0</span>
+                <p class="card-text mb-2" style="font-size: 0.9rem;">
+                    <strong>Total Items:</strong> <span id="total-items" class="fw-bold">0</span>
                 </p>
     
-                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                <p class="card-text totalAmount mb-4" style="font-size: 0.9rem;" data-total-amount="0">
+                    <strong>Total Price:</strong> <span id="total-amount" class="fw-bold">0</span>
+                </p>
+    
+                <button type="button" class="btn btn-warning btn-lg w-100" style="font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#checkoutModal">
                     Checkout
                 </button>
             </div>
@@ -507,81 +507,86 @@
         <!-- end col-->
     </div>
     
+    
+    
       <!-- Checkout Modal -->
       <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content shadow-lg rounded-3 border-0">
+                <!-- Modal Header -->
                 <div class="modal-header bg-warning">
-                    <h5 class="modal-title text-white" id="checkoutModalLabel">
+                    <h5 class="modal-title text-white fw-semibold" id="checkoutModalLabel">
                         Complete Checkout
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+    
+                <!-- Modal Body -->
+                <div class="modal-body px-4 py-3">
                     <!-- Payment Method Selection -->
-                    <p class="fw-bold mb-3">Select payment method:</p>
-                    <div id="paymentMethodSelection" class="row g-2 mb-4">
-                        <div class="col-sm-6 col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment" value="cash" />
-                                <label class="form-check-label" for="cashPayment">
-                                    <i class="fas fa-money-bill-wave fa-xs"></i> Cash
+                    <p class="fw-bold mb-3" style="font-size: 1rem;">Select payment method:</p>
+                    <div id="paymentMethodSelection" class="row g-3 mb-4 text-center">
+                        <div class="col-6 col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment" value="cash">
+                                <label class="form-check-label text-muted" for="cashPayment">
+                                    <i class="fas fa-money-bill-wave text-success"></i> Cash
                                 </label>
                             </div>
                         </div>
-                        <div class="col-sm-6 col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="mpesaPayment" value="mpesa" />
-                                <label class="form-check-label" for="mpesaPayment">
-                                    <i class="fas fa-mobile-alt fa-xs text-success"></i> Mpesa
+                        <div class="col-6 col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="mpesaPayment" value="mpesa">
+                                <label class="form-check-label text-muted" for="mpesaPayment">
+                                    <i class="fas fa-mobile-alt text-primary"></i> Mpesa
                                 </label>
                             </div>
                         </div>
-                        <div class="col-sm-6 col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card" />
-                                <label class="form-check-label" for="cardPayment">
-                                    <i class="fas fa-credit-card fa-xs text-warning"></i> Card
+                        <div class="col-6 col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card">
+                                <label class="form-check-label text-muted" for="cardPayment">
+                                    <i class="fas fa-credit-card text-warning"></i> Card
                                 </label>
                             </div>
                         </div>
-                        <div class="col-sm-6 col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="paypalPayment" value="paypal" />
-                                <label class="form-check-label" for="paypalPayment">
-                                    <i class="fab fa-paypal fa-xs text-info"></i> PayPal
+                        <div class="col-6 col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="paypalPayment" value="paypal">
+                                <label class="form-check-label text-muted" for="paypalPayment">
+                                    <i class="fab fa-paypal text-info"></i> PayPal
                                 </label>
                             </div>
                         </div>
                     </div>
     
-                    <!-- Amount Paid for Cash Payment -->
+                    <!-- Cash Payment Amount -->
                     <div class="mb-3 d-none" id="cashAmountDiv">
                         <label for="cashAmount" class="form-label">Cash Amount Paid:</label>
-                        <input type="text" class="form-control" id="cashAmount" placeholder="Amount paid" />
+                        <input type="text" class="form-control" id="cashAmount" placeholder="Amount paid">
                     </div>
     
                     <!-- Purchase Summary -->
-                    <div class="card mt-4">
+                    <div class="card mt-4 border-light shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">Purchase Summary</h5>
+                            <h5 class="card-title fw-semibold">Purchase Summary</h5>
                             <div class="table-responsive">
                                 <table class="table table-sm table-borderless">
                                     <tbody>
                                         <tr>
-                                            <td class="text-start">Total Items:</td>
-                                            <td class="text-end modaltotalitems">0</td>
+                                            <td class="text-start text-muted">Total Items:</td>
+                                            <td class="text-end modaltotalitems fw-semibold">0</td>
                                         </tr>
                                         <tr>
-                                            <td class="text-start">Amount Paid:</td>
-                                            <td class="text-end" id="totalpaidmodal" data-total-paidmodal="0">0</td>
+                                            <td class="text-start text-muted">Amount Paid:</td>
+                                            <td class="text-end fw-semibold" id="totalpaidmodal" data-total-paidmodal="0">0</td>
                                         </tr>
                                         <tr>
-                                            <td class="text-start">Change Due:</td>
-                                            <td class="text-end" id="changedue" data-total-changedue="0">0</td>
+                                            <td class="text-start text-muted">Change Due:</td>
+                                            <td class="text-end fw-semibold" id="changedue" data-total-changedue="0">0</td>
                                         </tr>
                                         <tr>
-                                            <td class="text-start">Purchases Subtotal:</td>
+                                            <td class="text-start text-muted">Purchases Subtotal:</td>
                                             <td class="text-end fw-semibold totalAmount modaltotalamount" data-total-amount="0">0</td>
                                         </tr>
                                     </tbody>
@@ -591,25 +596,27 @@
                     </div>
                     <!-- End Purchase Summary -->
                 </div>
+    
+                <!-- Modal Footer -->
                 <div class="modal-footer d-flex justify-content-between align-items-center">
-                  <button type="button" class="btn btn-primary">
-                      <i class="fas fa-cash-register fa-xs"></i> Open Cash Register
-                  </button>
-                  <button type="button" class="btn btn-primary">
-                      <i class="fas fa-receipt fa-xs"></i> Print Receipt
-                  </button>
-                  <button type="button" class="btn" id="payLater" style="background-color: #f7b267; color: #fff;">
-                      <i class="fas fa-clock fa-xs"></i> Pay Later
-                  </button>
-                  <button type="button" class="btn" id="completeCheckout" style="background-color: #36eba3; color: #fff;">
-                      <i class="fas fa-check-circle fa-xs"></i> Complete Checkout
-                  </button>
-              </div>
-              
-              
+                    <button type="button" class="btn btn-outline-primary">
+                        <i class="fas fa-cash-register"></i> Open Cash Register
+                    </button>
+                    <button type="button" class="btn btn-outline-primary">
+                        <i class="fas fa-receipt"></i> Print Receipt
+                    </button>
+                    <button type="button" class="btn btn-warning" id="payLater">
+                        <i class="fas fa-clock"></i> Pay Later
+                    </button>
+                    <button type="button" class="btn btn-success" id="completeCheckout">
+                        <i class="fas fa-check-circle"></i> Complete Checkout
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+    
+
     
     
 
