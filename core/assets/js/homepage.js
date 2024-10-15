@@ -145,7 +145,7 @@ $(document).ready( function() {
                 if(revenueData){
                     $("#current-week-earning").text(`ksh ${revenueData.current_revenue.toLocaleString()}`)
                     $("#prev-week-earning").text(`ksh ${revenueData.prev_revenue.toLocaleString()}`)
-                    $("#today-earning").text(`Today's Earning: Ksh ${revenueData.today_earnings.toLocaleString()}`)
+                    $("#today-earning").text(`Today's Revenue: Ksh ${revenueData.today_earnings.toLocaleString()}`)
                 }
 
 

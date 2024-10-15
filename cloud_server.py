@@ -1093,13 +1093,16 @@ def calculate_revenue_data(sales_collection):
     current_start, current_end = get_week_range(0)
     prev_start, prev_end = get_week_range(1)
 
+    # Filter to only include sales with payment_status as 'paid' or 'completed'
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+
     # Current week data
-    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+    current_sales = list(sales_collection.find({**sales_filter,"timestamp": {"$gte": current_start, "$lt": current_end}}))
 
     current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
 
     # Previous week data
-    prev_sales = list(sales_collection.find({"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
+    prev_sales = list(sales_collection.find({**sales_filter,"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
     prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
 
     # Extracting data for the current and previous weeks by day
@@ -1120,7 +1123,7 @@ def calculate_revenue_data(sales_collection):
     # Calculate today's earnings
     today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = today_start + timedelta(days=1)
-    today_sales = list(sales_collection.find({"timestamp": {"$gte": today_start, "$lt": today_end}}))
+    today_sales = list(sales_collection.find({**sales_filter,"timestamp": {"$gte": today_start, "$lt": today_end}}))
     today_earnings = sum(sale['purchase_amount'] for sale in today_sales)
 
     return {
@@ -1146,10 +1149,14 @@ def calculate_high_performing_data(sales_collection):
     now = datetime.datetime.now()
     year = now.year
     actual_data = []
+
+     # Filter to only include sales with payment_status as 'paid' or 'completed'
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+
     
     for month in range(1, 13):
         start_date, end_date = get_month_range(year, month)
-        monthly_sales = list(sales_collection.find({"timestamp": {"$gte": start_date, "$lt": end_date}}))
+        monthly_sales = list(sales_collection.find({**sales_filter,"timestamp": {"$gte": start_date, "$lt": end_date}}))
         monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
         actual_data.append(monthly_revenue)
 
@@ -1181,6 +1188,9 @@ def get_dashboard_data():
     # Inventory count for the previous month
     prev_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": prev_start, "$lt": prev_end}})
 
+    # Filter to only include sales with payment_status as 'paid' or 'completed'
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+
     # Calculate high-performing data
     high_performing_data = calculate_high_performing_data(sales_collection)
 
@@ -1189,12 +1199,18 @@ def get_dashboard_data():
 
     # Current month data
     current_customers_count = customers_collection.count_documents({"timestamp": {"$gte": current_start, "$lt": current_end}})
-    current_sales = list(sales_collection.find({"timestamp": {"$gte": current_start, "$lt": current_end}}))
+    current_sales = list(sales_collection.find({
+        **sales_filter,
+        "timestamp": {"$gte": current_start, "$lt": current_end}
+    }))
     current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
 
     # Previous month data
     prev_customers_count = customers_collection.count_documents({"timestamp": {"$gte": prev_start, "$lt": prev_end}})
-    prev_sales = list(sales_collection.find({"timestamp": {"$gte": prev_start, "$lt": prev_end}}))
+    prev_sales = list(sales_collection.find({
+        **sales_filter,
+        "timestamp": {"$gte": prev_start, "$lt": prev_end}
+    }))
     prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
 
     # Calculations
@@ -1222,6 +1238,7 @@ def get_dashboard_data():
     }
     
     return jsonify(data)
+
 
 
 @app.route('/api/inventory', methods=['GET'])
@@ -1276,8 +1293,8 @@ def checkout():
     purchase_amount = data.get('purchase_amount')
     payment_method = data.get('payment_method')
     change_due = data.get('change_due', 0)
-    customer_cart_barcode = data.get('customer_cart_barcode')  # Extract the customerCartBarcode data
-    sales_person=data.get('sales_person')
+    customer_cart_barcode = data.get('customer_cart_barcode')
+    sales_person = data.get('sales_person')
 
     if not dbname or not purchase_amount or not payment_method or not customer_cart_barcode:
         return jsonify({"success": False, "error": "Missing required parameters"}), 400
@@ -1285,71 +1302,67 @@ def checkout():
     db = client[dbname]
     sales_collection = db['sales']
     customers_collection = db['customers']
-    inventory_collection = db['inventory']  # Assuming you have an inventory collection
+    inventory_collection = db['inventory']
+
+    # Handle "Pay Later" status
+    if payment_method == "pay_later":
+        sale_status = "pending_payment"
+        change_due = 0  # No change_due for pay_later
+    else:
+        sale_status = "completed"
 
     # Insert new customer document and get the generated customer ID
     customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.now()}).inserted_id
 
-     # Ensure each item in customer_cart_barcode has barcodes
+    # Ensure each item in customer_cart_barcode has barcodes
     for item_id, barcodes in customer_cart_barcode.items():
-
         if not barcodes or "undefined" in barcodes:
             logging.warning("No barcodes detected")
             item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'barcodes': 1})
             if item and 'barcodes' in item and item['barcodes']:
                 quantity_needed = len(barcodes) if barcodes else 1
                 available_barcodes = item['barcodes']
-                # Sample the required number of barcodes
                 customer_cart_barcode[item_id] = random.sample(available_barcodes, min(quantity_needed, len(available_barcodes)))
-
-
 
     # Insert the sale document
     sale = {
-        "item_ids":list(customer_cart_barcode.keys()),
+        "item_ids": list(customer_cart_barcode.keys()),
         "customer_id": customer_id,
         "purchase_amount": purchase_amount,
         "payment_method": payment_method,
         "change_due": change_due,
         "timestamp": datetime.datetime.now(),
-        "items": customer_cart_barcode , # Save the items and barcodes sold
-        "sales_person":sales_person,
-        "reference_number":generate_reference_number()
+        "items": customer_cart_barcode,
+        "sales_person": sales_person,
+        "payment_status": sale_status,
+        "reference_number": generate_reference_number()
     }
 
     sales_collection.insert_one(sale)
-    
 
-    # Update the inventory
-    for item_id, barcodes in customer_cart_barcode.items():
-        for barcode in barcodes:
-            # Fetch the current document
-            item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-            
-            if item and "barcodes" in item and barcode in item["barcodes"]:
-                # Remove the barcode from the barcodes list
-                updated_barcodes = item["barcodes"]
-                updated_barcodes.remove(barcode)
-                
-                # Update the document with the new barcodes array
-                result = inventory_collection.update_one(
-                    {"_id": ObjectId(item_id)},
-                    {"$set": {"barcodes": updated_barcodes}}
-                )
-                
-                if result.modified_count > 0:
-                    # Update stock and sales count
-                    inventory_collection.update_one(
+    # Update the inventory for completed sales
+    if payment_method != "pay_later":
+        for item_id, barcodes in customer_cart_barcode.items():
+            for barcode in barcodes:
+                item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                if item and "barcodes" in item and barcode in item["barcodes"]:
+                    updated_barcodes = item["barcodes"]
+                    updated_barcodes.remove(barcode)
+                    result = inventory_collection.update_one(
                         {"_id": ObjectId(item_id)},
-                        {"$inc": {"stock": -1, "sales_count": 1}}
+                        {"$set": {"barcodes": updated_barcodes}}
                     )
-                    
-                    updated_item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-                    if not updated_item["barcodes"]:
-                        # Remove the barcode from barcodes_date collection
-                        db.barcodes_date.delete_one({"barcode": barcode})
+                    if result.modified_count > 0:
+                        inventory_collection.update_one(
+                            {"_id": ObjectId(item_id)},
+                            {"$inc": {"stock": -1, "sales_count": 1}}
+                        )
+                        updated_item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                        if not updated_item["barcodes"]:
+                            db.barcodes_date.delete_one({"barcode": barcode})
 
     return jsonify({"success": True, "customer_id": str(customer_id)})
+
 
 
 @app.route('/api/sales-data', methods=['GET'])
@@ -1361,39 +1374,42 @@ def get_sales_data():
     db = client[dbname]
     sales_collection = db['sales']
     inventory_collection = db['inventory']
-    
 
-    sales_data = list(sales_collection.find())
+    # Filter to only include sales with payment_status as 'paid' or 'completed'
+    sales_data = list(sales_collection.find({'payment_status': {'$in': ['paid', 'completed','pending_payment','Paid', 'Completed','Pending_payment']}}))
+
     for sale in sales_data:
         sale['_id'] = str(sale['_id'])
         sale['customer_id'] = str(sale['customer_id'])
+
         # Add item names and categories
         item_details = []
-
         try:
-            checkout_quantity=0
+            checkout_quantity = 0
 
             for item_id in sale['item_ids']:
                 item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'name': 1, 'category': 1})
                 if item:
-                
                     item['_id'] = str(item['_id'])
+
                     # Calculate the quantity of each item
                     item_quantity = len(sale['items'][item_id])
-                    
-                    checkout_quantity+=item_quantity
+                    checkout_quantity += item_quantity
 
                     item_details.append(item)
 
         except Exception as e:
-            logging.error(f"Failed to get {e} for {sale.get('_id')}")
+            logging.error(f"Failed to get {e} for sale ID {sale.get('_id')}")
         
-        sale["quantity"]=checkout_quantity
+        if sale["payment_status"]=="pending_payment":
+            sale["payment_status"]="pending".capitalize()
+        
+        sale["quantity"] = checkout_quantity
         sale['item_details'] = item_details
-        sale['store_id']=dbname
-        sale['payment_status']="paid"
+        sale['store_id'] = dbname
 
     return jsonify(sales_data)
+
 
 @app.route('/api-dailySales', methods=['POST'])
 def get_daily_sales():
@@ -1408,6 +1424,9 @@ def get_daily_sales():
         sales_collection = db['sales']
         inventory_collection = db['inventory']
 
+        # Filter to only include sales with payment_status as 'paid' or 'completed'
+        filtered_sales = list(sales_collection.find({'payment_status': {'$in': ['paid', 'completed']}}))
+
         # Logging the action
         logging.info(f"Calculating daily sales for user: {user_id} on database: {db_name}")
 
@@ -1415,8 +1434,8 @@ def get_daily_sales():
         today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start + timedelta(days=1)
 
-        # Fetch today's sales from the 'sales' collection
-        today_sales = list(sales_collection.find({"timestamp": {"$gte": today_start, "$lt": today_end}}))
+        # Fetch today's sales from the filtered sales
+        today_sales = [sale for sale in filtered_sales if today_start <= sale['timestamp'] < today_end]
 
         # Initialize sales and profits
         daily_sales = 0
@@ -1428,8 +1447,8 @@ def get_daily_sales():
             for item_id in sale['items']:  # Loop through each item_id in the sale
                 # Fetch the related inventory item by item ID
                 item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-                
-                if item and 'markupPercentage' in item:
+
+                if item and item.get('markupPercentage') is not None:
                     markup_percentage = float(item['markupPercentage']) / 100  # Convert percentage to decimal
                 else:
                     markup_percentage = 0.25  # Default to 25% if no markupPercentage is provided
@@ -1437,7 +1456,7 @@ def get_daily_sales():
                 # Assuming 'price' and 'quantity' are stored inside the 'items' field
                 quantity_sold = len(sale['items'][item_id]) if isinstance(sale['items'][item_id], list) else 1
                 price_per_item = sale['purchase_amount'] / quantity_sold  # Assuming equal distribution of price
-                
+
                 sale_profit += price_per_item * quantity_sold * markup_percentage
             return sale_profit
 
@@ -1450,7 +1469,7 @@ def get_daily_sales():
         yesterday_start = today_start - timedelta(days=1)
         yesterday_end = today_start
 
-        yesterday_sales = list(sales_collection.find({"timestamp": {"$gte": yesterday_start, "$lt": yesterday_end}}))
+        yesterday_sales = [sale for sale in filtered_sales if yesterday_start <= sale['timestamp'] < yesterday_end]
         yesterday_sales_total = sum(sale['purchase_amount'] for sale in yesterday_sales)
 
         growth = 0
@@ -1470,9 +1489,6 @@ def get_daily_sales():
     except Exception as e:
         logging.error(f"Error calculating daily sales: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
-
-
 
 
 
@@ -1506,7 +1522,7 @@ def get_monthly_yearly_profits():
             for item_id in sale['items']:  # Loop through each item_id
                 # Find the related inventory item by item ID
                 item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-                
+
                 if item and 'markupPercentage' in item:
                     markup_percentage = float(item['markupPercentage']) / 100  # Convert percentage to decimal
                 else:
@@ -1515,18 +1531,27 @@ def get_monthly_yearly_profits():
                 # Assuming 'price' and 'quantity' are stored inside the 'items' field
                 quantity_sold = len(sale['items'][item_id]) if isinstance(sale['items'][item_id], list) else 1
                 price_per_item = sale['purchase_amount'] / quantity_sold  # Assuming equal distribution of price
-                
+
                 sale_profit += price_per_item * quantity_sold * markup_percentage
             return sale_profit
 
+        # Filter to only include sales with payment_status as 'paid' or 'completed'
+        sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+
         # Get the sales for the current month
-        monthly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_month}}))
+        monthly_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": first_day_of_month}
+        }))
         monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
         monthly_profits = sum(calculate_profit_for_sale(sale) for sale in monthly_sales)
         monthly_units_sold = sum(len(sale['items']) for sale in monthly_sales)  # Counting the number of items
 
         # Get the sales for the current year
-        yearly_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_year}}))
+        yearly_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": first_day_of_year}
+        }))
         yearly_revenue = sum(sale['purchase_amount'] for sale in yearly_sales)
         yearly_profits = sum(calculate_profit_for_sale(sale) for sale in yearly_sales)
         yearly_units_sold = sum(len(sale['items']) for sale in yearly_sales)  # Counting the number of items
@@ -1534,31 +1559,36 @@ def get_monthly_yearly_profits():
         # Get the sales for the previous month (for growth comparison)
         previous_month_end = first_day_of_month - timedelta(seconds=1)
         first_day_of_previous_month = previous_month_end.replace(day=1)
-        previous_month_sales = list(sales_collection.find({"timestamp": {"$gte": first_day_of_previous_month, "$lt": first_day_of_month}}))
+        previous_month_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": first_day_of_previous_month, "$lt": first_day_of_month}
+        }))
         previous_month_profits = sum(calculate_profit_for_sale(sale) for sale in previous_month_sales)
 
         # Get the sales for the previous year (for growth comparison)
-        previous_year_sales = list(sales_collection.find({"timestamp": {"$gte": now.replace(year=now.year-1, month=1, day=1), "$lt": first_day_of_year}}))
+        previous_year_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": now.replace(year=now.year - 1, month=1, day=1), "$lt": first_day_of_year}
+        }))
         previous_year_profits = sum(calculate_profit_for_sale(sale) for sale in previous_year_sales)
 
-        # Calculate growth rates
-        monthly_growth = ((monthly_profits - previous_month_profits) / previous_month_profits * 100) if previous_month_profits else 0
-        yearly_growth = ((yearly_profits - previous_year_profits) / previous_year_profits * 100) if previous_year_profits else 0
+        # Construct response
+        data = {
+            "monthly_revenue": monthly_revenue,
+            "monthly_profits": monthly_profits,
+            "monthly_units_sold": monthly_units_sold,
+            "yearly_revenue": yearly_revenue,
+            "yearly_profits": yearly_profits,
+            "yearly_units_sold": yearly_units_sold,
+            "previous_month_profits": previous_month_profits,
+            "previous_year_profits": previous_year_profits
+        }
 
-        # Return the data as JSON
-        return jsonify({
-            'monthly_profits': round(monthly_profits, 2),
-            'monthly_revenue': round(monthly_revenue, 2),
-            'monthly_units_sold': monthly_units_sold,
-            'monthly_growth': round(monthly_growth, 2),
-            'yearly_profits': round(yearly_profits, 2),
-            'yearly_revenue': round(yearly_revenue, 2),
-            'yearly_units_sold': yearly_units_sold,
-            'yearly_growth': round(yearly_growth, 2)
-        }), 200
+        return jsonify(data)
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
 
 
 
@@ -1591,6 +1621,170 @@ def get_notifications():
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+@app.route('/api/sale/', methods=['GET'])
+def get_sale():
+    # Get the database name from query parameters
+    dbname = request.args.get('dbname')
+    sale_id = request.args.get('sale_id')
+
+    # Validate the presence of dbname
+    if not dbname:
+        return jsonify({"error": "Missing database name"}), 400
+
+    # Convert sale_id to ObjectId
+    try:
+        sale_id = ObjectId(sale_id)
+    except Exception as e:
+        return jsonify({"error": "Invalid sale ID"}), 400
+
+    # Connect to the organization-specific database
+    db = client[dbname]
+
+    # Fetch the sale from the MongoDB sales collection
+    sale = db.sales.find_one({"_id": sale_id})
+
+    if not sale:
+        return jsonify({"error": "Sale not found"}), 404
+    
+    # Extract item details (example: retrieving item IDs and corresponding quantities)
+    items = []
+
+    inventory_collection = db['inventory']
+
+    for item_id in sale['item_ids']:
+        item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'name': 1, 'category': 1})
+        if item:
+            item['_id'] = str(item['_id'])
+            items.append(item)
+
+    # Prepare the sale data for JSON serialization
+    if sale.get("payment_status")=="pending_payment":
+
+        payment_status="pending".capitalize()
+
+    else:
+        payment_status=str(sale.get("payment_status","")).capitalize()
+
+
+
+    sale_data = {
+        "_id": str(sale["_id"]),
+        "customer_id": str(sale.get("customer_id", "")),
+        "purchase_amount": sale.get("purchase_amount", 0),
+        "payment_method": sale.get("payment_method", ""),
+        "payment_status":payment_status,
+        "change_due": sale.get("change_due", 0),
+        "timestamp": sale.get("timestamp", "").strftime("%Y-%m-%d %H:%M:%S") if isinstance(sale.get("timestamp"), datetime.datetime) else sale.get("timestamp", ""),
+        "sales_person": sale.get("sales_person", ""),
+        "reference_number": sale.get("reference_number", ""),
+        "items": items,  # Return items in a list format with quantities
+        "tax": sale.get("tax", 0),  # Include tax if available
+        "total_discount": sale.get("total_discount", 0),  # Include discount if available
+        "last_modified": sale.get("last_modified", 0),
+    }
+
+    return jsonify(sale_data), 200
+
+
+@app.route('/api/sale/', methods=['DELETE'])
+def delete_sale():
+    dbname = request.args.get('dbname')
+    sale_id = request.args.get('sale_id')
+
+    if not dbname or not sale_id:
+        return jsonify({"error": "Missing database name or sale ID"}), 400
+
+    # Convert sale_id to ObjectId
+    try:
+        sale_id = ObjectId(sale_id)
+    except Exception as e:
+        return jsonify({"error": "Invalid sale ID"}), 400
+
+    # Connect to the organization-specific database
+    db = client[dbname]
+
+    # Delete the sale from the MongoDB sales collection
+    result = db.sales.delete_one({"_id": sale_id})
+
+    if result.deleted_count == 0:
+        return jsonify({"error": "Sale not found"}), 404
+
+    return jsonify({"message": "Sale deleted successfully"}), 200
+
+
+def parse_timestamp(timestamp_str):
+    # Check the length of the timestamp string to decide the format
+    if len(timestamp_str) == 16:  # Length without seconds, like '2024-10-14T21:23'
+        return datetime.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M')
+    elif len(timestamp_str) == 19:  # Length with seconds, like '2024-10-14T21:23:00'
+        return datetime.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S')
+    else:
+        raise ValueError("Invalid timestamp format")
+
+@app.route('/api/sale/', methods=['POST'])
+def update_sale():
+    try:
+        # Get sale ID and organization (dbname) from the query parameters
+        sale_id = request.args.get('sale_id')
+   
+        db_name = request.args.get('dbname')
+        
+        if not sale_id or not db_name:
+            return jsonify({"error": "Missing sale_id or dbname parameter"}), 400
+        
+        # Get the request data (JSON)
+        data = request.get_json()
+        
+        # Use db_name to fetch the correct MongoDB database
+        db = client[db_name]  # Replace with your MongoDB connection code
+        sales_collection = db['sales']
+
+        # Find the sale by sale_id
+        sale = sales_collection.find_one({"_id": ObjectId(sale_id)})
+        if not sale:
+            return jsonify({"error": "Sale not found"}), 404
+        
+        # Prepare the update query with only the fields that have values
+        update_fields = {}
+        if 'reference_number' in data and data['reference_number']:
+            update_fields['reference_number'] = data['reference_number']
+        if 'sales_person' in data and data['sales_person']:
+            update_fields['sales_person'] = data['sales_person']
+        
+        if 'payment_status' in data and data['payment_status']:
+            update_fields['payment_status'] = data['payment_status']
+        if 'payment_method' in data and data['payment_method']:
+            update_fields['payment_method'] = data['payment_method']
+        if 'purchase_amount' in data and data['purchase_amount']:
+            update_fields['purchase_amount'] = float(data['purchase_amount'])
+        if 'tax' in data and data['tax']:
+            update_fields['tax'] = data['tax']
+        if 'total_discount' in data and data['total_discount']:
+            update_fields['total_discount'] = data['total_discount']
+        if 'timestamp' in data and data['timestamp']:
+            update_fields['timestamp'] = parse_timestamp(data['timestamp'])
+        if 'last_modified' in data and data['last_modified']:
+            update_fields['last_modified'] = datetime.now()
+        if 'sent_date' in data and data['sent_date']:
+            update_fields['sent_date'] = parse_timestamp(data['sent_date'])
+
+        # If no fields to update, return an error
+        if not update_fields:
+            return jsonify({"error": "No fields to update"}), 400
+        
+        # Update the sale document in the database
+        sales_collection.update_one(
+            {"_id": ObjectId(sale_id)},
+            {"$set": update_fields}
+        )
+        
+        return jsonify({"message": "Sale updated successfully"}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
     

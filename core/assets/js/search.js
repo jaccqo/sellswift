@@ -335,6 +335,18 @@ $(document).ready(function() {
         });
     }
 
+
+        // Function for Pay Later Button
+    function payLater() {
+        $("#payLater").on("click", function() {
+            var totalAmount = parseFloat($(".totalAmount").data("total-amount"));
+
+            // Pay Later assumes that payment will be deferred, so no need for payment method
+            finish_checkout(totalAmount, "pay_later");
+        });
+    }
+
+    // Function to complete the checkout or pay later
     const finish_checkout = (totalAmount, paymentMethod, change_due = 0) => {
         var checkoutData = {
             purchase_amount: totalAmount,
@@ -369,16 +381,18 @@ $(document).ready(function() {
             } else {
                 $("#checkout-status").removeClass("bg-success").addClass("bg-danger");
                 $("#success-checkout-alert-modal").modal("toggle");
-                $("#checkout-title").text(`Checkout failed  ${data.error}`);
+                $("#checkout-title").text(`Checkout failed: ${data.error}`);
             }
         })
         .catch(error => {
             console.error('Error:', error);
             $("#checkout-status").removeClass("bg-success").addClass("bg-danger");
             $("#success-checkout-alert-modal").modal("toggle");
-            $("#checkout-title").text(`"An error occurred during checkout."`);
+            $("#checkout-title").text(`An error occurred during checkout.`);
         });
     };
+
+
 
     const popular_products = () => {
         $.ajax({
@@ -422,4 +436,5 @@ $(document).ready(function() {
     // Call the function to populate the table
     popular_products();
     completeCheckout();
+    payLater();
 });
