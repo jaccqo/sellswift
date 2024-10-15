@@ -1094,7 +1094,7 @@ def calculate_revenue_data(sales_collection):
     prev_start, prev_end = get_week_range(1)
 
     # Filter to only include sales with payment_status as 'paid' or 'completed'
-    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
 
     # Current week data
     current_sales = list(sales_collection.find({**sales_filter,"timestamp": {"$gte": current_start, "$lt": current_end}}))
@@ -1151,7 +1151,7 @@ def calculate_high_performing_data(sales_collection):
     actual_data = []
 
      # Filter to only include sales with payment_status as 'paid' or 'completed'
-    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
 
     
     for month in range(1, 13):
@@ -1189,7 +1189,7 @@ def get_dashboard_data():
     prev_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": prev_start, "$lt": prev_end}})
 
     # Filter to only include sales with payment_status as 'paid' or 'completed'
-    sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+    sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
 
     # Calculate high-performing data
     high_performing_data = calculate_high_performing_data(sales_collection)
@@ -1425,7 +1425,7 @@ def get_daily_sales():
         inventory_collection = db['inventory']
 
         # Filter to only include sales with payment_status as 'paid' or 'completed'
-        filtered_sales = list(sales_collection.find({'payment_status': {'$in': ['paid', 'completed']}}))
+        filtered_sales = list(sales_collection.find({'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}))
 
         # Logging the action
         logging.info(f"Calculating daily sales for user: {user_id} on database: {db_name}")
@@ -1536,7 +1536,7 @@ def get_monthly_yearly_profits():
             return sale_profit
 
         # Filter to only include sales with payment_status as 'paid' or 'completed'
-        sales_filter = {'payment_status': {'$in': ['paid', 'completed']}}
+        sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
 
         # Get the sales for the current month
         monthly_sales = list(sales_collection.find({
@@ -1766,14 +1766,17 @@ def update_sale():
             update_fields['total_discount'] = data['total_discount']
         if 'timestamp' in data and data['timestamp']:
             update_fields['timestamp'] = parse_timestamp(data['timestamp'])
-        if 'last_modified' in data and data['last_modified']:
-            update_fields['last_modified'] = datetime.now()
+        
+            
         if 'sent_date' in data and data['sent_date']:
             update_fields['sent_date'] = parse_timestamp(data['sent_date'])
 
         # If no fields to update, return an error
         if not update_fields:
             return jsonify({"error": "No fields to update"}), 400
+        
+        else:
+            update_fields['last_modified'] = datetime.now()
         
         # Update the sale document in the database
         sales_collection.update_one(
