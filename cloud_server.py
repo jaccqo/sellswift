@@ -1776,7 +1776,7 @@ def update_sale():
             return jsonify({"error": "No fields to update"}), 400
         
         else:
-            update_fields['last_modified'] = datetime.now()
+            update_fields['last_modified'] = datetime.datetime.now()
         
         # Update the sale document in the database
         sales_collection.update_one(
