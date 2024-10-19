@@ -90,68 +90,88 @@
     });
 
 
-    // Attach click event listener to the "Save" button
-    $("#save-personal-infoBtn").on("click",function() {
-        // Get the values of the input fields
-        var fullName = $("#fullname").val();
-        var bio = $("#userbio").val();
-        var user_id = user_info._id;
-        var db_name = user_info.organization;
+  
+        // Attach click event listener to the "Save" button
+        $("#save-personal-infoBtn").on("click", function() {
+          // Get the values of the input fields
+          var fullName = $("#fullname").val();
+          var bio = $("#userbio").val();
+          var mobileNumber = $("#mobileNumber").val();  // New: Get the mobile number value
+          var user_id = user_info._id;
+          var db_name = user_info.organization;
 
-        var statusSpan = $(".update-personalinfo-status");
-       
+          var statusSpan = $(".update-personalinfo-status");
 
-        // Check if both input fields are empty
-        if (fullName.trim() === "" && bio.trim() === "") {
-            // Show error message
-            statusSpan.text("Please fill out at least one field.").fadeIn().delay(2000).fadeOut();
-            return; // Exit the function
-        }
+          // Check if all input fields are empty
+          if (fullName.trim() === "" && bio.trim() === "" && mobileNumber.trim() === "") {
+              // Show error message and change badge to warning style
+              statusSpan
+                  .removeClass("badge-success-lighten text-success")
+                  .addClass("badge-warning-lighten text-warning")
+                  .text("Please fill out at least one field.")
+                  .fadeIn().delay(2000).fadeOut();
+              return; // Exit the function
+          }
 
-        statusSpan.text("Updating personal info.").fadeIn();
+          // Set updating message and change badge to info style
+          statusSpan
+              .removeClass("badge-warning-lighten text-warning")
+              .addClass("badge-info-lighten text-info")
+              .text("Updating personal info.")
+              .fadeIn();
 
-        // Create a data object to send to the server
-        var data = {
-            fullName: fullName,
-            bio: bio,
-            user_id:user_id,
-            db_name:db_name
-        };
+          // Create a data object to send to the server
+          var data = {
+              fullName: fullName,
+              bio: bio,
+              mobileNumber: mobileNumber,  // New: Add the mobile number to the data object
+              user_id: user_id,
+              db_name: db_name
+          };
 
-        // Send the data to the server using AJAX
-        $.ajax({
-            url: `${base_url}/api/updatePersonalInfo`, // Replace with your Flask route
-            method: 'POST', // Use POST method to send data
-            data: JSON.stringify(data), // Convert data object to JSON string
-            contentType: 'application/json', // Set content type header
-            success: function(response) {
-                // Handle successful response from the server
-                console.log('Data saved successfully:', response);
-                statusSpan.text(`${response.message}`).fadeIn().delay(2000).fadeOut();
-                // Optionally, show a success message to the user
-                if(fullName){
-                    $(".logged-user").text(fullName)
+          // Send the data to the server using AJAX
+          $.ajax({
+              url: `${base_url}/api/updatePersonalInfo`, // Replace with your Flask route
+              method: 'POST', // Use POST method to send data
+              data: JSON.stringify(data), // Convert data object to JSON string
+              contentType: 'application/json', // Set content type header
+              success: function(response) {
+                  // Handle successful response from the server
+                  console.log('Data saved successfully:', response);
+                  statusSpan
+                      .removeClass("badge-info-lighten text-info")
+                      .addClass("badge-success-lighten text-success")
+                      .text(`${response.message}`)
+                      .fadeIn().delay(2000).fadeOut();
 
-                }
+                  // Optionally, update the UI with the new data
+                  if (fullName) {
+                      $(".logged-user").text(fullName);
+                  }
+                  if (bio) {
+                      $(".about-me").text(bio);
+                  }
+                  if (mobileNumber) {
+                      $(".user-mobile").text(mobileNumber);  // New: Update mobile number display if applicable
+                  }
 
-                if(bio){
-
-                    $(".about-me").text(bio)
-                }
-               
-               
-
-                fullName = $("#fullname").val("");
-                bio = $("#userbio").val("");
-            },
-            error: function(xhr, status, error) {
-                // Handle error response from the server
-                console.error('Error:', error);
-                statusSpan.text(`${error.message}`).fadeIn().delay(2000).fadeOut();
-                // Optionally, show an error message to the user
-            }
+                  // Clear the input fields
+                  $("#fullname").val("");
+                  $("#userbio").val("");
+                  $("#mobileNumber").val("");  // New: Clear the mobile number field
+              },
+              error: function(xhr, status, error) {
+                  // Handle error response from the server
+                  console.error('Error:', error);
+                  statusSpan
+                      .removeClass("badge-info-lighten text-info")
+                      .addClass("badge-danger-lighten text-danger")
+                      .text(`Error: ${error}`)
+                      .fadeIn().delay(2000).fadeOut();
+              }
+          });
         });
-    });
+
 
 
   });

@@ -17,6 +17,7 @@ import logging
 import colorlog
 import base64
 import secrets
+import calendar
 
 
 # Configure colored logging
@@ -974,6 +975,7 @@ def update_personal_info():
     # Extract data from the request
     full_name = data.get('fullName')
     bio = data.get('bio')
+    mobile_number = data.get('mobileNumber')  # New: Extract mobile number
     user_id = data.get('user_id')
     db_name = data.get('db_name')
 
@@ -982,11 +984,17 @@ def update_personal_info():
     
     # Update the user's information in the database
     try:
-        # Update the user's information
+        # Update the user's bio if provided
         if bio:
             collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'bio': bio}})
+        
+        # Update the user's full name if provided
         if full_name:
             collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'fullname': full_name}})
+        
+        # Update the user's mobile number if provided
+        if mobile_number:
+            collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'mobile_number': mobile_number}})  # New: Update mobile number
 
         return jsonify({'message': 'Personal information updated successfully'}), 200
     except Exception as e:
@@ -1165,79 +1173,107 @@ def calculate_high_performing_data(sales_collection):
         "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     }
 
+# Helper function to get the first and last day of a given month
+def get_month_range(year, month):
+    first_day = datetime.datetime(year, month, 1)
+    last_day = first_day.replace(day=calendar.monthrange(year, month)[1])
+    return first_day, last_day + timedelta(days=1)
+
 @app.route('/api/dashboard-data', methods=['GET'])
 def get_dashboard_data():
-    current_start, current_end = get_month_range(datetime.datetime.now().year, datetime.datetime.now().month)
-    prev_start, prev_end = get_month_range(datetime.datetime.now().year, datetime.datetime.now().month - 1)
+    try:
+        # Get the current and previous month ranges
+        now = datetime.datetime.now()
+        current_start, current_end = get_month_range(now.year, now.month)
 
-    dbname = request.args.get('dbname')
-    if not dbname:
-        return jsonify({"error": "Missing dbname parameter"}), 400
+        # Handling month wrap for previous month
+        if now.month == 1:
+            prev_year = now.year - 1
+            prev_month = 12
+        else:
+            prev_year = now.year
+            prev_month = now.month - 1
+        
+        prev_start, prev_end = get_month_range(prev_year, prev_month)
 
-    db = client[dbname]
+        dbname = request.args.get('dbname')
+        if not dbname:
+            return jsonify({"error": "Missing dbname parameter"}), 400
+
+        db = client[dbname]
+        
+        # Collections
+        sales_collection = db['sales']
+        customers_collection = db['customers']
+        inventory_collection = db['inventory']
+
+        # Inventory counts
+        inventory_count = inventory_collection.count_documents({})
+        current_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": current_start, "$lt": current_end}})
+        prev_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": prev_start, "$lt": prev_end}})
+
+        # Sales filters for 'paid' or 'completed'
+        sales_filter = {'payment_status': {'$in': ['paid', 'completed', 'Paid', 'Completed']}}
+
+        # High-performing and revenue data (implement your own calculation functions)
+        high_performing_data = calculate_high_performing_data(sales_collection)
+        revenue_data = calculate_revenue_data(sales_collection)
+
+        # Current month data
+        current_customers_count = customers_collection.count_documents({"timestamp": {"$gte": current_start, "$lt": current_end}})
+        current_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": current_start, "$lt": current_end}
+        }))
+        current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
+
+        # Previous month data
+        prev_customers_count = customers_collection.count_documents({"timestamp": {"$gte": prev_start, "$lt": prev_end}})
+        prev_sales = list(sales_collection.find({
+            **sales_filter,
+            "timestamp": {"$gte": prev_start, "$lt": prev_end}
+        }))
+        prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
+
+
+        # Growth Calculations
+        customer_growth = ((current_customers_count - prev_customers_count) / prev_customers_count * 100) if prev_customers_count else 0
+
+        # Handle cases where previous revenue is 0
+        revenue_growth = ((current_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue > 0 else 100 if current_revenue > 0 else 0
+
+        purchase_growth = ((len(current_sales) - len(prev_sales)) / len(prev_sales) * 100) if prev_sales else 0
+        
+        inventory_growth = (
+            ((current_inventory_count - prev_inventory_count) / prev_inventory_count * 100)
+            if prev_inventory_count > 0
+            else 100 if current_inventory_count > 0
+            else 0
+        )
+
+        # Overall growth percentage
+        growth_percentage = (customer_growth + revenue_growth + purchase_growth + inventory_growth) / 4
+
+        # Construct response
+        data = {
+            "customers": current_customers_count,
+            "customer_growth": round(customer_growth, 2),
+            "revenue": current_revenue,
+            "revenue_growth": round(revenue_growth, 2),
+            "purchases": len(current_sales),
+            "inventory_count": inventory_count,
+            "inventory_growth": round(inventory_growth, 2),
+            "purchase_growth": round(purchase_growth, 2),
+            "growth_percentage": round(growth_percentage, 2),
+            "highPerformingData": high_performing_data,
+            "revenueData": revenue_data
+        }
+        
+        return jsonify(data)
     
-    sales_collection = db['sales']
-    customers_collection = db['customers']
-    inventory_collection = db['inventory']
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    # Inventory count for the current month
-    inventory_count = inventory_collection.count_documents({})
-    
-    current_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": current_start, "$lt": current_end}})
-    
-    # Inventory count for the previous month
-    prev_inventory_count = inventory_collection.count_documents({"date_created": {"$gte": prev_start, "$lt": prev_end}})
-
-    # Filter to only include sales with payment_status as 'paid' or 'completed'
-    sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
-
-    # Calculate high-performing data
-    high_performing_data = calculate_high_performing_data(sales_collection)
-
-    # Calculate revenue data for the current and previous weeks
-    revenue_data = calculate_revenue_data(sales_collection)
-
-    # Current month data
-    current_customers_count = customers_collection.count_documents({"timestamp": {"$gte": current_start, "$lt": current_end}})
-    current_sales = list(sales_collection.find({
-        **sales_filter,
-        "timestamp": {"$gte": current_start, "$lt": current_end}
-    }))
-    current_revenue = sum(sale['purchase_amount'] for sale in current_sales)
-
-    # Previous month data
-    prev_customers_count = customers_collection.count_documents({"timestamp": {"$gte": prev_start, "$lt": prev_end}})
-    prev_sales = list(sales_collection.find({
-        **sales_filter,
-        "timestamp": {"$gte": prev_start, "$lt": prev_end}
-    }))
-    prev_revenue = sum(sale['purchase_amount'] for sale in prev_sales)
-
-    # Calculations
-    customer_growth = ((current_customers_count - prev_customers_count) / prev_customers_count * 100) if prev_customers_count else 0
-    revenue_growth = ((current_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue else 0
-    purchase_growth = ((len(current_sales) - len(prev_sales)) / len(prev_sales) * 100) if prev_sales else 0
-    inventory_growth = ((current_inventory_count - prev_inventory_count) / prev_inventory_count * 100) if prev_inventory_count else 0
-
-    # Overall growth percentage
-    growth_percentage = (customer_growth + revenue_growth + purchase_growth + inventory_growth) / 4
-
-    # Construct response
-    data = {
-        "customers": current_customers_count,
-        "customer_growth": round(customer_growth, 2),
-        "revenue": current_revenue,
-        "revenue_growth": round(revenue_growth, 2),
-        "purchases": len(current_sales),
-        "inventory_count": inventory_count,
-        "inventory_growth": round(inventory_growth, 2),
-        "purchase_growth": round(purchase_growth, 2),
-        "growth_percentage": round(growth_percentage, 2),
-        "highPerformingData": high_performing_data,
-        "revenueData": revenue_data
-    }
-    
-    return jsonify(data)
 
 
 
@@ -1472,24 +1508,25 @@ def get_daily_sales():
         yesterday_sales = [sale for sale in filtered_sales if yesterday_start <= sale['timestamp'] < yesterday_end]
         yesterday_sales_total = sum(sale['purchase_amount'] for sale in yesterday_sales)
 
-        growth = 0
         if yesterday_sales_total > 0:
             growth = ((daily_sales - yesterday_sales_total) / yesterday_sales_total) * 100
-
+        elif daily_sales > 0:
+            growth = 100  # Full growth because yesterday's sales were zero
+        else:
+            growth = 0  # No sales today and yesterday
         # Logging the result
         logging.info(f"Daily sales: {daily_sales}, Profits: {daily_profits}, Growth: {growth}%")
 
         # Return the result as JSON
         return jsonify({
-            'sales': daily_sales,
-            'profits': daily_profits,
+            'sales': round(daily_sales,2),
+            'profits': round(daily_profits,2),
             'growth': growth
         }), 200
 
     except Exception as e:
         logging.error(f"Error calculating daily sales: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
 
 
 @app.route('/api-monthlyYearlyProfits', methods=['POST'])
@@ -1511,32 +1548,26 @@ def get_monthly_yearly_profits():
         first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         first_day_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        # Initialize variables for monthly and yearly calculations
-        monthly_profits, yearly_profits = 0, 0
-        monthly_revenue, yearly_revenue = 0, 0
-        monthly_units_sold, yearly_units_sold = 0, 0
-
         # Helper function to calculate profit for each sale
         def calculate_profit_for_sale(sale):
             sale_profit = 0
-            for item_id in sale['items']:  # Loop through each item_id
-                # Find the related inventory item by item ID
+            for item_id in sale['items']:
                 item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-
                 if item and 'markupPercentage' in item:
-                    markup_percentage = float(item['markupPercentage']) / 100  # Convert percentage to decimal
+                    markup_percentage = float(item['markupPercentage']) / 100
                 else:
-                    markup_percentage = 0.25  # Default to 25% if no markupPercentage is provided
-
-                # Assuming 'price' and 'quantity' are stored inside the 'items' field
+                    markup_percentage = 0.25  # Default to 25% if no markup is provided
                 quantity_sold = len(sale['items'][item_id]) if isinstance(sale['items'][item_id], list) else 1
-                price_per_item = sale['purchase_amount'] / quantity_sold  # Assuming equal distribution of price
-
+                price_per_item = sale['purchase_amount'] / quantity_sold
                 sale_profit += price_per_item * quantity_sold * markup_percentage
             return sale_profit
 
-        # Filter to only include sales with payment_status as 'paid' or 'completed'
-        sales_filter = {'payment_status': {'$in': ['paid', 'completed','Paid', 'Completed']}}
+        # Filter to include only sales with certain statuses
+        sales_filter = {'payment_status': {'$in': ['paid', 'completed', 'Paid', 'Completed']}}
+
+        # Initialize variables for monthly and yearly units sold
+        monthly_units_sold = 0
+        yearly_units_sold = 0
 
         # Get the sales for the current month
         monthly_sales = list(sales_collection.find({
@@ -1545,8 +1576,9 @@ def get_monthly_yearly_profits():
         }))
         monthly_revenue = sum(sale['purchase_amount'] for sale in monthly_sales)
         monthly_profits = sum(calculate_profit_for_sale(sale) for sale in monthly_sales)
-        monthly_units_sold = sum(len(sale['items']) for sale in monthly_sales)  # Counting the number of items
 
+     
+        monthly_units_sold = sum(len(value_list) for sale in monthly_sales for value_list in sale['items'].values())
         # Get the sales for the current year
         yearly_sales = list(sales_collection.find({
             **sales_filter,
@@ -1554,7 +1586,7 @@ def get_monthly_yearly_profits():
         }))
         yearly_revenue = sum(sale['purchase_amount'] for sale in yearly_sales)
         yearly_profits = sum(calculate_profit_for_sale(sale) for sale in yearly_sales)
-        yearly_units_sold = sum(len(sale['items']) for sale in yearly_sales)  # Counting the number of items
+        yearly_units_sold = sum(len(value_list) for sale in yearly_sales for value_list in sale['items'].values())
 
         # Get the sales for the previous month (for growth comparison)
         previous_month_end = first_day_of_month - timedelta(seconds=1)
@@ -1566,28 +1598,35 @@ def get_monthly_yearly_profits():
         previous_month_profits = sum(calculate_profit_for_sale(sale) for sale in previous_month_sales)
 
         # Get the sales for the previous year (for growth comparison)
+        previous_year_end = first_day_of_year - timedelta(seconds=1)
+        first_day_of_previous_year = previous_year_end.replace(month=1, day=1)
         previous_year_sales = list(sales_collection.find({
             **sales_filter,
-            "timestamp": {"$gte": now.replace(year=now.year - 1, month=1, day=1), "$lt": first_day_of_year}
+            "timestamp": {"$gte": first_day_of_previous_year, "$lt": first_day_of_year}
         }))
         previous_year_profits = sum(calculate_profit_for_sale(sale) for sale in previous_year_sales)
 
-        # Construct response
-        data = {
-            "monthly_revenue": monthly_revenue,
-            "monthly_profits": monthly_profits,
-            "monthly_units_sold": monthly_units_sold,
-            "yearly_revenue": yearly_revenue,
-            "yearly_profits": yearly_profits,
-            "yearly_units_sold": yearly_units_sold,
-            "previous_month_profits": previous_month_profits,
-            "previous_year_profits": previous_year_profits
-        }
+        # Calculate monthly and yearly growth
+        monthly_growth = ((monthly_profits - previous_month_profits) / previous_month_profits * 100
+                          if previous_month_profits else 100)
+        yearly_growth = ((yearly_profits - previous_year_profits) / previous_year_profits * 100
+                         if previous_year_profits else 100)
 
-        return jsonify(data)
+        # Prepare the response
+        return jsonify({
+            "monthly_revenue": monthly_revenue,
+            "yearly_revenue": yearly_revenue,
+            "monthly_profits": monthly_profits,
+            "yearly_profits": yearly_profits,
+            "monthly_units_sold": monthly_units_sold,
+            "yearly_units_sold": yearly_units_sold,
+            "monthly_growth": monthly_growth,
+            "yearly_growth": yearly_growth
+        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 

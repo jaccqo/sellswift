@@ -58,7 +58,7 @@
     
 
     <!-- ========== Topbar Start ========== -->
-    <div class="navbar-custom" id="navbar">
+    <div class="navbar-custom shadow-sm rounded-lg border-0" id="navbar">
       <div class="topbar container-fluid">
         <div class="d-flex align-items-center gap-lg-2 gap-1">
           <!-- Topbar Brand Logo -->
@@ -188,7 +188,7 @@
     <!-- ========== Topbar End ========== -->
 
     <!-- ========== Left Sidebar Start ========== -->
-    <div class="leftside-menu">
+    <div class="leftside-menu shadow-sm rounded-lg border-0">
       <!-- Brand Logo Light -->
       <a href="index.html" class="logo logo-light">
         <span class="logo-lg">
@@ -235,8 +235,7 @@
 
           <!--start of home screen-->
           <li class="side-nav-item">
-            <a  href="./index.html" aria-expanded="false" aria-controls="sidebarDashboards"
-              class="side-nav-link">
+            <a  href="./index.html" class="side-nav-link">
               <i class="uil-home"></i>
               <!--<span class="badge bg-success float-end">5</span>-->
               <span> Home Screen</span>
@@ -377,7 +376,7 @@
           <div class="row">
             <!-- Profile Card -->
             <div class="col-xl-4 col-lg-5">
-              <div class="card text-center">
+              <div class="card text-center  shadow-sm rounded-lg border-0">
                 <div class="card-body">
                   <i class="mdi mdi-account-circle mdi-48px rounded-circle avatar-lg img-thumbnail"></i>
                   <h4 class="mb-0 mt-2 logged-user"></h4>
@@ -393,13 +392,13 @@
     
             <!-- Tab Content -->
             <div class="col-xl-8 col-lg-7">
-              <div class="card">
+              <div class="card  shadow-sm rounded-lg border-0">
                 <div class="card-body">
                   <ul class="nav nav-pills bg-nav-pills nav-justified mb-3">
-                    <li class="nav-item">
+                    <li class="nav-item  shadow-sm rounded-lg border-0">
                       <a href="#aboutme" data-bs-toggle="tab" aria-expanded="false" class="nav-link rounded-0 active">About</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item  shadow-sm rounded-lg border-0">
                       <a href="#settings" data-bs-toggle="tab" aria-expanded="false" class="nav-link rounded-0">Settings</a>
                     </li>
                   </ul>
@@ -420,23 +419,31 @@
                           </h2>
                           <div id="personalInfo" class="accordion-collapse collapse show" aria-labelledby="personalInfoHeading" data-bs-parent="#settingsAccordion">
                             <div class="accordion-body">
-
-                             
-                             
-                             
-                              <span class="badge badge-warning-lighten update-personalinfo-status"></span>
-
-                              <div class="mb-3">
-                                <label for="fullname" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="fullname" placeholder="Enter full name" />
-                              </div>
-                              <div class="mb-3">
-                                <label for="userbio" class="form-label">Bio</label>
-                                <textarea class="form-control" id="userbio" rows="4" placeholder="Write something..."></textarea>
-                              </div>
-                              <button type="button" class="btn btn-success" id="save-personal-infoBtn">Save Info</button>
+                                <span class="badge badge-success-lighten text-success update-personalinfo-status"></span>
+                        
+                                <!-- Full Name Field -->
+                                <div class="mb-3">
+                                    <label for="fullname" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullname" placeholder="Enter full name" />
+                                </div>
+                        
+                                <!-- Bio Field -->
+                                <div class="mb-3">
+                                    <label for="userbio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="userbio" rows="4" placeholder="Write something..."></textarea>
+                                </div>
+                        
+                                <!-- Mobile Number Field (New) -->
+                                <div class="mb-3">
+                                    <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="Enter mobile number" />
+                                </div>
+                        
+                                <!-- Save Info Button -->
+                                <button type="button" class="btn btn-success" id="save-personal-infoBtn">Save Info</button>
                             </div>
-                          </div>
+                        </div>
+                        
                         </div>
                         <div class="accordion-item">
                           <h2 class="accordion-header" id="emailUpdateHeading">

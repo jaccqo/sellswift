@@ -84,9 +84,11 @@
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
 
-    <!-- App favicon -->
-    <link rel="shortcut icon" href="assets/images/favicon.ico">
 
+       <!-- Datatable css -->
+       <link href="assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+       <link href="assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet"
+           type="text/css" />
     <!-- Daterangepicker css -->
     <link rel="stylesheet" href="assets/vendor/daterangepicker/daterangepicker.css">
 
@@ -152,7 +154,7 @@
     
 
         <!-- ========== Topbar Start ========== -->
-        <div class="navbar-custom" id="navbar">
+        <div class="navbar-custom shadow-sm rounded-lg border-0" id="navbar">
             <div class="topbar container-fluid">
                 <div class="d-flex align-items-center gap-lg-2 gap-1">
 
@@ -322,7 +324,7 @@
         <!-- ========== Topbar End ========== -->
 
         <!-- ========== Left Sidebar Start ========== -->
-        <div class="leftside-menu">
+        <div class="leftside-menu shadow-sm rounded-lg border-0">
 
             <!-- Brand Logo Light -->
             <a href="index.html" class="logo logo-light">
@@ -355,7 +357,7 @@
             </div>
 
             <!-- Sidebar -left -->
-            <div class="h-100" id="leftside-menu-container" data-simplebar>
+            <div class="h-100" id="leftside-menu-container " data-simplebar>
                 <!-- Leftbar User -->
                 <div class="leftbar-user">
                     <a href="profile.html">
@@ -371,15 +373,16 @@
 
                     <li class="side-nav-title">Navigation</li>
 
-                    <!--start of home screen-->
-                    <li class="side-nav-item menuitem-active">
-                        <a data-bs-toggle="collapse" href="./index.html" aria-expanded="false"
-                            aria-controls="sidebarDashboards" class="side-nav-link">
-                            <i class="uil-home"></i>
-                            <!--<span class="badge bg-success float-end">5</span>-->
-                            <span> Home Screen</span>
-                        </a>
-                    </li>
+                    <!-- Start of home screen -->
+                  <li class="side-nav-item menuitem-active ">
+                    <a  href="./index.html" 
+                       class="side-nav-link">
+                        <i class="uil uil-dashboard"></i> <!-- Updated icon for Dashboard -->
+                        <!--<span class="badge bg-success float-end">5</span>-->
+                        <span> Dashboard</span>
+                    </a>
+                  </li>
+
                     <!--end of home screen-->
 
 
@@ -746,8 +749,8 @@
                             </div>
                     
                             <div class="dash-item-overlay d-none d-md-block" dir="ltr">
-                              <h6 id="today-earning" class="text-dark">Today's Revenue: Ksh 0</h6> <!-- Reduced to h6 for smaller text -->
-                              <p class="text-muted font-13 mb-3 mt-2">
+                              <h6 id="today-earning" class="text-primary badge-primary-lighten">Today's Revenue: Ksh 0</h6> <!-- Reduced to h6 for smaller text -->
+                              <p class="text-muted font-10 mb-5 mt-2">
                                 Keep track of your Revenue and monitor the financial progress of your business.
                               </p>
                               <a href="sales.html" class="btn btn-outline-warning btn-sm">View Statements <!-- Smaller button -->
@@ -781,31 +784,37 @@
 
                     <div class="row">
                       <div class="col-lg-12">
-                        <div class="card shadow-sm rounded-lg border-0">
-                          <div class="d-flex card-header justify-content-between align-items-center">
-                            <h5 class="header-title mb-0">Top Selling Products</h5> <!-- Reduced to h5 for compactness -->
-                    
-                            <!-- Progress Bar (hidden by default) -->
-                            <div class="progress progress-md progress-div" style="min-width:50%;display:none;">
-                              <div id="conversion-progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                    
-                            <!-- Export Button -->
-                            <a href="javascript:void(0);" class="btn btn-sm btn-light export-topselling">Export <i class="mdi mdi-download ms-1"></i></a>
-                          </div>
-                    
-                          <div class="card-body pt-0">
-                            <div class="table-responsive">
-                              <table class="table table-centered table-nowrap table-hover mb-0">
-                                <tbody id="product-table-body">
-                                  <!-- Table rows will be appended here by jQuery -->
-                                </tbody>
-                              </table>
-                            </div>
-                          </div> <!-- end card-body -->
-                        </div> <!-- end card -->
+                          <div class="card shadow-sm rounded-lg border-0">
+                              <div class="d-flex card-header justify-content-between align-items-center">
+                                  <h5 class="header-title mb-0">Top Selling Products</h5>
+                                  <div class="progress progress-md progress-div" style="min-width:50%; display:none;">
+                                      <div id="conversion-progress-bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                  </div>
+                                  <a href="javascript:void(0);" class="btn btn-sm btn-light export-topselling">Export <i class="mdi mdi-download ms-1"></i></a>
+                              </div>
+                              <div class="card-body pt-0">
+                                  <div class="table-responsive">
+                                      <table id="product-table" class="table table-centered table-nowrap table-hover mb-0">
+                                          <thead>
+                                              <tr>
+                                                  <th>Name</th>
+                                                  <th>Price</th>
+                                                  <th>Quantity Sold</th>
+                                                  <th>Amount</th>
+                                                  <th>Image</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody id="product-table-body">
+                                              <!-- Table rows will be appended here by jQuery -->
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div> <!-- end card-body -->
+                          </div> <!-- end card -->
                       </div> <!-- end col -->
-                    </div> <!-- end row -->
+                  </div> <!-- end row -->
+                  
+                  
                     
 
                 
@@ -1575,7 +1584,11 @@
         </div>
       </div>
 
-   
+      <script src="assets/vendor/datatables.net/js/jquery.dataTables.min.js"></script>
+      <script src="assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+      <script src="assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+      <script src="assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+      <script src="assets/vendor/jquery-datatables-checkboxes/js/dataTables.checkboxes.min.js"></script>
 
     <!-- Vendor js -->
     <script src="assets/js/vendor.min.js"></script>

@@ -77,11 +77,9 @@
     <!-- Begin page -->
     <div class="wrapper">
 
-       
-
 
         <!-- ========== Topbar Start ========== -->
-        <div class="navbar-custom">
+        <div class="navbar-custom shadow-sm rounded-lg border-0" id="navbar">
             <div class="topbar container-fluid">
                 <div class="d-flex align-items-center gap-lg-2 gap-1">
 
@@ -208,15 +206,9 @@
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
 
                             <!-- item-->
-                            <a href="javascript:void(0);" class="dropdown-item">
+                            <a href="profile.html" class="dropdown-item">
                                 <i class="mdi mdi-account-circle me-1"></i>
                                 <span>My Account</span>
-                            </a>
-
-                            <!-- item-->
-                            <a href="javascript:void(0);" class="dropdown-item">
-                                <i class="mdi mdi-account-edit me-1"></i>
-                                <span>Settings</span>
                             </a>
 
                             <!-- item-->
@@ -271,7 +263,7 @@
         <!-- ========== Topbar End ========== -->
 
         <!-- ========== Left Sidebar Start ========== -->
-        <div class="leftside-menu">
+        <div class="leftside-menu shadow-sm rounded-lg border-0">
 
             <!-- Brand Logo Light -->
             <a href="index.html" class="logo logo-light">
@@ -318,16 +310,14 @@
 
                     <li class="side-nav-title">Navigation</li>
 
-                    <!--start of home screen-->
-                    <li class="side-nav-item">
-                        <a href="./index.html" aria-expanded="false"
-                            aria-controls="sidebarDashboards" class="side-nav-link">
-                            <i class="uil-home"></i>
-                            <!--<span class="badge bg-success float-end">5</span>-->
-                            <span> Home Screen</span>
-                        </a>
-                    </li>
-                    <!--end of home screen-->
+                   <!-- Start of home screen -->
+            <li class="side-nav-item ">
+              <a  href="./index.html" class="side-nav-link">
+                  <i class="uil uil-dashboard"></i> <!-- Updated icon for Dashboard -->
+                  <!--<span class="badge bg-success float-end">5</span>-->
+                  <span > Dashboard</span>
+              </a>
+            </li>
 
 
                     <li class="side-nav-title">Apps</li>
@@ -507,10 +497,10 @@
           <div class="mb-3">
             <label for="edit-payment-status" class="form-label">Payment Status</label>
             <select class="form-control" id="edit-payment-status" required>
-              <option value="Paid">Paid</option>
+           
               <option value="Completed">Completed</option>
               <option value="Pending">Pending</option>
-              <option value="Failed">Failed</option>
+             
             </select>
           </div>
           <div class="mb-3">

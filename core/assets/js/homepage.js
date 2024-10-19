@@ -175,44 +175,51 @@ $(document).ready( function() {
 
 
 
-        const top_selling_table = () => {
-            $.ajax({
-                url: `${base_url}/api/inventory?dbname=${dbname}`,
-                method: 'GET',
-                success: function(data) {
-                    let tableBody = $('#product-table-body');
-                    tableBody.empty();  // Clear any existing rows
-        
-                    data.forEach(function(product) {
-                        let row = `<tr id=${product.id}>
-                            <td>
-                                <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
-                                <span class="text-muted font-13">${product.date}</span>
-                            </td>
-                            <td>
-                                <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
-                                <span class="text-muted font-13">Price</span>
-                            </td>
-                            <td>
-                                <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
-                                <span class="text-muted font-13">Quantity Sold</span>
-                            </td>
-                            <td>
-                                <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
-                                <span class="text-muted font-13">Amount</span>
-                            </td>
-                            <td>
-                                <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 60px; height: auto;"> <!-- Reduced size here -->
-                            </td>
-                        </tr>`;
-                        tableBody.append(row);
-                    });
-                },
-                error: function(error) {
-                    console.error('Error fetching inventory data:', error);
-                }
-            });
-        }
+    const top_selling_table = () => {
+        $.ajax({
+            url: `${base_url}/api/inventory?dbname=${dbname}`,
+            method: 'GET',
+            success: function(data) {
+                let tableBody = $('#product-table-body');
+                tableBody.empty();  // Clear any existing rows
+    
+                // Populate table body with product data
+                data.forEach(function(product) {
+                    let row = `<tr id=${product.id}>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.name}</h5>
+                            <span class="text-muted font-13">${product.date}</span>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.price).toLocaleString()}</h5>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">${product.quantity}</h5>
+                        </td>
+                        <td>
+                            <h5 class="font-14 my-1 fw-normal">Ksh ${parseFloat(product.amount).toLocaleString()}</h5>
+                        </td>
+                        <td>
+                            <img src="data:image/png;base64,${product.image}" alt="${product.name}" class="img-fluid" style="max-width: 40px; height: auto;">
+                        </td>
+                    </tr>`;
+                    tableBody.append(row);
+                });
+    
+                // Initialize DataTable after populating the table body
+                $('#product-table').DataTable({
+                    "order": [[ 1, "desc" ]], // Optional: sort by price descending
+                    "responsive": true        // Optional: make the table responsive
+                });
+            },
+            error: function(error) {
+                console.error('Error fetching inventory data:', error);
+            }
+        });
+    };
+    
+    
+    
     
 
     
