@@ -107,8 +107,12 @@ def create_organization():
         if logo_base64:
             logo = base64.b64decode(logo_base64)
 
-        # Generate a random secret key for the organization (for API or authentication purposes)
-        secret_key = secrets.token_hex(16)  # Generates a 32-character hex string
+        # Generate a sequential secret key
+        last_key = organization_collection.find({'orgName': org_name}).sort('secret_key_number', -1).limit(1)
+        last_key_number = next(last_key, {}).get('secret_key_number', 0)
+        secret_key_number = last_key_number + 1
+
+        secret_key = f"{db_name}_{secret_key_number}"
 
         # Create the organization data object to insert into MongoDB
         organization_data = {
@@ -116,13 +120,14 @@ def create_organization():
             'email': email,
             'logo': logo,  # Store the binary image (base64-decoded)
             'created_at': datetime.datetime.now(),
-            'secret_key': secret_key  # Store the generated secret key
+            'secret_key': secret_key,  # Store the generated secret key
+            'secret_key_number': secret_key_number  # Store the key number for future reference
         }
 
         # Insert the organization into the 'organization_details' collection
         organization_collection.insert_one(organization_data)
 
-        logging.info(f"Organization '{org_name}' created successfully with secret key.")
+        logging.info(f"Organization '{org_name}' created successfully with secret key '{secret_key}'.")
 
         return jsonify({
             'status': 'success',
@@ -137,8 +142,6 @@ def create_organization():
             'status': 'error',
             'message': str(e)
         }), 500
-
-
 
 
     
@@ -297,6 +300,44 @@ def login():
         logging.error(f"Error during login process: {str(e)}")
         return jsonify({"success": False, "message": "An error occurred during login"}), 500
 
+
+
+@app.route('/api/open-sale/', methods=['POST'])
+def open_sale():
+    try:
+        # Retrieve parameters from request
+        sale_id = request.args.get('sale_id')
+        dbname = request.args.get('dbname')
+
+        # Validate inputs
+        if not sale_id or not dbname:
+            return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+        # Connect to the specified database
+        db = client[dbname]
+        sales_collection = db['sales']
+
+        # Convert sale_id to ObjectId and fetch the sale
+        try:
+            sale_object_id = ObjectId(sale_id)  # Ensure sale_id is converted to ObjectId
+        except Exception as e:
+            return jsonify({"status": "error", "message": "Invalid sale_id format"}), 400
+
+        sale = sales_collection.find_one({"_id": sale_object_id})
+        if not sale:
+            return jsonify({"status": "error", "message": "Sale not found"}), 404
+
+        # Logic to mark the sale as "opened on POS"
+        sales_collection.update_one(
+            {"_id": sale_object_id},
+            {"$set": {"status": "opened_on_pos"}}
+        )
+
+        return jsonify({"status": "success", "message": "Sale opened on POS"}), 200
+
+    except Exception as e:
+        logging.error(f"Error in open_sale endpoint: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 
