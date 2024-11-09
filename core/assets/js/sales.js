@@ -59,9 +59,7 @@ $(document).ready(function () {
                   const saleId = row[1];
                   return `
                       <div class="action-buttons">
-                          <button type="button" class="btn btn-sm btn-primary edit-sale" data-id="${saleId}" data-bs-toggle="modal" data-bs-target="#edit-sale-modal">
-                              <i class="mdi mdi-pencil"></i>
-                          </button>
+                        
                           <button type="button" class="btn btn-sm btn-danger delete-sale ms-2" data-id="${saleId}" data-bs-toggle="modal" data-bs-target="#delete-sale-modal">
                               <i class="mdi mdi-delete"></i>
                           </button>
@@ -147,9 +145,7 @@ $(document).ready(function () {
                       `,
                       `
                           <div class="action-buttons">
-                              <button type="button" class="btn btn-sm btn-primary edit-sale" data-id="${sale._id}" data-bs-toggle="modal" data-bs-target="#edit-sale-modal">
-                                  <i class="mdi mdi-pencil"></i>
-                              </button>
+                            
                               <button type="button" class="btn btn-sm btn-danger delete-sale ms-2" data-id="${sale._id}" data-bs-toggle="modal" data-bs-target="#delete-sale-modal">
                                   <i class="mdi mdi-delete"></i>
                               </button>
