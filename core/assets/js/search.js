@@ -16,6 +16,107 @@ $(document).ready(function() {
         $.toast(options);
     }
 
+     // Extract the `sale_id` from the URL
+     const urlParams = new URLSearchParams(window.location.search);
+
+     try{
+        const saleId = urlParams.get('sale_id');
+ 
+        if (saleId) {
+            console.log(`Sale ID: ${saleId}`);
+            fetchSaleDetails(saleId);
+        } else {
+            console.error("No sale_id found in the URL.");
+        }
+
+     }catch(error){
+        console.log(error)
+     }
+
+
+     
+     function fetchSaleDetails(saleId) {
+        $.ajax({
+            url: `${base_url}/api/sale/?sale_id=${saleId}&dbname=${user_info.organization}`,
+            method: "GET",
+            success: function (response) {
+                if (response && response.status === "success" && response.sale) {
+                    const sale = response.sale;
+    
+                    if (sale.items && Object.keys(sale.items).length > 0) {
+                        console.log("Sale details fetched:", sale);
+    
+                        // Loop through each item in the sale.items object
+                        Object.keys(sale.items).forEach((itemId) => {
+                            const barcodes = sale.items[itemId]; // Get the array of barcodes for this item
+                            const quantity = barcodes.length;
+    
+                            if (quantity <= 0) {
+                                showToast(
+                                    "Oh snap!",
+                                    `Item ${itemId} is out of stock and cannot be added to the cart.`,
+                                    "top-center",
+                                    "rgba(0,0,0,0.2)",
+                                    "error"
+                                );
+                                return;
+                            }
+    
+                            // Initialize or update the customerCartBarcode for this item
+                            if (!customerCartBarcode[itemId]) {
+                                customerCartBarcode[itemId] = [];
+                            }
+    
+                            // Add all barcodes to customerCartBarcode
+                            barcodes.forEach((barcode) => {
+                                customerCartBarcode[itemId].push(barcode);
+                            });
+    
+                            // Update the cart quantity
+                            customerCart[itemId] = quantity; // Set quantity to the total barcodes
+                        });
+    
+                        // Update the cart UI
+                        renderCart();
+                        remove_widget();
+                    } else {
+                        console.error("Sale not found or has no items.");
+                        showToast(
+                            "Error",
+                            "Sale not found or empty. Please try again.",
+                            "top-center",
+                            "rgba(0,0,0,0.2)",
+                            "error"
+                        );
+                    }
+                } else {
+                    console.error("Invalid sale response:", response);
+                    showToast(
+                        "Error",
+                        "Sale not found or empty. Please try again.",
+                        "top-center",
+                        "rgba(0,0,0,0.2)",
+                        "error"
+                    );
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching sale details:", error);
+                showToast(
+                    "Error",
+                    "Failed to fetch sale details. Please try again.",
+                    "top-center",
+                    "rgba(0,0,0,0.2)",
+                    "error"
+                );
+            },
+        });
+    }
+    
+    
+    
+     
+
     $(".search-btn").on("click", function(event) {
         event.preventDefault();
     });
@@ -348,15 +449,25 @@ $(document).ready(function() {
 
     // Function to complete the checkout or pay later
     const finish_checkout = (totalAmount, paymentMethod, change_due = 0) => {
+        const urlParams = new URLSearchParams(window.location.search); // Extract query params
+        const saleId = urlParams.get('sale_id'); // Get the `sale_id` if it exists
+
+        // Prepare checkout data
         var checkoutData = {
             purchase_amount: totalAmount,
             payment_method: paymentMethod,
             change_due: change_due,
             dbname: user_info.organization,
             customer_cart_barcode: customerCartBarcode,
-            sales_person: user_info.fullname
+            sales_person: user_info.fullname,
         };
 
+        // If `sale_id` is present, add it to the checkout data
+        if (saleId) {
+            checkoutData.sale_id = saleId; // Include sale_id in the payload
+        }
+
+        // Perform checkout request
         fetch(`${base_url}/api/checkout`, {
             method: 'POST',
             headers: {
@@ -391,6 +502,7 @@ $(document).ready(function() {
             $("#checkout-title").text(`An error occurred during checkout.`);
         });
     };
+
 
 
 

@@ -339,7 +339,47 @@ def open_sale():
         logging.error(f"Error in open_sale endpoint: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Helper function to recursively convert ObjectId fields to strings
+def convert_object_ids(document):
+    if isinstance(document, list):
+        return [convert_object_ids(item) for item in document]
+    elif isinstance(document, dict):
+        return {key: convert_object_ids(value) for key, value in document.items()}
+    elif isinstance(document, ObjectId):
+        return str(document)
+    else:
+        return document
 
+@app.route('/api/sale/', methods=['GET'])
+def get_sale_details():
+    try:
+        # Extract query parameters
+        sale_id = request.args.get('sale_id')
+        dbname = request.args.get('dbname')
+
+        if not sale_id or not dbname:
+            return jsonify({"status": "error", "message": "Missing required parameters"}), 400
+
+        # Connect to the specific database
+        db = client[dbname]
+        sales_collection = db['sales']
+
+        # Fetch the sale document by ID
+        sale = sales_collection.find_one({"_id": ObjectId(sale_id)})
+
+        if not sale:
+            return jsonify({"status": "error", "message": "Sale not found"}), 404
+
+        # Convert ObjectId fields to strings
+        sale = convert_object_ids(sale)
+
+        return jsonify({"status": "success", "sale": sale}), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching sale details: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    
 
 @app.route('/verifyUser', methods=['POST'])
 def verify_user():
@@ -1364,81 +1404,149 @@ def generate_reference_number():
 
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    dbname = data.get('dbname')
-    purchase_amount = data.get('purchase_amount')
-    payment_method = data.get('payment_method')
-    change_due = data.get('change_due', 0)
-    customer_cart_barcode = data.get('customer_cart_barcode')
-    sales_person = data.get('sales_person')
+        dbname = data.get('dbname')
+        purchase_amount = data.get('purchase_amount')
+        payment_method = data.get('payment_method')
+        change_due = data.get('change_due', 0)
+        customer_cart_barcode = data.get('customer_cart_barcode')
+        sales_person = data.get('sales_person')
+        sale_id = data.get('sale_id')  # Check if this is a "Pay Later" sale
 
-    if not dbname or not purchase_amount or not payment_method or not customer_cart_barcode:
-        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+        # Validate required fields
+        if not dbname or not purchase_amount or not payment_method or not customer_cart_barcode:
+            return jsonify({"success": False, "error": "Missing required parameters"}), 400
 
-    db = client[dbname]
-    sales_collection = db['sales']
-    customers_collection = db['customers']
-    inventory_collection = db['inventory']
+        db = client[dbname]
+        sales_collection = db['sales']
+        customers_collection = db['customers']
+        inventory_collection = db['inventory']
+        barcode_dates_collection = db['barcodes_date']
 
-    # Handle "Pay Later" status
-    if payment_method == "pay_later":
-        sale_status = "pending_payment"
-        change_due = 0  # No change_due for pay_later
-    else:
-        sale_status = "completed"
+        # Handle "Pay Later" or existing sale logic
+        if sale_id:
+            # Find the sale by `sale_id`
+            sale = sales_collection.find_one({"_id": ObjectId(sale_id)})
+            if not sale:
+                return jsonify({"success": False, "error": "Sale not found"}), 404
 
-    # Insert new customer document and get the generated customer ID
-    customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.now()}).inserted_id
+            # Check if the sale is already completed
+            if sale["payment_status"] == "completed":
+                return jsonify({"success": False, "error": "This sale has already been completed."}), 400
 
-    # Ensure each item in customer_cart_barcode has barcodes
-    for item_id, barcodes in customer_cart_barcode.items():
-        if not barcodes or "undefined" in barcodes:
-            logging.warning("No barcodes detected")
-            item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'barcodes': 1})
-            if item and 'barcodes' in item and item['barcodes']:
-                quantity_needed = len(barcodes) if barcodes else 1
-                available_barcodes = item['barcodes']
-                customer_cart_barcode[item_id] = random.sample(available_barcodes, min(quantity_needed, len(available_barcodes)))
+            # Update the existing sale
+            sales_collection.update_one(
+                {"_id": ObjectId(sale_id)},
+                {
+                    "$set": {
+                        "payment_status": "completed",
+                        "payment_method": payment_method,
+                        "purchase_amount": purchase_amount,
+                        "change_due": change_due,
+                        "timestamp": datetime.datetime.now(),
+                    }
+                }
+            )
 
-    # Insert the sale document
-    sale = {
-        "item_ids": list(customer_cart_barcode.keys()),
-        "customer_id": customer_id,
-        "purchase_amount": purchase_amount,
-        "payment_method": payment_method,
-        "change_due": change_due,
-        "timestamp": datetime.datetime.now(),
-        "items": customer_cart_barcode,
-        "sales_person": sales_person,
-        "payment_status": sale_status,
-        "reference_number": generate_reference_number()
-    }
+            # Update inventory for the items in the sale
+            for item_id, barcodes in customer_cart_barcode.items():
+                for barcode in barcodes:
+                    # Verify barcode in barcode_dates
+                    barcode_entry = barcode_dates_collection.find_one({"barcode": barcode})
+                    if not barcode_entry:
+                        logging.warning(f"Barcode {barcode} not found in barcode_dates.")
+                        continue
 
-    sales_collection.insert_one(sale)
-
-    # Update the inventory for completed sales
-    if payment_method != "pay_later":
-        for item_id, barcodes in customer_cart_barcode.items():
-            for barcode in barcodes:
-                item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-                if item and "barcodes" in item and barcode in item["barcodes"]:
-                    updated_barcodes = item["barcodes"]
-                    updated_barcodes.remove(barcode)
-                    result = inventory_collection.update_one(
-                        {"_id": ObjectId(item_id)},
-                        {"$set": {"barcodes": updated_barcodes}}
-                    )
-                    if result.modified_count > 0:
+                    # Update inventory for the item
+                    item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                    if item and "barcodes" in item and barcode in item["barcodes"]:
+                        updated_barcodes = item["barcodes"]
+                        updated_barcodes.remove(barcode)
+                        inventory_collection.update_one(
+                            {"_id": ObjectId(item_id)},
+                            {"$set": {"barcodes": updated_barcodes}}
+                        )
                         inventory_collection.update_one(
                             {"_id": ObjectId(item_id)},
                             {"$inc": {"stock": -1, "sales_count": 1}}
                         )
-                        updated_item = inventory_collection.find_one({"_id": ObjectId(item_id)})
-                        if not updated_item["barcodes"]:
-                            db.barcodes_date.delete_one({"barcode": barcode})
+                        # Remove barcode from barcode_dates
+                        barcode_dates_collection.delete_one({"barcode": barcode})
 
-    return jsonify({"success": True, "customer_id": str(customer_id)})
+            return jsonify({"success": True, "message": "Sale completed successfully"}), 200
+
+        # For new sales
+        if payment_method == "pay_later":
+            sale_status = "pending_payment"
+            change_due = 0  # No change_due for pay_later
+        else:
+            sale_status = "completed"
+
+        # Insert new customer document and get the generated customer ID
+        customer_id = customers_collection.insert_one({"timestamp": datetime.datetime.now()}).inserted_id
+
+        # Ensure each item in customer_cart_barcode has valid barcodes
+        for item_id, barcodes in customer_cart_barcode.items():
+            if not barcodes or "undefined" in barcodes:
+                logging.warning(f"No barcodes detected for item {item_id}.")
+                item = inventory_collection.find_one({'_id': ObjectId(item_id)}, {'barcodes': 1})
+                if item and 'barcodes' in item and item['barcodes']:
+                    quantity_needed = len(barcodes) if barcodes else 1
+                    available_barcodes = item['barcodes']
+                    customer_cart_barcode[item_id] = random.sample(available_barcodes, min(quantity_needed, len(available_barcodes)))
+
+        # Insert the sale document
+        sale = {
+            "item_ids": list(customer_cart_barcode.keys()),
+            "customer_id": customer_id,
+            "purchase_amount": purchase_amount,
+            "payment_method": payment_method,
+            "change_due": change_due,
+            "timestamp": datetime.datetime.now(),
+            "items": customer_cart_barcode,
+            "sales_person": sales_person,
+            "payment_status": sale_status,
+            "reference_number": generate_reference_number()
+        }
+
+        sales_collection.insert_one(sale)
+
+        # Update the inventory and `barcode_dates` for completed sales
+        if payment_method != "pay_later":
+            for item_id, barcodes in customer_cart_barcode.items():
+                for barcode in barcodes:
+                    # Verify barcode in barcode_dates
+                    barcode_entry = barcode_dates_collection.find_one({"barcode": barcode})
+                    if not barcode_entry:
+                        logging.warning(f"Barcode {barcode} not found in barcode_dates.")
+                        continue
+
+                    # Update inventory for the item
+                    item = inventory_collection.find_one({"_id": ObjectId(item_id)})
+                    if item and "barcodes" in item and barcode in item["barcodes"]:
+                        updated_barcodes = item["barcodes"]
+                        updated_barcodes.remove(barcode)
+                        inventory_collection.update_one(
+                            {"_id": ObjectId(item_id)},
+                            {"$set": {"barcodes": updated_barcodes}}
+                        )
+                        inventory_collection.update_one(
+                            {"_id": ObjectId(item_id)},
+                            {"$inc": {"stock": -1, "sales_count": 1}}
+                        )
+                        # Remove barcode from barcode_dates
+                        barcode_dates_collection.delete_one({"barcode": barcode})
+
+        return jsonify({"success": True, "customer_id": str(customer_id)}), 200
+
+    except Exception as e:
+        logging.error(f"Error during checkout: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
 
 
 
