@@ -1373,6 +1373,10 @@ def get_inventory():
     for item in inventory_data:
         price = item.get('price', 0)
         sales_count = item.get('sales_count', 0)
+        barcodes = item.get('barcodes', [])  # Retrieve the barcodes from the inventory
+
+        # Ensure all barcodes are strings
+        barcodes = [str(barcode) for barcode in barcodes]
 
         result.append({
             'id': str(item['_id']),
@@ -1380,14 +1384,17 @@ def get_inventory():
             'date': item.get('date_created', ''),  
             'price': price,
             'quantity': sales_count,
-            'stock_quantity':item.get("stock"),
+            'stock_quantity': item.get("stock"),
             'amount': float(price) * sales_count,
-            'image':item.get("image")
+            'image': item.get("image"),
+            'matching_barcode': ",".join(barcodes) if barcodes else ""  # Join barcodes with a comma
         })
-     # Sort the result by sales_count in descending order and take the top 5
+
+    # Sort the result by sales_count in descending order and take the top 5
     top_selling_products = sorted(result, key=lambda x: x['quantity'], reverse=True)[:5]
 
     return jsonify(top_selling_products)
+
 
 
 def generate_reference_number():
@@ -1423,7 +1430,7 @@ def checkout():
         sales_collection = db['sales']
         customers_collection = db['customers']
         inventory_collection = db['inventory']
-        barcode_dates_collection = db['barcodes_date']
+        barcode_dates_collection = db['barcode_dates']
 
         # Handle "Pay Later" or existing sale logic
         if sale_id:
@@ -1450,9 +1457,21 @@ def checkout():
                 }
             )
 
+        
+            # Log the contents of barcode_dates_collection for debugging
+            # barcode_dates = list(barcode_dates_collection.find())
+            # logging.info(f"Contents of barcode_dates_collection: {barcode_dates}")
+
             # Update inventory for the items in the sale
             for item_id, barcodes in customer_cart_barcode.items():
                 for barcode in barcodes:
+                    try:
+                        # Ensure barcode is an integer
+                        barcode = int(barcode)
+                    except ValueError:
+                        logging.warning(f"Invalid barcode value: {barcode}")
+                        continue
+
                     # Verify barcode in barcode_dates
                     barcode_entry = barcode_dates_collection.find_one({"barcode": barcode})
                     if not barcode_entry:
@@ -1474,6 +1493,8 @@ def checkout():
                         )
                         # Remove barcode from barcode_dates
                         barcode_dates_collection.delete_one({"barcode": barcode})
+
+
 
             return jsonify({"success": True, "message": "Sale completed successfully"}), 200
 
@@ -1514,10 +1535,18 @@ def checkout():
         sales_collection.insert_one(sale)
 
         # Update the inventory and `barcode_dates` for completed sales
+     
         if payment_method != "pay_later":
             for item_id, barcodes in customer_cart_barcode.items():
                 for barcode in barcodes:
                     # Verify barcode in barcode_dates
+                    try:
+                        # Ensure barcode is an integer
+                        barcode = int(barcode)
+                    except ValueError:
+                        logging.warning(f"Invalid barcode value: {barcode}")
+                        continue
+
                     barcode_entry = barcode_dates_collection.find_one({"barcode": barcode})
                     if not barcode_entry:
                         logging.warning(f"Barcode {barcode} not found in barcode_dates.")

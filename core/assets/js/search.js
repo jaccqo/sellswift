@@ -183,65 +183,108 @@ $(document).ready(function() {
        
         $('.search_result_div').addClass('show');
     });
+
+
+
+    
+    const handleItemAddition = (itemId, barcodes, availableQuantity) => {
+        if (availableQuantity <= 0) {
+            showToast(
+                "Oh snap!",
+                "This item is out of stock and cannot be added to the cart.",
+                "top-center",
+                "rgba(0,0,0,0.2)",
+                "error"
+            );
+            return;
+        }
+    
+        // Initialize the cart entry for the item if it doesn't exist
+        if (!customerCartBarcode[itemId]) {
+            customerCartBarcode[itemId] = [];
+        }
+    
+        // Check how many barcodes have already been added
+        const alreadyAdded = customerCartBarcode[itemId].length;
+    
+        if (alreadyAdded >= availableQuantity) {
+            showToast(
+                "Oh snap!",
+                `You have already added all available stock of this item (${availableQuantity} items).`,
+                "top-center",
+                "rgba(0,0,0,0.2)",
+                "error"
+            );
+            return;
+        }
+    
+        // Pick the next barcode that hasn't been added
+        const nextBarcode = barcodes[alreadyAdded]; // Use the index of already added barcodes
+    
+        if (nextBarcode) {
+            // Add the barcode to the customer's cart
+            customerCartBarcode[itemId].push(nextBarcode);
+    
+            // Update the item count in the cart
+            addItemToCart(itemId);
+    
+            // Update the cart UI
+            renderCart();
+            remove_widget();
+    
+            showToast(
+                "Success",
+                `Item added to cart successfully! (${customerCartBarcode[itemId].length}/${availableQuantity})`,
+                "top-center",
+                "rgba(0,0,0,0.2)",
+                "success"
+            );
+        } else {
+            showToast(
+                "Error",
+                "No more barcodes available to add for this item.",
+                "top-center",
+                "rgba(0,0,0,0.2)",
+                "error"
+            );
+        }
+    };
+
     
 
     const sync_item = () => {
         // Unbind previous click events to prevent duplicates
         $(document).off("click", ".search-result-item");
         $(document).off("click", ".popular-product-item");
-
+    
         // Event listener for adding items to the cart from search results
-        $(document).on("click", ".search-result-item", async function() {
-            var itemId = $(this).data('item-id');
-            var barcode = $(this).data('item-barcode');
-            let availableQuantity = $(this).data('stock-count');
-
-            if (availableQuantity <= 0) {
-                showToast("Oh snap!", "This item is out of stock and cannot be added to the cart.", "top-center", "rgba(0,0,0,0.2)", "error");
-                return;
-            }
-
-            if (!customerCartBarcode[itemId]) {
-                customerCartBarcode[itemId] = [barcode];
-                addItemToCart(itemId);
-            } else {
-                let currentQuantity = customerCartBarcode[itemId].length;
-                if (currentQuantity < availableQuantity) {
-                    customerCartBarcode[itemId].push(barcode);
-                    addItemToCart(itemId);
-                }
-            }
-
-            renderCart();
-            remove_widget();
+        $(document).on("click", ".search-result-item", async function () {
+            const itemId = $(this).data("item-id");
+            const barcodesString = $(this).data("item-barcode"); // Barcodes as a single string
+            const availableQuantity = $(this).data("stock-count");
+    
+            // Split barcodes string by comma
+            const barcodes = barcodesString.split(",");
+    
+            handleItemAddition(itemId, barcodes, availableQuantity);
         });
-
+    
         // Event listener for adding items to the cart from popular products
-        $(document).on("click", ".popular-product-item", async function() {
-            var itemId = $(this).data('item-id');
-            var barcode = $(this).data('item-barcode');
-            let availableQuantity = $(this).data('stock-count');
-
-            if (availableQuantity <= 0) {
-                showToast("Oh snap!", "This item is out of stock and cannot be added to the cart.", "top-center", "rgba(0,0,0,0.2)", "error");
-                return;
-            }
-
-            if (!customerCartBarcode[itemId]) {
-                customerCartBarcode[itemId] = [barcode];
-                addItemToCart(itemId);
-            } else {
-                let currentQuantity = customerCartBarcode[itemId].length;
-                if (currentQuantity < availableQuantity) {
-                    customerCartBarcode[itemId].push(barcode);
-                    addItemToCart(itemId);
-                }
-            }
-
-            renderCart();
-            remove_widget();
+        $(document).on("click", ".popular-product-item", async function () {
+            const itemId = $(this).data("item-id");
+            const barcodesString = $(this).data("item-barcode"); // Barcodes as a single string
+            const availableQuantity = $(this).data("stock-count");
+    
+            // Split barcodes string by comma
+            const barcodes = barcodesString.split(",");
+    
+            handleItemAddition(itemId, barcodes, availableQuantity);
         });
     };
+    
+    
+    
+    
 
     // Function to fetch the available quantity of an item from the inventory
     const fetchAvailableQuantity = async (itemId) => {
@@ -513,7 +556,8 @@ $(document).ready(function() {
             success: function(data) {
                 let tableBody = $('#product-table-body');
                 tableBody.empty();
-    
+
+   
                 data.forEach(function(product) {
                     let row = `
                     <tr id="pop_${product.id}" class="popular-product-item" data-item-id="${product.id}" data-item-barcode="${product.matching_barcode}" data-stock-count="${product.stock_quantity}">
