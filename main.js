@@ -75,7 +75,6 @@ async function insertItem(item) {
 
 
 
-
 // Read operation
 async function getAllItems() {
   try {
@@ -137,6 +136,7 @@ function createWindow(width, height, maxHeight, maxWidth, theme = light) {
 
     center: true,
     resizable: false,
+    icon: path.join(__dirname, 'core/assets/iconkitchen/web', 'icon-192.png'), 
 
     webPreferences: {
       nodeIntegration: true,
@@ -173,6 +173,8 @@ function createWindowWithSize(width, height, pageName, resizable, theme) {
     center: true,
     resizable: resizable,
     frame: false,
+
+    icon: path.join(__dirname, 'core/assets/iconkitchen/web', 'icon-192.png'), 
 
    
     webPreferences: {

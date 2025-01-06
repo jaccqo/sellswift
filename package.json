@@ -2,12 +2,26 @@
   "name": "sellswift",
   "version": "1.0.0",
   "main": "main.js",
+  "build": {
+    "appId": "com.sellswift.id",
+    "win": {
+        "icon": "core/assets/iconkitchen/web/icon-192.ico"
+      },
+      "mac": {
+        "icon": "core/assets/iconkitchen/macos/AppIcon.icns"
+      },
+      "linux": {
+        "icon": "core/assets/iconkitchen/web/icon-192.png"
+      }
+  },
   "scripts": {
     "start": "electron . --verbose",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "jack",
+  "author": "RTS",
   "license": "ISC",
   "description": "",
   "dependencies": {
