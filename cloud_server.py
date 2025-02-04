@@ -422,73 +422,82 @@ def test_connection():
         return f'Connection failed: {str(e)}', 500
 
 
-
 @app.route('/api/items', methods=['POST'])
 def insert_item():
     try:
         data = request.get_json()
-       
-        # Ensure "organization" field exists in data
+        print(data)
+
+        # Ensure "organization" field exists
         if "organization" not in data:
             return jsonify({'error': 'Missing "organization" field in request'}), 400
 
-        organization = data["organization"]
-        del data["organization"]  # Remove the "organization" field from the data
-
+        organization = data.pop("organization")  # Remove organization field
         db = client[organization]
         collection = db["inventory"]
 
         # Extract barcode information
-        new_barcode = data.pop("barcode", None)  # Remove "barcode" field from data and get its value
+        new_barcode = data.pop("barcode", None)  
+        barcode_quantity = int(data.get("barcodeQuantity", 0))  
+        item_barcode = data.get("itemBarcode", "")
 
-        if new_barcode:
-            data["barcodes"] = [new_barcode]  # Create a new list with the new barcode
-        else:
-            data["barcodes"] = []  # Ensure "barcodes" field exists even if no new barcode provided
+        # Convert necessary fields to proper formats
+        cost_price = float(data.get("costPrice", 0))
+        selling_price = float(data.get("sellingPrice", 0))
+        markup_percentage = float(data.get("markupPercentage", 0))
 
-        barcode_quantity = data.get("barcodeQuantity", 0)  # Get the barcode quantity, default to 0 if not present
-        item_barcode = data.get("itemBarcode", "")  # Get the item barcode
+        if cost_price <= 0 or selling_price <= 0:
+            return jsonify({'error': 'Invalid cost price or selling price'}), 400
+
+        # Ensure markup is valid
+        if selling_price < cost_price:
+            return jsonify({'error': 'Selling price cannot be lower than cost price'}), 400
+
+        # Initialize barcode list
+        data["barcodes"] = [new_barcode] if new_barcode else []
 
         if barcode_quantity and item_barcode:
-            for _ in range(0, int(barcode_quantity)):
-                data["barcodes"].append(int(item_barcode))
-        else:
-            logging.warning("Either barcode quantity or item barcode is missing")
+            data["barcodes"].extend([int(item_barcode)] * barcode_quantity)
 
+        data["sales_count"] = 0
+        data["costPrice"] = round(cost_price, 2)
+        data["sellingPrice"] = round(selling_price, 2)
+        data["markupPercentage"] = round(markup_percentage, 2)
 
-        data["sales_count"]=0
-
-        # Check if an item with the same id and name exists
-        existing_item = collection.find_one({"category": data["category"], "name": data["name"],"price": data["price"]})
+        # Check if item already exists
+        existing_item = collection.find_one({
+            "category": data["category"], 
+            "name": data["name"],
+            "costPrice": data["costPrice"],
+            "sellingPrice": data["sellingPrice"]
+        })
 
         if existing_item:
-            # Item already exists, update the stock and add new barcode
-            new_stock = existing_item["stock"] + 1
-            existing_barcodes = existing_item.get("barcodes", [])  # Get existing barcodes or an empty list if not present
+            # Item exists, update stock and barcodes
+            new_stock = existing_item["stock"] + len(data["barcodes"])
+            existing_barcodes = existing_item.get("barcodes", [])
+            existing_barcodes.extend(data["barcodes"])
 
-            if new_barcode:
-                existing_barcodes.append(new_barcode)  # Append the new barcode to existing barcodes
-
-            collection.update_one({"_id": existing_item["_id"]}, {"$set": {"stock": new_stock, "barcodes": existing_barcodes}})
+            collection.update_one({"_id": existing_item["_id"]}, {
+                "$set": {"stock": new_stock, "barcodes": existing_barcodes}
+            })
         else:
-            # Item does not exist, insert it into the database
-            data["stock"]=len(data["barcodes"])
-            data["date_created"]=datetime.datetime.now()
+            # Insert new item
+            data["stock"] = len(data["barcodes"])
+            data["date_created"] = datetime.datetime.now()
+            collection.insert_one(data)
 
-            item_result = collection.insert_one(data)
-
+            # Insert barcodes into barcode_dates collection
             barcode_dates_collection = db['barcode_dates']
-
             for barcode in data["barcodes"]:
-            
                 barcode_dates_collection.insert_one({'barcode': barcode, 'date_added': datetime.datetime.now()})
 
-
         return jsonify({'message': 'Item inserted successfully'}), 200
-        
+
     except Exception as e:
-        
+        logging.error(f"Error inserting item: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/get-items', methods=['GET'])
 def get_all_items():
@@ -724,19 +733,21 @@ def edit_inventory():
 
         update_data = {}
 
-        # Extract the fields that have been supplied
+        # Extract and validate fields
         if 'name' in data:
             update_data['name'] = data['name']
         if 'category' in data:
             update_data['category'] = data['category']
-        if 'price' in data:
-            update_data['price'] = data['price']
+        if 'costPrice' in data:
+            update_data['costPrice'] = float(data['costPrice'])  # Ensure float type
+        if 'sellingPrice' in data:
+            update_data['sellingPrice'] = float(data['sellingPrice'])  # Ensure float type
+        if 'markupPercentage' in data:
+            update_data['markupPercentage'] = float(data['markupPercentage'])  # Ensure float type
         if 'status' in data:
-            update_data['status'] = data['status']
+            update_data['status'] = bool(data['status'])  # Ensure boolean
         if 'fileData' in data:
             update_data['image'] = data['fileData']
-        if 'markupPercentage' in data:
-            update_data['markupPercentage'] = data['markupPercentage']  # Add markup percentage to the update data
 
         db = client[dbname]
         items_collection = db.inventory
@@ -747,20 +758,24 @@ def edit_inventory():
         if not existing_item:
             return jsonify({'error': 'Item not found'}), 404
 
+        # Validate price consistency
+        if update_data.get("sellingPrice", existing_item.get("sellingPrice", 0)) < update_data.get("costPrice", existing_item.get("costPrice", 0)):
+            return jsonify({'error': 'Selling price cannot be lower than cost price'}), 400
+
         # Handle barcode updates
         new_barcodes = data.get('barcodes', [])
-        barcode_quantity = data.get("barcodeQuantity", 0)  # Get the barcode quantity, default to 0 if not present
-        item_barcode = data.get("itemBarcode", "")  # Get the item barcode
+        barcode_quantity = int(data.get("barcodeQuantity", 0))  # Ensure integer
+        item_barcode = str(data.get("itemBarcode", "")).strip()  # Ensure string
 
-        if barcode_quantity and item_barcode:
-            for _ in range(int(barcode_quantity)):
-                new_barcodes.append(int(item_barcode))
+        if barcode_quantity > 0 and item_barcode:
+            for _ in range(barcode_quantity):
+                new_barcodes.append(item_barcode)
 
         if new_barcodes:
             update_data['barcodes'] = existing_item.get('barcodes', []) + new_barcodes
             update_data['stock'] = len(update_data['barcodes'])
 
-            # Insert new barcodes into the barcode_dates collection
+            # Insert new barcodes into barcode_dates collection
             for barcode in new_barcodes:
                 barcode_dates_collection.insert_one({'barcode': barcode, 'date_added': datetime.datetime.now()})
 
@@ -773,10 +788,11 @@ def edit_inventory():
         if result.modified_count == 1:
             return jsonify({'success': True, 'message': 'Inventory modified'}), 200
         else:
-            return jsonify({'error': 'Failed to edit item'}), 400
+            return jsonify({'error': 'Failed to edit item or no changes detected'}), 400
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
@@ -1371,7 +1387,7 @@ def get_inventory():
     result = []
 
     for item in inventory_data:
-        price = item.get('price', 0)
+        sellingPrice = item.get('sellingPrice', 0)
         sales_count = item.get('sales_count', 0)
         barcodes = item.get('barcodes', [])  # Retrieve the barcodes from the inventory
 
@@ -1382,10 +1398,10 @@ def get_inventory():
             'id': str(item['_id']),
             'name': item['name'],
             'date': item.get('date_created', ''),  
-            'price': price,
+            'sellingPrice': sellingPrice,
             'quantity': sales_count,
             'stock_quantity': item.get("stock"),
-            'amount': float(price) * sales_count,
+            'amount': float(sellingPrice) * sales_count,
             'image': item.get("image"),
             'matching_barcode': ",".join(barcodes) if barcodes else ""  # Join barcodes with a comma
         })

@@ -156,7 +156,7 @@ $(document).ready(function() {
                             <img class="d-flex me-2 avatar-sm rounded search-result-image" src="data:image/jpeg;base64,${item.image}" alt="Product Image" height="50"/>
                             <div class="w-100">
                                 <h5 class="m-0 font-14 search-result-name">${item.name}</h5>
-                                <span class="font-12 mb-0 search-result-price">ksh ${parseFloat(item.price).toLocaleString()}</span>
+                                <span class="font-12 mb-0 search-result-price">ksh ${parseFloat(item.sellingPrice).toLocaleString()}</span>
                                 <h6 class="font-6 text-muted"> stock ${item.stock} </h6>
                             </div>
                         </div>
@@ -349,7 +349,7 @@ $(document).ready(function() {
                     }
 
                     var imageData = 'data:image/jpeg;base64,' + response.image;
-                    var itemPrice = parseFloat(response.price);
+                    var itemPrice = parseFloat(response.sellingPrice);
                     var itemTotal = itemPrice * quantity;
 
                     var existingWidget = $(`#${itemId}`);
@@ -566,7 +566,7 @@ $(document).ready(function() {
                             <span class="text-muted font-12">${product.date}</span>
                         </td>
                         <td>
-                            <h6 class="font-13 my-1 fw-semibold" style="color: #2d2d2d;">Ksh ${parseFloat(product.price).toLocaleString()}</h6>
+                            <h6 class="font-13 my-1 fw-semibold" style="color: #2d2d2d;">Ksh ${parseFloat(product.sellingPrice).toLocaleString()}</h6>
                             <span class="text-muted font-12">Price</span>
                         </td>
                         <td>

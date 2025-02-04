@@ -25,7 +25,7 @@ $(document).ready(function () {
                 `<img src="data:image/png;base64,${item.image}" title="Product Image" class="rounded me-3" height="48" alt="Base64 Image"/>
                 <p class="m-0 d-inline-block align-middle font-16">${item.name}</p>`,
                 item.category,
-                `ksh ${parseFloat(item.price).toLocaleString()}`,
+                `ksh ${parseFloat(item.sellingPrice).toLocaleString()}`,
                 item.stock,
                 `<span class="badge ${item.status ? 'bg-success' : 'bg-danger'}">${item.status}</span>`,
                 `<a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="left" title="Inventory products" class="action-icon addInventoryproduct" data-inventoryproduct="${item._id}"><i class="mdi mdi-plus"></i></a>
@@ -59,38 +59,113 @@ $(document).ready(function () {
 
     $('#addProductForm').submit(async function (event) {
         event.preventDefault();
+    
         $(".addinventory-load").removeClass("d-none");
         $(".addinventory").addClass("d-none");
     
+        // Validate cost and selling price
+        const costPrice = parseFloat($('#costPrice').val());
+        const sellingPrice = parseFloat($('#sellingPrice').val());
+    
+        if (isNaN(costPrice) || isNaN(sellingPrice) || costPrice <= 0 || sellingPrice <= 0) {
+            showToast("Invalid Input", "Please enter valid prices.", "top-center", "rgba(0,0,0,0.2)", "error");
+            $(".addinventory").removeClass("d-none");
+            $(".addinventory-load").addClass("d-none");
+            return;
+        }
+    
+        if (sellingPrice < costPrice) {
+            showToast("Pricing Error", "Selling price should be higher than cost price!", "top-center", "rgba(0,0,0,0.2)", "error");
+            $(".addinventory").removeClass("d-none");
+            $(".addinventory-load").addClass("d-none");
+            return;
+        }
+    
+        // Calculate markup percentage
+        const markupPercentage = ((sellingPrice - costPrice) / costPrice) * 100;
+    
+        // Handle product image
         const files = pond_one.getFiles();
         let file_path = files.length ? files[0].file.path : "./images/brand-identity.png";
     
+        // Construct inventory item object
         const item = {
-            name: $('#itemNameInput').val(),
+            name: $('#itemNameInput').val().trim(),
             image: file_path,
-            category: $('#itemCategoryInput').val(),
-            price: $('#itemPrice').val(),
+            category: $('#itemCategoryInput').val().trim(),
+            costPrice: costPrice.toFixed(2),  // Ensure proper formatting
+            sellingPrice: sellingPrice.toFixed(2),
+            markupPercentage: markupPercentage.toFixed(2), // Store it as a number
             status: $('#itemStatusInput').prop('checked'),
             itemBarcode: $('#barcodeScan').val() || $('#barcodeManual').val(),
-            barcodeQuantity: $('#barcodeQuantity').val(),
-            markupPercentage: $('#markupPercentage').val()  // Added the markup percentage
+            barcodeQuantity: parseInt($('#barcodeQuantity').val()) || 0
         };
     
         try {
             const result = await ipcRenderer.Insertinventory(item);
             if (result.message === "Item inserted successfully") {
                 $('#addProductsModal').modal('toggle');
-                showToast("! Inventory added", result.message, "top-center", "rgba(0,0,0,0.2)", "success");
+                showToast("Inventory Added", "Item successfully added.", "top-center", "rgba(0,0,0,0.2)", "success");
+    
+                // Reset the form after success
+                $(this)[0].reset();
+                ipcRenderer.send('request-initial-data');
             }
         } catch (error) {
-            showToast("Oh snap!", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
+            showToast("Error!", error.toString(), "top-center", "rgba(0,0,0,0.2)", "error");
         }
     
+        // Restore button states
         $(".addinventory").removeClass("d-none");
         $(".addinventory-load").addClass("d-none");
-        $(this)[0].reset();
-        ipcRenderer.send('request-initial-data');
     });
+
+
+    $(document).ready(function () {
+        const costPriceInput = $('#costPrice');
+        const sellingPriceInput = $('#sellingPrice');
+        const markupPercentageInput = $('#markupPercentage');
+    
+        function updateMarkup() {
+            const costPrice = parseFloat(costPriceInput.val());
+            const sellingPrice = parseFloat(sellingPriceInput.val());
+    
+            if (!isNaN(costPrice) && !isNaN(sellingPrice) && costPrice > 0) {
+                if (sellingPrice >= costPrice) {
+                    const markupPercentage = ((sellingPrice - costPrice) / costPrice) * 100;
+                    markupPercentageInput.val(markupPercentage.toFixed(2) + "%");
+                } else {
+                    markupPercentageInput.val("0%");
+                }
+            } else {
+                markupPercentageInput.val("");
+            }
+        }
+    
+        // Update markup on input
+        costPriceInput.on("input", updateMarkup);
+        sellingPriceInput.on("input", updateMarkup);
+
+
+                // Function to calculate and update markup percentage
+        function updateMarkupPercentage() {
+            let costPrice = parseFloat($('#editcostPrice').val());
+            let sellingPrice = parseFloat($('#edititemPrice').val());
+
+            if (!isNaN(costPrice) && !isNaN(sellingPrice) && costPrice > 0) {
+                let markup = ((sellingPrice - costPrice) / costPrice) * 100;
+                $('#editMarkupPercentage').val(markup.toFixed(2));
+            } else {
+                $('#editMarkupPercentage').val('');
+            }
+        }
+
+        // Attach event listeners to cost price and selling price fields
+        $('#editcostPrice, #edititemPrice').on('input', updateMarkupPercentage);
+
+    });
+    
+    
     
 
     function setupEventHandlers() {
@@ -251,11 +326,12 @@ $(document).ready(function () {
                     // Populate the edit form fields
                     $("#edititemNameInput").val(item.name);
                     $("#edititemCategoryInput").val(item.category);
-                    $("#edititemPrice").val(item.price);
+                    $("#editcostPrice").val(item.costPrice);  // Set cost price
+                    $("#edititemPrice").val(item.sellingPrice);  // Set selling price
+                    $("#editMarkupPercentage").val(item.markupPercentage); // Set markup
                     $("#edititemStatusInput").prop('checked', item.status);
                     $('#editbarcodeManual').val(item.itemBarcode);
                     $("#editbarcodeQuantity").val(item.stock);
-                    $("#editMarkupPercentage").val(item.markupPercentage); // Set the markup percentage value
     
                     $("#inventoryname").text(`Edit ${row_text} inventory`);
                     $("#EditProductsModal").data('itemid', itemId).modal("toggle");
@@ -268,6 +344,7 @@ $(document).ready(function () {
         });
     }
     
+    
     $("#save-editInventory").on("click", async function (event) {
         event.preventDefault();
         $(".editinventory-load").removeClass("d-none");
@@ -276,15 +353,29 @@ $(document).ready(function () {
         const itemId = $("#EditProductsModal").data('itemid');
         const name = $('#edititemNameInput').val();
         const category = $('#edititemCategoryInput').val();
-        const price = $('#edititemPrice').val();
+        const costPrice = parseFloat($('#editcostPrice').val());
+        const sellingPrice = parseFloat($('#edititemPrice').val());
+        const markupPercentage = parseFloat($('#editMarkupPercentage').val());
         const status = $('#edititemStatusInput').prop('checked');
         const itemBarcode = $('#editbarcodeScan').val() || $('#editbarcodeManual').val();
-        const barcodeQuantity = $('#editbarcodeQuantity').val();
-        const markupPercentage = $('#editMarkupPercentage').val();  // Added markup percentage
+        const barcodeQuantity = parseInt($('#editbarcodeQuantity').val()) || 0;
+    
+        if (isNaN(costPrice) || isNaN(sellingPrice) || costPrice <= 0 || sellingPrice <= 0) {
+            showToast("Invalid Input", "Please enter valid prices.", "top-center", "rgba(0,0,0,0.2)", "error");
+            $(".editInventory").removeClass("d-none");
+            $(".editinventory-load").addClass("d-none");
+            return;
+        }
+    
+        if (sellingPrice < costPrice) {
+            showToast("Pricing Error", "Selling price must be higher than cost price!", "top-center", "rgba(0,0,0,0.2)", "error");
+            $(".editInventory").removeClass("d-none");
+            $(".editinventory-load").addClass("d-none");
+            return;
+        }
     
         const files = pond_two.getFiles();
         let file_path = files.length ? files[0].file.path : "./core/assets/images/brand-identity.png";
-    
         const base64_img_ = file_path ? await ipcRenderer.returnBase64file(file_path) : null;
     
         const formData = {
@@ -292,11 +383,12 @@ $(document).ready(function () {
             itemId,
             name,
             category,
-            price,
+            costPrice: costPrice.toFixed(2),
+            sellingPrice: sellingPrice.toFixed(2),
+            markupPercentage: markupPercentage.toFixed(2),
             status,
             itemBarcode,
             barcodeQuantity,
-            markupPercentage,  // Include markup percentage in the formData
             fileData: base64_img_
         };
     
@@ -320,8 +412,9 @@ $(document).ready(function () {
             }
         });
     
-        $('#edititemNameInput, #edititemCategoryInput, #edititemPrice, #edititemMarkupInput').val("");
+        $('#edititemNameInput, #edititemCategoryInput, #editcostPrice, #edititemPrice, #editMarkupPercentage').val("");
     });
+    
     
 
     function handleDeleteInventoryBarcode() {
